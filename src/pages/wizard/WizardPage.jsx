@@ -8,7 +8,6 @@ import { todayCe } from '../../lib/rocDate'
 import WizardShell from '../../components/WizardShell'
 import Step1Client  from './Step1Client'
 import Step2Project from './Step2Project'
-import Step3Payment from './Step3Payment'
 import Step4Services from './Step4Services'
 import Step5Confirm from './Step5Confirm'
 import Step6Preview from './Step6Preview'
@@ -187,14 +186,14 @@ export default function WizardPage() {
 
   const canGoNext = () => {
     if (step === 1) return !!data.client
-    if (step === 5) return !!data.fee_amount && !!data.quote_number
+    if (step === 4) return !!data.fee_amount && !!data.quote_number && Math.abs((data.payment_stages || []).reduce((s, st) => s + Number(st.percentage || 0), 0) - 100) < 0.01
     return true
   }
 
   const handleNext = async () => {
     if (!canGoNext()) {
       if (step === 1) warning('請先選擇或建立客戶')
-      if (step === 5) warning('請填寫報價編號與金額')
+      if (step === 4) warning('請填寫報價編號、金額，且付款階段百分比需合計100%')
       return
     }
     await saveDraft()
@@ -260,20 +259,19 @@ export default function WizardPage() {
   return (
     <WizardShell
       currentStep={step}
-      onNext={step === 6 ? handleFinish : handleNext}
+      onNext={step === 5 ? handleFinish : handleNext}
       onBack={handleBack}
-      onSaveDraft={step < 6 ? saveDraft : null}
+      onSaveDraft={step < 5 ? saveDraft : null}
       onBackToDashboard={handleBackToDashboard}
       saving={saving}
       canNext={canGoNext()}
-      nextLabel={step === 6 ? '完成並儲存' : undefined}
+      nextLabel={step === 5 ? '完成並儲存' : undefined}
     >
       {step === 1 && <Step1Client  {...stepProps} />}
       {step === 2 && <Step2Project {...stepProps} />}
-      {step === 3 && <Step3Payment {...stepProps} />}
-      {step === 4 && <Step4Services {...stepProps} />}
-      {step === 5 && <Step5Confirm {...stepProps} />}
-      {step === 6 && <Step6Preview {...stepProps} onFinish={handleFinish} saving={saving} />}
+      {step === 3 && <Step4Services {...stepProps} />}
+      {step === 4 && <Step5Confirm {...stepProps} />}
+      {step === 5 && <Step6Preview {...stepProps} onFinish={handleFinish} saving={saving} />}
     </WizardShell>
   )
 }
