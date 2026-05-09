@@ -107,7 +107,7 @@ export default function WizardPage() {
         land_section: q.land_section || '',
         project_scale: q.project_scale || '',
         project_owner: q.project_owner || '',
-        project_address: q.project_address || '',
+        project_name: q.project_name || '',
         payment_stages: stages.map(st => ({ id: crypto.randomUUID(), stage_name: st.stage_name, percentage: st.percentage })),
         services: services.map(s => ({
           service_id: s.service_id,
@@ -146,7 +146,7 @@ export default function WizardPage() {
           land_section:         data.land_section,
           project_scale:        data.project_scale,
           project_owner:        data.project_owner,
-          project_address:      data.project_address,
+        project_name:         data.project_name,
           fee_amount:           Number(data.fee_amount) || 0,
           tax_included:         data.tax_included,
           notes:                data.notes,
@@ -200,6 +200,8 @@ export default function WizardPage() {
     await saveDraft()
     setStep(s => s + 1)
   }
+
+  const handleBack = () => setStep(s => s - 1)
 
   const handleBackToDashboard = async () => {
     await saveDraft()
@@ -259,6 +261,7 @@ export default function WizardPage() {
     <WizardShell
       currentStep={step}
       onNext={step === 6 ? handleFinish : handleNext}
+      onBack={handleBack}
       onSaveDraft={step < 6 ? saveDraft : null}
       onBackToDashboard={handleBackToDashboard}
       saving={saving}
