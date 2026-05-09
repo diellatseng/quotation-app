@@ -1,5 +1,5 @@
 // src/pages/wizard/WizardPage.jsx
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
@@ -52,43 +52,60 @@ export default function WizardPage() {
 
   const update = useCallback((fields) => setData(d => ({ ...d, ...fields })), [])
 
-  // Auto-generate a draft in Supabase when wizard first loads
-  useEffect(() => {
-    const createDraft = async () => {
+  const saveDraft = async () => {
+    setSaving(true)
+    if (!quotationId) {
+      // Insert new draft
       const { data: q, error: err } = await supabase
         .from('quotations')
         .insert([{
-          quote_number: initState().quote_number,
-          status: '草稿',
-          created_by: user.id,
-          quote_date: todayCe(),
+          quote_number:         data.quote_number,
+          status:               '草稿',
+          created_by:           user.id,
+          quote_date:           data.quote_date,
+          client_id:            data.client?.id || null,
+          contact_person_id:    data.selectedContactId || null,
+          project_template_id:  data.project_template_id || null,
+          building_permit:      data.building_permit,
+          land_section:         data.land_section,
+          project_scale:        data.project_scale,
+          project_owner:        data.project_owner,
+          project_address:      data.project_address,
+          fee_amount:           Number(data.fee_amount) || 0,
+          tax_included:         data.tax_included,
+          notes:                data.notes,
         }])
         .select()
         .single()
-      if (!err && q) setQuotationId(q.id)
+      if (!err && q) {
+        setQuotationId(q.id)
+        success('草稿已儲存')
+      } else {
+        error('儲存草稿失敗：' + (err?.message || '未知錯誤'))
+      }
+    } else {
+      // Update existing
+      const { error: err } = await supabase.from('quotations').update({
+        quote_number:         data.quote_number,
+        quote_date:           data.quote_date,
+        client_id:            data.client?.id || null,
+        contact_person_id:    data.selectedContactId || null,
+        project_template_id:  data.project_template_id || null,
+        building_permit:      data.building_permit,
+        land_section:         data.land_section,
+        project_scale:        data.project_scale,
+        project_owner:        data.project_owner,
+        project_address:      data.project_address,
+        fee_amount:           Number(data.fee_amount) || 0,
+        tax_included:         data.tax_included,
+        notes:                data.notes,
+      }).eq('id', quotationId)
+      if (!err) {
+        success('草稿已儲存')
+      } else {
+        error('儲存草稿失敗：' + err.message)
+      }
     }
-    createDraft()
-  }, [user.id])
-
-  const saveDraft = async () => {
-    if (!quotationId) return
-    setSaving(true)
-    await supabase.from('quotations').update({
-      quote_number:         data.quote_number,
-      quote_date:           data.quote_date,
-      client_id:            data.client?.id || null,
-      contact_person_id:    data.selectedContactId || null,
-      project_template_id:  data.project_template_id || null,
-      building_permit:      data.building_permit,
-      land_section:         data.land_section,
-      project_scale:        data.project_scale,
-      project_owner:        data.project_owner,
-      project_address:      data.project_address,
-      fee_amount:           Number(data.fee_amount) || 0,
-      tax_included:         data.tax_included,
-      notes:                data.notes,
-    }).eq('id', quotationId)
-    success('草稿已儲存')
     setSaving(false)
   }
 
@@ -151,6 +168,9 @@ export default function WizardPage() {
         }))
       )
     }
+
+    // Update status to finalized
+    await supabase.from('quotations').update({ status: '已報價' }).eq('id', quotationId)
 
     success('報價單已建立！')
     navigate(`/quotation/${quotationId}`)
