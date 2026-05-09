@@ -58,7 +58,7 @@ const A4Preview = forwardRef(function A4Preview({ quotation, services, stages, c
               {quotation.building_permit && <MetaRow label="建照號碼" value={quotation.building_permit} />}
               {quotation.land_section && <MetaRow label="地　　段" value={quotation.land_section} />}
               {quotation.project_scale && <MetaRow label="工程規模" value={quotation.project_scale} />}
-              {quotation.project_address && <MetaRow label="工程地址" value={quotation.project_address} />}
+              {quotation.project_name && <MetaRow label="工程名稱" value={quotation.project_name} />}
             </div>
           </div>
         )}

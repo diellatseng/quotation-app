@@ -27,7 +27,7 @@ export default function Step6Preview({ data, onFinish, saving }) {
     land_section:   data.land_section,
     project_scale:  data.project_scale,
     project_owner:  data.project_owner,
-    project_address: data.project_address,
+    project_name: data.project_name,
   }
 
   const exportPDF = async () => {

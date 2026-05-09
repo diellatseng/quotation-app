@@ -153,7 +153,7 @@ export default function QuotationDetailPage() {
       land_section:    qt.land_section,
       project_scale:   qt.project_scale,
       project_owner:   qt.project_owner,
-      project_address: qt.project_address,
+      project_name: qt.project_name,
       fee_amount:      qt.fee_amount,
       tax_included:    qt.tax_included,
       quote_date:      new Date().toISOString().split('T')[0],

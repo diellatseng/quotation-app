@@ -110,8 +110,8 @@ export default function Step2Project({ data, update }) {
           </div>
         </div>
         <div style={{ marginTop: 'var(--space-4)' }}>
-          <label className="field-label" htmlFor="project_address">工程地址</label>
-          <input id="project_address" {...field('project_address')} placeholder="施工地址" />
+          <label className="field-label" htmlFor="project_name">工程名稱</label>
+          <input id="project_name" {...field('project_name')} placeholder="工程名稱" />
         </div>
       </div>
     </div>

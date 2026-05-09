@@ -25,7 +25,7 @@ const initState = () => ({
   land_section: '',
   project_scale: '',
   project_owner: '',
-  project_address: '',
+  project_name: '',
 
   // Step 3
   payment_stages: [{ id: crypto.randomUUID(), stage_name: '', percentage: 0 }],
@@ -171,7 +171,7 @@ export default function WizardPage() {
         land_section:         data.land_section,
         project_scale:        data.project_scale,
         project_owner:        data.project_owner,
-        project_address:      data.project_address,
+        project_name:         data.project_name,
         fee_amount:           Number(data.fee_amount) || 0,
         tax_included:         data.tax_included,
         notes:                data.notes,
