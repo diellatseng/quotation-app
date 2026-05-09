@@ -127,8 +127,33 @@ export default function ClientPicker({ value, onChange }) {
             marginTop: 4,
           }}>
             {filtered.length === 0 ? (
-              <div style={{ padding: 'var(--space-4)', color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)' }}>
-                找不到符合的客戶
+              <div style={{ padding: 'var(--space-4)', display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+                <div style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)' }}>
+                  找不到符合的客戶
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNewClient(p => ({ ...p, company_name: search }))
+                    setShowCreate(true)
+                    setSearch('')
+                  }}
+                  style={{
+                    padding: 'var(--space-2) var(--space-3)',
+                    background: 'var(--color-accent)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: 'var(--radius-md)',
+                    cursor: 'pointer',
+                    fontSize: 'var(--text-sm)',
+                    fontWeight: 600,
+                    transition: 'opacity var(--transition)',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.opacity = '0.9'}
+                  onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+                >
+                  使用「{search}」建立新客戶
+                </button>
               </div>
             ) : (
               filtered.map((c, idx) => (
