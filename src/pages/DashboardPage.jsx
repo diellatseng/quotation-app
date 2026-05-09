@@ -203,7 +203,7 @@ export default function DashboardPage() {
                   padding: 'var(--space-4)',
                   borderBottom: '1px solid var(--color-border)',
                   cursor: 'pointer',
-                }} onClick={() => navigate(`/quotation/${q.id}`)}>
+                }} onClick={() => q.status === '草稿' ? navigate(`/quotation/new?edit=${q.id}`) : navigate(`/quotation/${q.id}`)}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-2)' }}>
                     <span style={{ fontWeight: 700, fontSize: 'var(--text-sm)', fontFamily: 'var(--font-mono)' }}>
                       {q.quote_number}{q.version > 1 ? ` v${q.version}` : ''}
@@ -234,7 +234,7 @@ export default function DashboardPage() {
                 <tbody>
                   {filtered.map(q => (
                     <tr key={q.id} style={{ cursor: 'pointer' }}
-                      onClick={() => navigate(`/quotation/${q.id}`)}>
+                      onClick={() => q.status === '草稿' ? navigate(`/quotation/new?edit=${q.id}`) : navigate(`/quotation/${q.id}`)}>
                       <td>
                         <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-sm)', background: 'var(--color-bg-subtle)', padding: '2px 8px', borderRadius: 4 }}>
                           {q.quote_number}{q.version > 1 ? ` v${q.version}` : ''}
@@ -249,7 +249,7 @@ export default function DashboardPage() {
                       <td onClick={e => e.stopPropagation()}>
                         <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
                           <button className="btn btn-sm btn-secondary"
-                            onClick={() => navigate(`/quotation/${q.id}`)}>
+                            onClick={() => q.status === '草稿' ? navigate(`/quotation/new?edit=${q.id}`) : navigate(`/quotation/${q.id}`)}>
                             檢視
                           </button>
                           {q.status !== '已封存' && (

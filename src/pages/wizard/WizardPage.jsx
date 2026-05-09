@@ -1,6 +1,6 @@
 // src/pages/wizard/WizardPage.jsx
-import { useState, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect, useCallback } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useNotification } from '../../context/NotificationContext.jsx'
@@ -45,12 +45,88 @@ export default function WizardPage() {
   const [step, setStep]   = useState(1)
   const [data, setData]   = useState(initState)
   const [saving, setSaving] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [quotationId, setQuotationId] = useState(null)
   const { user }          = useAuth()
   const { success, error, warning } = useNotification()
   const navigate          = useNavigate()
 
+  const [searchParams] = useSearchParams()
+  const editId = searchParams.get('edit')
+
   const update = useCallback((fields) => setData(d => ({ ...d, ...fields })), [])
+
+  // Load existing quotation if editing
+  useEffect(() => {
+    if (!editId) return
+    const loadQuotation = async () => {
+      setLoading(true)
+      // Load quotation
+      const { data: q, error: qErr } = await supabase
+        .from('quotations')
+        .select(`
+          *,
+          clients(id, company_name),
+          contact_persons(id, name)
+        `)
+        .eq('id', editId)
+        .single()
+      if (qErr || !q) {
+        error('載入報價單失敗')
+        setLoading(false)
+        return
+      }
+
+      // Load services
+      const { data: services, error: sErr } = await supabase
+        .from('quotation_services')
+        .select('*')
+        .eq('quotation_id', editId)
+        .order('sort_order')
+
+      // Load payment stages
+      const { data: stages, error: pErr } = await supabase
+        .from('payment_stages')
+        .select('*')
+        .eq('quotation_id', editId)
+        .order('sort_order')
+
+      if (sErr || pErr) {
+        error('載入資料失敗')
+        setLoading(false)
+        return
+      }
+
+      // Set data
+      setData({
+        client: q.clients,
+        contacts: [], // TODO: load contacts if needed
+        selectedContactId: q.contact_person_id,
+        project_template_id: q.project_template_id,
+        building_permit: q.building_permit || '',
+        land_section: q.land_section || '',
+        project_scale: q.project_scale || '',
+        project_owner: q.project_owner || '',
+        project_address: q.project_address || '',
+        payment_stages: stages.map(st => ({ id: crypto.randomUUID(), stage_name: st.stage_name, percentage: st.percentage })),
+        services: services.map(s => ({
+          service_id: s.service_id,
+          service_name: s.service_name,
+          category: s.category,
+          checklist_items: s.checklist_items || [],
+          is_added: s.is_added,
+        })),
+        quote_number: q.quote_number,
+        quote_date: q.quote_date,
+        fee_amount: q.fee_amount?.toString() || '',
+        tax_included: q.tax_included,
+        notes: q.notes || '',
+      })
+      setQuotationId(q.id)
+      setLoading(false)
+    }
+    loadQuotation()
+  }, [editId, error])
 
   const saveDraft = async () => {
     setSaving(true)
