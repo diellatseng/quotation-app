@@ -8,6 +8,7 @@ export default function ClientPicker({ value, onChange }) {
   const [search, setSearch]         = useState('')
   const [showCreate, setShowCreate] = useState(false)
   const [loading, setLoading]       = useState(false)
+  const [highlightedIndex, setHighlightedIndex] = useState(-1)
   const [newClient, setNewClient]   = useState({
     company_name: '', address: '', phone: '', fax: '', email: '',
     responsible_person_name: '', responsible_person_title: '',
@@ -34,8 +35,45 @@ export default function ClientPicker({ value, onChange }) {
       .eq('client_id', client.id)
       .order('is_primary', { ascending: false })
     onChange({ client, contacts: contacts || [] })
-    setSearch(client.company_name)
+    setSearch('')
     setShowCreate(false)
+    setHighlightedIndex(-1)
+  }
+
+  const handleKeyDown = (e) => {
+    if (!search || showCreate) return
+    
+    const isOpen = search && !showCreate && filtered.length > 0
+    if (!isOpen) {
+      if (e.key === 'Escape') {
+        setSearch('')
+      }
+      return
+    }
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault()
+        setHighlightedIndex(prev => prev < filtered.length - 1 ? prev + 1 : prev)
+        break
+      case 'ArrowUp':
+        e.preventDefault()
+        setHighlightedIndex(prev => prev > 0 ? prev - 1 : -1)
+        break
+      case 'Enter':
+        e.preventDefault()
+        if (highlightedIndex >= 0 && highlightedIndex < filtered.length) {
+          selectClient(filtered[highlightedIndex])
+        }
+        break
+      case 'Escape':
+        e.preventDefault()
+        setSearch('')
+        setHighlightedIndex(-1)
+        break
+      default:
+        break
+    }
   }
 
   const createClient = async () => {
@@ -54,7 +92,7 @@ export default function ClientPicker({ value, onChange }) {
       .from('contact_persons').select('*').eq('client_id', created.id)
     setClients(prev => [...prev, created])
     onChange({ client: created, contacts: contacts || [] })
-    setSearch(created.company_name)
+    setSearch('')
     setShowCreate(false)
     success('客戶資料已建立')
     setLoading(false)
@@ -68,7 +106,11 @@ export default function ClientPicker({ value, onChange }) {
           type="text"
           className="field-input"
           value={search}
-          onChange={e => setSearch(e.target.value)}
+          onChange={e => {
+            setSearch(e.target.value)
+            setHighlightedIndex(-1)
+          }}
+          onKeyDown={handleKeyDown}
           placeholder="搜尋現有客戶（公司名稱、電話）"
           aria-label="搜尋客戶"
           autoComplete="off"
@@ -89,7 +131,7 @@ export default function ClientPicker({ value, onChange }) {
                 找不到符合的客戶
               </div>
             ) : (
-              filtered.map(c => (
+              filtered.map((c, idx) => (
                 <button
                   key={c.id}
                   type="button"
@@ -97,13 +139,15 @@ export default function ClientPicker({ value, onChange }) {
                   style={{
                     display: 'block', width: '100%', textAlign: 'left',
                     padding: 'var(--space-3) var(--space-4)',
-                    background: 'none', border: 'none', cursor: 'pointer',
+                    background: idx === highlightedIndex ? 'var(--color-bg-subtle)' : 'none',
+                    border: 'none', cursor: 'pointer',
                     fontSize: 'var(--text-base)',
                     borderBottom: '1px solid var(--color-border)',
                     color: 'var(--color-text)',
+                    transition: 'background var(--transition)',
                   }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'var(--color-bg-subtle)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                  onMouseEnter={() => setHighlightedIndex(idx)}
+                  onMouseLeave={() => setHighlightedIndex(-1)}
                 >
                   <div style={{ fontWeight: 600 }}>{c.company_name}</div>
                   {c.phone && <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>{c.phone}</div>}
