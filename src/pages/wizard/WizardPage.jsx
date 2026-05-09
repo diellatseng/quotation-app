@@ -108,7 +108,10 @@ export default function WizardPage() {
     setStep(s => s + 1)
   }
 
-  const handleBack = () => setStep(s => s - 1)
+  const handleBackToDashboard = async () => {
+    await saveDraft()
+    navigate('/dashboard')
+  }
 
   const handleFinish = async () => {
     if (!quotationId) return
@@ -160,8 +163,8 @@ export default function WizardPage() {
     <WizardShell
       currentStep={step}
       onNext={step === 6 ? handleFinish : handleNext}
-      onBack={handleBack}
       onSaveDraft={step < 6 ? saveDraft : null}
+      onBackToDashboard={handleBackToDashboard}
       saving={saving}
       canNext={canGoNext()}
       nextLabel={step === 6 ? '完成並儲存' : undefined}

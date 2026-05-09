@@ -14,6 +14,7 @@ export default function WizardShell({
   onNext,
   onBack,
   onSaveDraft,
+  onBackToDashboard,
   saving,
   canNext = true,
   nextLabel,
@@ -107,6 +108,16 @@ export default function WizardShell({
         flexWrap: 'wrap',
       }}>
         <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
+          {onBackToDashboard && (
+            <button
+              className="btn btn-secondary"
+              onClick={onBackToDashboard}
+              disabled={saving}
+              aria-label="返回清單頁"
+            >
+              {saving ? '儲存中…' : '返回清單頁'}
+            </button>
+          )}
           {!isFirst && (
             <button className="btn btn-secondary" onClick={onBack} aria-label="上一步">
               ← {backLabel || '上一步'}
