@@ -1,0 +1,171 @@
+// src/pages/admin/ClientsAdmin.jsx
+import { useState, useEffect } from 'react'
+import { supabase } from '../../lib/supabase'
+import { useNotification } from '../../context/NotificationContext.jsx'
+
+export default function ClientsAdmin() {
+  const [clients, setClients]   = useState([])
+  const [selected, setSelected] = useState(null)
+  const [contacts, setContacts] = useState([])
+  const [form, setForm]         = useState(emptyClient())
+  const [loading, setLoading]   = useState(false)
+  const [showForm, setShowForm] = useState(false)
+  const { success, error }      = useNotification()
+
+  function emptyClient() {
+    return { company_name: '', address: '', phone: '', fax: '', email: '', responsible_person_name: '', responsible_person_title: '' }
+  }
+
+  const load = async () => {
+    const { data } = await supabase.from('clients').select('*').order('company_name')
+    setClients(data || [])
+  }
+
+  useEffect(() => { load() }, [])
+
+  const selectClient = async (c) => {
+    setSelected(c)
+    setForm(c)
+    const { data } = await supabase.from('contact_persons').select('*').eq('client_id', c.id).order('is_primary', { ascending: false })
+    setContacts(data || [])
+    setShowForm(true)
+  }
+
+  const saveClient = async () => {
+    setLoading(true)
+    if (selected) {
+      const { error: e } = await supabase.from('clients').update(form).eq('id', selected.id)
+      if (e) { error('儲存失敗：' + e.message); setLoading(false); return }
+      success('客戶資料已更新')
+    } else {
+      const { error: e } = await supabase.from('clients').insert([form])
+      if (e) { error('新增失敗：' + e.message); setLoading(false); return }
+      success('客戶已新增')
+    }
+    await load()
+    setShowForm(false)
+    setSelected(null)
+    setForm(emptyClient())
+    setLoading(false)
+  }
+
+  const deleteClient = async (id) => {
+    if (!window.confirm('確定刪除？相關報價單的客戶連結將被清除。')) return
+    await supabase.from('clients').delete().eq('id', id)
+    success('已刪除')
+    setShowForm(false); setSelected(null)
+    load()
+  }
+
+  const addContact = async () => {
+    const { data } = await supabase.from('contact_persons').insert([{
+      client_id: selected.id, name: '新聯絡人', mobile: '', office_phone: '', fax: '', email: '', is_primary: false,
+    }]).select().single()
+    setContacts(prev => [...prev, data])
+  }
+
+  const updateContact = async (idx, field, val) => {
+    const c = contacts[idx]
+    const next = [...contacts]; next[idx] = { ...c, [field]: val }; setContacts(next)
+    await supabase.from('contact_persons').update({ [field]: val }).eq('id', c.id)
+  }
+
+  const deleteContact = async (id) => {
+    await supabase.from('contact_persons').delete().eq('id', id)
+    setContacts(prev => prev.filter(c => c.id !== id))
+  }
+
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-6)' }}>
+        <h2 style={{ fontSize: 'var(--text-xl)', fontWeight: 700 }}>客戶資料庫</h2>
+        <button className="btn btn-primary" onClick={() => { setSelected(null); setForm(emptyClient()); setContacts([]); setShowForm(true) }}>
+          + 新增客戶
+        </button>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: showForm ? '1fr 1.4fr' : '1fr', gap: 'var(--space-5)' }}>
+        {/* List */}
+        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+          {clients.length === 0 ? (
+            <p style={{ padding: 'var(--space-6)', color: 'var(--color-text-muted)', textAlign: 'center' }}>尚無客戶</p>
+          ) : (
+            clients.map(c => (
+              <div key={c.id}
+                onClick={() => selectClient(c)}
+                style={{
+                  padding: 'var(--space-4)',
+                  borderBottom: '1px solid var(--color-border)',
+                  cursor: 'pointer',
+                  background: selected?.id === c.id ? 'var(--color-accent-subtle)' : 'transparent',
+                  borderLeft: selected?.id === c.id ? '3px solid var(--color-accent)' : '3px solid transparent',
+                }}>
+                <div style={{ fontWeight: 600 }}>{c.company_name}</div>
+                <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>{c.phone} {c.email}</div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Form */}
+        {showForm && (
+          <div className="card">
+            <p className="section-title">{selected ? '編輯客戶' : '新增客戶'}</p>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)', marginBottom: 'var(--space-4)' }}>
+              <F label="公司名稱 *" value={form.company_name} onChange={v => setForm(f => ({ ...f, company_name: v }))} />
+              <F label="電子郵件" value={form.email} onChange={v => setForm(f => ({ ...f, email: v }))} />
+              <F label="電話" value={form.phone} onChange={v => setForm(f => ({ ...f, phone: v }))} />
+              <F label="傳真" value={form.fax} onChange={v => setForm(f => ({ ...f, fax: v }))} />
+              <F label="負責人姓名" value={form.responsible_person_name} onChange={v => setForm(f => ({ ...f, responsible_person_name: v }))} />
+              <F label="負責人職稱" value={form.responsible_person_title} onChange={v => setForm(f => ({ ...f, responsible_person_title: v }))} />
+            </div>
+            <F label="地址" value={form.address} onChange={v => setForm(f => ({ ...f, address: v }))} />
+
+            {/* Contacts */}
+            {selected && (
+              <div style={{ marginTop: 'var(--space-6)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-3)' }}>
+                  <p className="section-title" style={{ marginBottom: 0 }}>聯絡人</p>
+                  <button className="btn btn-ghost btn-sm" onClick={addContact}>+ 新增</button>
+                </div>
+                {contacts.map((ct, idx) => (
+                  <div key={ct.id} style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', padding: 'var(--space-3)', marginBottom: 'var(--space-3)' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-2)', marginBottom: 'var(--space-2)' }}>
+                      <F label="姓名" value={ct.name} onChange={v => updateContact(idx, 'name', v)} compact />
+                      <F label="手機" value={ct.mobile || ''} onChange={v => updateContact(idx, 'mobile', v)} compact />
+                      <F label="辦公室電話" value={ct.office_phone || ''} onChange={v => updateContact(idx, 'office_phone', v)} compact />
+                      <F label="電子郵件" value={ct.email || ''} onChange={v => updateContact(idx, 'email', v)} compact />
+                    </div>
+                    <div style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'center' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', cursor: 'pointer', fontSize: 'var(--text-sm)' }}>
+                        <input type="checkbox" checked={ct.is_primary}
+                          onChange={e => updateContact(idx, 'is_primary', e.target.checked)} />
+                        主要聯絡人
+                      </label>
+                      <button className="btn btn-danger btn-sm" onClick={() => deleteContact(ct.id)}>刪除</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: 'var(--space-3)', marginTop: 'var(--space-5)' }}>
+              <button className="btn btn-primary" onClick={saveClient} disabled={loading}>{loading ? '儲存中…' : '儲存'}</button>
+              {selected && <button className="btn btn-danger" onClick={() => deleteClient(selected.id)}>刪除客戶</button>}
+              <button className="btn btn-ghost" onClick={() => { setShowForm(false); setSelected(null) }}>取消</button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function F({ label, value, onChange, compact }) {
+  return (
+    <div style={{ marginBottom: compact ? 0 : 'var(--space-4)' }}>
+      <label className="field-label">{label}</label>
+      <input className="field-input" value={value || ''} onChange={e => onChange(e.target.value)} />
+    </div>
+  )
+}
