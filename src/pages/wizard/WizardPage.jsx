@@ -202,6 +202,13 @@ export default function WizardPage() {
 
   const handleBack = () => setStep(s => s - 1)
 
+  const handleStepClick = (clickedStep) => {
+    if (clickedStep === step) return
+    setStep(clickedStep)
+  }
+
+  // todo:目前enable/disable steps僅適用於新的quotation，如果是已經儲存過個草稿，應該要能夠nav to any step that has data
+
   const handleBackToDashboard = async () => {
     await saveDraft()
     navigate('/dashboard')
@@ -263,6 +270,7 @@ export default function WizardPage() {
       onBack={handleBack}
       onSaveDraft={step < 5 ? saveDraft : null}
       onBackToDashboard={handleBackToDashboard}
+      onStepClick={handleStepClick}
       saving={saving}
       canNext={canGoNext()}
       nextLabel={step === 5 ? '完成並儲存' : undefined}

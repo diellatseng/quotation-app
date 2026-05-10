@@ -14,6 +14,7 @@ export default function WizardShell({
   onBack,
   onSaveDraft,
   onBackToDashboard,
+  onStepClick,
   saving,
   canNext = true,
   nextLabel,
@@ -57,9 +58,19 @@ export default function WizardShell({
                     flexShrink: 0,
                   }} />
                 )}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+                <button
+                  type="button"
+                  onClick={() => onStepClick && onStepClick(step.num)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 'var(--space-2)',
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    padding: 'var(--space-1)', borderRadius: 'var(--radius-md)',
+                    transition: 'all var(--transition)',
+                  }}
+                  aria-label={`前往第${step.num}步：${step.label}`}
+                  aria-current={isCurrent ? 'step' : undefined}
+                >
                   <div
-                    aria-current={isCurrent ? 'step' : undefined}
                     style={{
                       width: 32, height: 32,
                       borderRadius: 'var(--radius-full)',
@@ -83,7 +94,7 @@ export default function WizardShell({
                   }}>
                     {step.label}
                   </span>
-                </div>
+                </button>
               </li>
             )
           })}
