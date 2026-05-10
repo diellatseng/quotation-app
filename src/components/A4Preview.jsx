@@ -239,7 +239,8 @@ const a4 = {
     background: '#fff',
   },
   page: {
-    width: 794,
+    width: '100%',
+    maxWidth: 794,
     minHeight: 1123,
     padding: '40px 50px',
     background: '#fff',

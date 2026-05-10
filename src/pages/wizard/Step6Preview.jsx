@@ -66,7 +66,7 @@ export default function Step6Preview({ data, onFinish, saving }) {
         borderRadius: 'var(--radius-md)',
         padding: 'var(--space-6)',
       }}>
-        <div style={{ boxShadow: 'var(--shadow-lg)', display: 'inline-block', minWidth: 794 }}>
+        <div style={{ boxShadow: 'var(--shadow-lg)', width: '100%' }}>
           <A4Preview
             ref={previewRef}
             quotation={quotation}
