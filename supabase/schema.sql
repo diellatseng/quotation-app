@@ -184,7 +184,6 @@ UPDATE quotations
 SET updated_at = NOW()
 WHERE project_name IS NOT NULL;
 
-
 -- Migration: add description column to quotation_services
 -- Run this against your Supabase project if it already exists
 

@@ -102,7 +102,7 @@ export default function WizardShell({
       </nav>
 
       {/* Content */}
-      <main style={{ flex: 1, padding: 'var(--space-8) var(--space-6)', maxWidth: 800, width: '100%', margin: '0 auto' }}>
+      <main style={{ flex: 1, padding: 'var(--space-8) var(--space-6)', maxWidth: 902, width: '100%', margin: '0 auto' }}>
         {children}
       </main>
 
