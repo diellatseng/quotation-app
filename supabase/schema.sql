@@ -171,3 +171,14 @@ BEGIN
     );
   END LOOP;
 END $$;
+
+
+
+-- SQL Migration: Rename project_address to project_name
+
+ALTER TABLE quotations
+RENAME COLUMN project_address TO project_name;
+
+UPDATE quotations
+SET updated_at = NOW()
+WHERE project_name IS NOT NULL;

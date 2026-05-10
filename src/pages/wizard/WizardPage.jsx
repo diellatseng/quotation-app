@@ -207,8 +207,6 @@ export default function WizardPage() {
     setStep(clickedStep)
   }
 
-  // todo:目前enable/disable steps僅適用於新的quotation，如果是已經儲存過個草稿，應該要能夠nav to any step that has data
-
   const handleBackToDashboard = async () => {
     await saveDraft()
     navigate('/dashboard')
@@ -261,7 +259,7 @@ export default function WizardPage() {
     setSaving(false)
   }
 
-  const stepProps = { data, update, quotationId }
+  const stepProps = { data, update, quotationId, loading }
 
   return (
     <WizardShell
