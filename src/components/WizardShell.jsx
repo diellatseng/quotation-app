@@ -26,13 +26,20 @@ export default function WizardShell({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: 'var(--color-bg)' }}>
-      {/* Step indicator */}
+
+      {/* ── Sticky step indicator ── */}
       <nav
         aria-label="報價單建立步驟"
         style={{
-          background: 'var(--color-bg-surface)',
+          position: 'sticky',
+          top: 0,
+          zIndex: 100,
+          background: 'rgba(255,255,255,0.85)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
           borderBottom: '1px solid var(--color-border)',
-          padding: 'var(--space-4) var(--space-6)',
+          boxShadow: '0 2px 12px rgba(0,0,0,0.07)',
+          padding: 'var(--space-3) var(--space-6)',
           overflowX: 'auto',
         }}
       >
@@ -43,7 +50,8 @@ export default function WizardShell({
           listStyle: 'none',
           minWidth: 'max-content',
           margin: '0 auto',
-          maxWidth: 800,
+          maxWidth: 902,
+          padding: 0,
         }}>
           {STEPS.map((step, idx) => {
             const isDone    = step.num < currentStep
@@ -52,10 +60,13 @@ export default function WizardShell({
               <li key={step.num} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
                 {idx > 0 && (
                   <div style={{
-                    width: 24, height: 2,
-                    background: isDone ? 'var(--color-accent)' : 'var(--color-border)',
+                    width: 28, height: 2,
+                    background: isDone
+                      ? 'var(--color-accent)'
+                      : 'var(--color-border)',
                     borderRadius: 1,
                     flexShrink: 0,
+                    transition: 'background 300ms ease',
                   }} />
                 )}
                 <button
@@ -63,34 +74,43 @@ export default function WizardShell({
                   onClick={() => onStepClick && onStepClick(step.num)}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 'var(--space-2)',
-                    background: 'none', border: 'none', cursor: 'pointer',
-                    padding: 'var(--space-1)', borderRadius: 'var(--radius-md)',
-                    transition: 'all var(--transition)',
+                    background: 'none', border: 'none', cursor: isDone || isCurrent ? 'pointer' : 'default',
+                    padding: '4px 6px', borderRadius: 'var(--radius-md)',
+                    transition: 'background var(--transition)',
                   }}
                   aria-label={`前往第${step.num}步：${step.label}`}
                   aria-current={isCurrent ? 'step' : undefined}
                 >
-                  <div
-                    style={{
-                      width: 32, height: 32,
-                      borderRadius: 'var(--radius-full)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 'var(--text-sm)',
-                      fontWeight: 700,
-                      flexShrink: 0,
-                      background: isDone ? 'var(--color-accent)' : isCurrent ? 'var(--color-text)' : 'var(--color-bg-subtle)',
-                      color: (isDone || isCurrent) ? '#fff' : 'var(--color-text-muted)',
-                      border: isCurrent ? '2px solid var(--color-text)' : '2px solid transparent',
-                      transition: 'all var(--transition)',
-                    }}
-                  >
+                  {/* Circle */}
+                  <div style={{
+                    width: 28, height: 28,
+                    borderRadius: 'var(--radius-full)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    flexShrink: 0,
+                    transition: 'all 300ms ease',
+                    background: isDone
+                      ? 'var(--color-accent)'
+                      : isCurrent
+                        ? 'var(--color-text)'
+                        : 'var(--color-bg-subtle)',
+                    color: isDone || isCurrent ? '#fff' : 'var(--color-text-muted)',
+                    boxShadow: isCurrent ? '0 0 0 3px var(--color-accent-subtle)' : 'none',
+                  }}>
                     {isDone ? '✓' : step.num}
                   </div>
+                  {/* Label */}
                   <span style={{
                     fontSize: 'var(--text-sm)',
                     fontWeight: isCurrent ? 700 : 400,
-                    color: isCurrent ? 'var(--color-text)' : isDone ? 'var(--color-accent)' : 'var(--color-text-muted)',
+                    color: isCurrent
+                      ? 'var(--color-text)'
+                      : isDone
+                        ? 'var(--color-accent)'
+                        : 'var(--color-text-muted)',
                     whiteSpace: 'nowrap',
+                    transition: 'color 300ms ease',
                   }}>
                     {step.label}
                   </span>
@@ -101,62 +121,86 @@ export default function WizardShell({
         </ol>
       </nav>
 
-      {/* Content */}
-      <main style={{ flex: 1, padding: 'var(--space-8) var(--space-6)', maxWidth: 902, width: '100%', margin: '0 auto' }}>
+      {/* ── Scrollable content ── */}
+      <main style={{
+        flex: 1,
+        padding: 'var(--space-8) var(--space-6) var(--space-8)',
+        maxWidth: 902,
+        width: '100%',
+        margin: '0 auto',
+        // Extra bottom padding so content isn't hidden behind sticky footer
+        paddingBottom: 'calc(var(--space-8) + 72px)',
+      }}>
         {children}
       </main>
 
-      {/* Navigation bar */}
+      {/* ── Sticky floating footer toolbar ── */}
       <footer style={{
-        background: 'var(--color-bg-surface)',
+        position: 'sticky',
+        bottom: 0,
+        zIndex: 100,
+        // Frosted glass
+        background: 'rgba(255,255,255,0.88)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
         borderTop: '1px solid var(--color-border)',
-        padding: 'var(--space-4) var(--space-6)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: 'var(--space-4)',
-        flexWrap: 'wrap',
+        boxShadow: '0 -4px 20px rgba(0,0,0,0.08)',
+        padding: 'var(--space-3) var(--space-6)',
       }}>
-        <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
-          {onBackToDashboard && (
-            <button
-              className="btn btn-secondary"
-              onClick={onBackToDashboard}
-              disabled={saving}
-              aria-label="返回清單頁"
-            >
-              {saving ? '儲存中…' : '返回清單頁'}
-            </button>
-          )}
-          {!isFirst && (
-            <button className="btn btn-secondary" onClick={onBack} aria-label="上一步">
-              ← {backLabel || '上一步'}
-            </button>
-          )}
-        </div>
-        <div style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'center' }}>
-          {onSaveDraft && (
-            <button
-              className="btn btn-ghost btn-sm"
-              onClick={onSaveDraft}
-              disabled={saving}
-              aria-label="儲存草稿"
-            >
-              {saving ? '儲存中…' : '儲存草稿'}
-            </button>
-          )}
-          {( !isLast || nextLabel ) && (
-            <button
-              className="btn btn-primary"
-              onClick={onNext}
-              disabled={isLast ? saving : !canNext}
-              aria-label="下一步"
-            >
-              {nextLabel || '下一步'} →
-            </button>
-          )}
+        <div style={{
+          maxWidth: 902,
+          margin: '0 auto',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 'var(--space-4)',
+          flexWrap: 'wrap',
+        }}>
+          {/* Left: back actions */}
+          <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+            {onBackToDashboard && (
+              <button
+                className="btn btn-secondary"
+                onClick={onBackToDashboard}
+                disabled={saving}
+                aria-label="返回清單頁"
+              >
+                ← 返回清單
+              </button>
+            )}
+            {!isFirst && (
+              <button className="btn btn-secondary" onClick={onBack} aria-label="上一步">
+                ← {backLabel || '上一步'}
+              </button>
+            )}
+          </div>
+
+          {/* Right: save + next */}
+          <div style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'center' }}>
+            {onSaveDraft && (
+              <button
+                className="btn btn-ghost btn-sm"
+                onClick={onSaveDraft}
+                disabled={saving}
+                aria-label="儲存草稿"
+              >
+                {saving ? '儲存中…' : '儲存草稿'}
+              </button>
+            )}
+            {(!isLast || nextLabel) && (
+              <button
+                className="btn btn-primary"
+                onClick={onNext}
+                disabled={isLast ? saving : !canNext}
+                aria-label="下一步"
+              >
+                {nextLabel || '下一步'} →
+              </button>
+            )}
+          </div>
         </div>
       </footer>
+
     </div>
   )
 }

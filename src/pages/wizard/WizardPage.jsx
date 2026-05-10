@@ -258,12 +258,94 @@ export default function WizardPage() {
 
   const handleFinish = async () => {
     setSaving(true)
-    // Save all data
-    await saveDraft()
+    try {
+      // 1. Upsert the quotation record (reuse saveDraft logic but silently)
+      let qid = quotationId
+      if (!qid) {
+        const { data: q, error: err } = await supabase
+          .from('quotations')
+          .insert([{
+            quote_number:        data.quote_number,
+            status:              '已報價',
+            created_by:          user.id,
+            quote_date:          data.quote_date,
+            client_id:           data.client?.id || null,
+            contact_person_id:   data.selectedContactId || null,
+            project_template_id: data.project_template_id || null,
+            building_permit:     data.building_permit,
+            land_section:        data.land_section,
+            project_scale:       data.project_scale,
+            project_owner:       data.project_owner,
+            project_name:        data.project_name,
+            fee_amount:          Number(data.fee_amount) || 0,
+            tax_included:        data.tax_included,
+            notes:               data.notes,
+          }])
+          .select()
+          .single()
+        if (err || !q) { error('儲存失敗：' + (err?.message || '未知錯誤')); setSaving(false); return }
+        qid = q.id
+        setQuotationId(qid)
+      } else {
+        const { error: err } = await supabase.from('quotations').update({
+          quote_number:        data.quote_number,
+          status:              '已報價',
+          quote_date:          data.quote_date,
+          client_id:           data.client?.id || null,
+          contact_person_id:   data.selectedContactId || null,
+          project_template_id: data.project_template_id || null,
+          building_permit:     data.building_permit,
+          land_section:        data.land_section,
+          project_scale:       data.project_scale,
+          project_owner:       data.project_owner,
+          project_name:        data.project_name,
+          fee_amount:          Number(data.fee_amount) || 0,
+          tax_included:        data.tax_included,
+          notes:               data.notes,
+        }).eq('id', qid)
+        if (err) { error('儲存失敗：' + err.message); setSaving(false); return }
+      }
 
-    success('報價單已儲存！')
-    navigate(`/quotation/${quotationId}`)
-    setSaving(false)
+      // 2. Save services
+      await supabase.from('quotation_services').delete().eq('quotation_id', qid)
+      if (data.services.length) {
+        await supabase.from('quotation_services').insert(
+          data.services.map((s, i) => ({
+            quotation_id: qid,
+            service_id:   s.service_id || null,
+            service_name: s.service_name,
+            category:     s.category || null,
+            description:  s.description || null,
+            checklist_items: s.checklist_items || [],
+            sort_order:   i,
+            is_added:     s.is_added || false,
+          }))
+        )
+      }
+
+      // 3. Save payment stages
+      await supabase.from('payment_stages').delete().eq('quotation_id', qid)
+      if (data.payment_stages.length) {
+        const fee   = Number(data.fee_amount) || 0
+        const tax   = data.tax_included ? fee * 0.05 : 0
+        const grand = fee + tax
+        await supabase.from('payment_stages').insert(
+          data.payment_stages.map((st, i) => ({
+            quotation_id: qid,
+            stage_name:   st.stage_name,
+            percentage:   Number(st.percentage),
+            amount:       Number(st.percentage) / 100 * grand,
+            sort_order:   i,
+          }))
+        )
+      }
+
+      // 4. Single toast then navigate
+      success('報價單已儲存！')
+      navigate(`/quotation/${qid}`)
+    } finally {
+      setSaving(false)
+    }
   }
 
   const stepProps = { data, update, quotationId, loading }
@@ -283,12 +365,12 @@ export default function WizardPage() {
       currentStep={step}
       onNext={step === 5 ? handleFinish : handleNext}
       onBack={handleBack}
-      onSaveDraft={step < 5 ? saveDraft : null}
+      onSaveDraft={saveDraft}
       onBackToDashboard={handleBackToDashboard}
       onStepClick={handleStepClick}
       saving={saving}
       canNext={canGoNext()}
-      nextLabel={step === 5 ? '完成並儲存' : undefined}
+      nextLabel={step === 5 ? '確認報價單' : undefined}
     >
       {step === 1 && <Step1Client  {...stepProps} />}
       {step === 2 && <Step2Project {...stepProps} />}
