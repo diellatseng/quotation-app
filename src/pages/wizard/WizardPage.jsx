@@ -6,6 +6,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { useNotification } from '../../context/NotificationContext.jsx'
 import { todayCe } from '../../lib/rocDate'
 import WizardShell from '../../components/WizardShell'
+import Dialog from '../../components/Dialog'
 import Step1Client  from './Step1Client'
 import Step2Project from './Step2Project'
 import Step4Services from './Step4Services'
@@ -46,6 +47,7 @@ export default function WizardPage() {
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(false)
   const [quotationId, setQuotationId] = useState(null)
+  const [showExitDialog, setShowExitDialog] = useState(false)
   const { user }          = useAuth()
   const { success, error, warning } = useNotification()
   const navigate          = useNavigate()
@@ -207,8 +209,18 @@ export default function WizardPage() {
     setStep(clickedStep)
   }
 
-  const handleBackToDashboard = async () => {
+  const handleBackToDashboard = () => {
+    setShowExitDialog(true)
+  }
+
+  const handleExitConfirm = async () => {
+    setShowExitDialog(false)
     await saveDraft()
+    navigate('/dashboard')
+  }
+
+  const handleExitCancel = () => {
+    setShowExitDialog(false)
     navigate('/dashboard')
   }
 
@@ -262,7 +274,17 @@ export default function WizardPage() {
   const stepProps = { data, update, quotationId, loading }
 
   return (
-    <WizardShell
+    <>
+      <Dialog
+        isOpen={showExitDialog}
+        title="返回清單"
+        message="是否儲存目前的草稿？"
+        confirmText="儲存"
+        cancelText="不儲存"
+        onConfirm={handleExitConfirm}
+        onCancel={handleExitCancel}
+      />
+      <WizardShell
       currentStep={step}
       onNext={step === 5 ? handleFinish : handleNext}
       onBack={handleBack}
@@ -279,5 +301,6 @@ export default function WizardPage() {
       {step === 4 && <Step5Confirm {...stepProps} />}
       {step === 5 && <Step6Preview {...stepProps} onFinish={handleFinish} saving={saving} />}
     </WizardShell>
+    </>
   )
 }
