@@ -112,7 +112,6 @@ export default function RichEditor({ value, onChange, minHeight = 100, maxHeight
           outline: 'none',
           color: 'var(--color-text)',
           background: 'var(--color-bg)',
-          whiteSpace: 'pre-wrap',
           wordBreak: 'break-word',
         }}
       />

@@ -275,7 +275,7 @@ function buildSections({ quotation, services, stages, client, contactPerson, com
               </td>
               <td style={{ ...a4.td, width: 'auto', textAlign: 'left', verticalAlign: 'top', padding: '6px 10px' }}>
                 {svc.description
-                  ? <div style={a4.descriptionCell} dangerouslySetInnerHTML={{ __html: svc.description }} />
+                  ? <div style={a4.descriptionCell} dangerouslySetInnerHTML={{ __html: svc.description.replace(/\n/g, '<br>') }} />
                   : <span style={{ color: '#bbb', fontSize: 10 }}>—</span>}
               </td>
             </tr>
