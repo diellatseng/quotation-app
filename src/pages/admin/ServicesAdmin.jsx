@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useNotification } from '../../context/NotificationContext.jsx'
+import RichEditor from '../../components/RichEditor.jsx'
 
 export default function ServicesAdmin() {
   const [services, setServices] = useState([])
@@ -122,7 +123,10 @@ export default function ServicesAdmin() {
               </div>
               <div>
                 <label className="field-label">說明</label>
-                <textarea className="field-input" value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} rows={2} style={{ resize: 'vertical' }} />
+                <RichEditor
+                  value={form.description}
+                  onChange={html => setForm(f => ({ ...f, description: html }))}
+                />
               </div>
             </div>
 

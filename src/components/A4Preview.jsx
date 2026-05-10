@@ -69,19 +69,29 @@ const A4Preview = forwardRef(function A4Preview({ quotation, services, stages, c
           <table style={a4.table}>
             <thead>
               <tr>
-                <th style={{ ...a4.th, width: '8%' }}>項次</th>
-                <th style={{ ...a4.th, width: '30%', textAlign: 'left' }}>類別</th>
-                <th style={{ ...a4.th, width: '62%', textAlign: 'left' }}>服務項目</th>
+                <th style={{ ...a4.th, width: '6%' }}>項次</th>
+                <th style={{ ...a4.th, width: '22%', textAlign: 'left' }}>類別</th>
+                <th style={{ ...a4.th, width: '30%', textAlign: 'left' }}>服務項目</th>
+                <th style={{ ...a4.th, width: '42%', textAlign: 'left' }}>說明</th>
               </tr>
             </thead>
             <tbody>
               {services.map((svc, idx) => (
                 <tr key={svc.id || idx} style={idx % 2 === 1 ? { background: '#f9f9f7' } : {}}>
-                  <td style={a4.td}>{idx + 1}</td>
-                  <td style={{ ...a4.td, textAlign: 'left', color: '#666', fontSize: 11 }}>{svc.category || ''}</td>
-                  <td style={{ ...a4.td, textAlign: 'left', fontWeight: svc.is_added ? 600 : 400 }}>
+                  <td style={{ ...a4.td, verticalAlign: 'top', paddingTop: 8 }}>{idx + 1}</td>
+                  <td style={{ ...a4.td, textAlign: 'left', color: '#666', fontSize: 10, verticalAlign: 'top', paddingTop: 8 }}>{svc.category || ''}</td>
+                  <td style={{ ...a4.td, textAlign: 'left', fontWeight: svc.is_added ? 600 : 400, verticalAlign: 'top', paddingTop: 8 }}>
                     {svc.service_name}
-                    {svc.is_added && <span style={{ marginLeft: 6, fontSize: 10, color: '#1a5fad' }}>▲新增</span>}
+                    {svc.is_added && <span style={{ marginLeft: 6, fontSize: 9, color: '#1a5fad' }}>▲新增</span>}
+                  </td>
+                  <td style={{ ...a4.td, textAlign: 'left', verticalAlign: 'top', padding: '6px 10px' }}>
+                    {svc.description
+                      ? <div
+                          style={a4.descriptionCell}
+                          dangerouslySetInnerHTML={{ __html: svc.description }}
+                        />
+                      : <span style={{ color: '#bbb', fontSize: 10 }}>—</span>
+                    }
                   </td>
                 </tr>
               ))}
@@ -288,6 +298,13 @@ const a4 = {
     background: '#f9f9f7', border: '1px solid #e0ded8',
     borderRadius: 4, padding: '10px 12px',
     fontSize: 11, lineHeight: 1.8, whiteSpace: 'pre-wrap',
+  },
+  descriptionCell: {
+    fontSize: 10,
+    lineHeight: 1.6,
+    color: '#333',
+    wordBreak: 'break-word',
+    // Let the HTML content from rich editor render naturally
   },
   sigRow: { display: 'flex', gap: 40, marginTop: 32, marginBottom: 24 },
   sigBlock: { flex: 1 },

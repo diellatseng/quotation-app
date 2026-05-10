@@ -25,6 +25,7 @@ export default function Step2Project({ data, update }) {
         service_id: ts.service_id,
         service_name: ts.services?.name || '',
         category: ts.services?.category || '',
+        description: ts.services?.description || '',
         checklist_items: (ts.services?.service_checklist_items || [])
           .sort((a, b) => a.sort_order - b.sort_order)
           .map(ci => ({ id: ci.id, item_text: ci.item_text })),

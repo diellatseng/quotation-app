@@ -16,6 +16,7 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
     id: crypto.randomUUID(),
     service_name: '',
     category: '',
+    description: '',
     checklist_items: [],
     is_added: true,
   }])

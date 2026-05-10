@@ -102,6 +102,7 @@ CREATE TABLE quotation_services (
   service_id          UUID,
   service_name        TEXT NOT NULL,
   category            TEXT,
+  description         TEXT,
   checklist_items     JSONB DEFAULT '[]',
   sort_order          INT DEFAULT 0,
   is_added            BOOLEAN DEFAULT FALSE
@@ -182,3 +183,10 @@ RENAME COLUMN project_address TO project_name;
 UPDATE quotations
 SET updated_at = NOW()
 WHERE project_name IS NOT NULL;
+
+
+-- Migration: add description column to quotation_services
+-- Run this against your Supabase project if it already exists
+
+ALTER TABLE quotation_services
+  ADD COLUMN IF NOT EXISTS description TEXT;
