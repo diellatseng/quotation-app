@@ -9,9 +9,9 @@ import WizardShell from '../../components/WizardShell'
 import Dialog from '../../components/Dialog'
 import Step1Client  from './Step1Client'
 import Step2Project from './Step2Project'
-import Step4Services from './Step4Services'
-import Step5Confirm from './Step5Confirm'
-import Step6Preview from './Step6Preview'
+import Step3Services from './Step3Services'
+import Step4Confirm from './Step4Confirm'
+import Step5Preview from './Step5Preview'
 
 const initState = () => ({
   // Step 1
@@ -28,17 +28,15 @@ const initState = () => ({
   project_name: '',
 
   // Step 3
-  payment_stages: [{ id: crypto.randomUUID(), stage_name: '', percentage: 0 }],
-
-  // Step 4
   services: [],
 
-  // Step 5
+  // Step 4
   quote_number: `QT-${new Date().getFullYear()}-${String(Date.now()).slice(-5)}`,
   quote_date: todayCe(),
   fee_amount: '',
   tax_included: false,
   notes: '',
+  payment_stages: [{ id: crypto.randomUUID(), stage_name: '', percentage: 0 }],
 })
 
 export default function WizardPage() {
@@ -183,52 +181,6 @@ export default function WizardPage() {
         error('儲存草稿失敗：' + err.message)
       }
     }
-    setSaving(false)
-  }
-
-  const canGoNext = () => {
-    if (step === 1) return !!data.client
-    if (step === 4) return !!data.fee_amount && !!data.quote_number && Math.abs((data.payment_stages || []).reduce((s, st) => s + Number(st.percentage || 0), 0) - 100) < 0.01
-    return true
-  }
-
-  const handleNext = async () => {
-    if (!canGoNext()) {
-      if (step === 1) warning('請先選擇或建立客戶')
-      if (step === 4) warning('請填寫報價編號、金額，且付款階段百分比需合計100%')
-      return
-    }
-    await saveDraft()
-    setStep(s => s + 1)
-  }
-
-  const handleBack = () => setStep(s => s - 1)
-
-  const handleStepClick = (clickedStep) => {
-    if (clickedStep === step) return
-    setStep(clickedStep)
-  }
-
-  const handleBackToDashboard = () => {
-    setShowExitDialog(true)
-  }
-
-  const handleExitConfirm = async () => {
-    setShowExitDialog(false)
-    await saveDraft()
-    navigate('/dashboard')
-  }
-
-  const handleExitCancel = () => {
-    setShowExitDialog(false)
-    navigate('/dashboard')
-  }
-
-  const handleFinish = async () => {
-    if (!quotationId) return
-    setSaving(true)
-    // Save all remaining data
-    await saveDraft()
 
     // Save services
     await supabase.from('quotation_services').delete().eq('quotation_id', quotationId)
@@ -262,11 +214,52 @@ export default function WizardPage() {
         }))
       )
     }
+    setSaving(false)
+  }
 
-    // Update status to finalized
-    await supabase.from('quotations').update({ status: '已報價' }).eq('id', quotationId)
+  const canGoNext = () => {
+    if (step === 1) return !!data.client
+    if (step === 4) return !!data.fee_amount && !!data.quote_number && Math.abs((data.payment_stages || []).reduce((s, st) => s + Number(st.percentage || 0), 0) - 100) < 0.01
+    return true
+  }
 
-    success('報價單已建立！')
+  const handleNext = async () => {
+    if (!canGoNext()) {
+      if (step === 1) warning('請先選擇或建立客戶')
+      if (step === 4) warning('請填寫報價編號、金額，且付款階段百分比需合計100%')
+      return
+    }
+    setStep(s => s + 1)
+  }
+
+  const handleBack = () => setStep(s => s - 1)
+
+  const handleStepClick = (clickedStep) => {
+    if (clickedStep === step) return
+    setStep(clickedStep)
+  }
+
+  const handleBackToDashboard = () => {
+    setShowExitDialog(true)
+  }
+
+  const handleExitConfirm = async () => {
+    setShowExitDialog(false)
+    await saveDraft()
+    navigate('/dashboard')
+  }
+
+  const handleExitCancel = () => {
+    setShowExitDialog(false)
+    navigate('/dashboard')
+  }
+
+  const handleFinish = async () => {
+    setSaving(true)
+    // Save all data
+    await saveDraft()
+
+    success('報價單已儲存！')
     navigate(`/quotation/${quotationId}`)
     setSaving(false)
   }
@@ -297,9 +290,9 @@ export default function WizardPage() {
     >
       {step === 1 && <Step1Client  {...stepProps} />}
       {step === 2 && <Step2Project {...stepProps} />}
-      {step === 3 && <Step4Services {...stepProps} />}
-      {step === 4 && <Step5Confirm {...stepProps} />}
-      {step === 5 && <Step6Preview {...stepProps} onFinish={handleFinish} saving={saving} />}
+      {step === 3 && <Step3Services {...stepProps} />}
+      {step === 4 && <Step4Confirm {...stepProps} />}
+      {step === 5 && <Step5Preview {...stepProps} onFinish={handleFinish} saving={saving} />}
     </WizardShell>
     </>
   )

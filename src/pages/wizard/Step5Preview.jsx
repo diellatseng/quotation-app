@@ -1,4 +1,4 @@
-// src/pages/wizard/Step6Preview.jsx
+// src/pages/wizard/Step5Preview.jsx
 import { useRef, useState } from 'react'
 import A4Preview from '../../components/A4Preview'
 
@@ -10,7 +10,7 @@ const COMPANY_INFO = {
   email:   process.env.REACT_APP_COMPANY_EMAIL   || '',
 }
 
-export default function Step6Preview({ data, onFinish, saving }) {
+export default function Step5Preview({ data, onFinish, saving }) {
   const previewRef = useRef()
   const [exporting, setExporting] = useState(false)
 

@@ -1,4 +1,4 @@
-// src/pages/wizard/Step5Confirm.jsx
+// src/pages/wizard/Step4Confirm.jsx
 import ROCDateInput from '../../components/ROCDateInput'
 
 const fmt = (n) => `NT$ ${Number(n || 0).toLocaleString('zh-TW')}`
@@ -30,7 +30,7 @@ const PRESETS = [
   },
 ]
 
-export default function Step5Confirm({ data, update }) {
+export default function Step4Confirm({ data, update }) {
   const fee = Number(data.fee_amount) || 0
   const tax = data.tax_included ? fee * 0.05 : 0
   const grand = fee + tax

@@ -145,11 +145,11 @@ export default function WizardShell({
               {saving ? '儲存中…' : '儲存草稿'}
             </button>
           )}
-          {!isLast && (
+          {( !isLast || nextLabel ) && (
             <button
               className="btn btn-primary"
               onClick={onNext}
-              disabled={!canNext}
+              disabled={isLast ? saving : !canNext}
               aria-label="下一步"
             >
               {nextLabel || '下一步'} →

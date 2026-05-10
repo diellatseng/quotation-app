@@ -1,10 +1,10 @@
-// src/pages/wizard/Step4Services.jsx
+// src/pages/wizard/Step3Services.jsx
 import ServiceTable from '../../components/ServiceTable'
 
-export default function Step4Services({ data, update }) {
+export default function Step3Services({ data, update }) {
   return (
     <div>
-      <h2 style={s.heading}>步驟 4：服務內容</h2>
+      <h2 style={s.heading}>步驟 3：服務內容</h2>
       <p style={s.desc}>
         {data.project_template_id
           ? '已從工程範本載入服務內容，您可以自由新增、刪除或調整順序。以藍色標記的項目為新增項目。'
