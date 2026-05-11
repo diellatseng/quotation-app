@@ -33,6 +33,18 @@ export default function RichEditor({ value, onChange, minHeight = 100, maxHeight
 
   const handleInput = () => onChange(editorRef.current?.innerHTML || '')
 
+  // Tab = indent inside list, Shift+Tab = outdent
+  const handleKeyDown = (e) => {
+    if (e.key === 'Tab') {
+      e.preventDefault()
+      if (e.shiftKey) {
+        exec('outdent')
+      } else {
+        exec('indent')
+      }
+    }
+  }
+
   return (
     <div style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
       {/* ── Toolbar ── */}
@@ -50,7 +62,10 @@ export default function RichEditor({ value, onChange, minHeight = 100, maxHeight
         <ToolBtn title="置中"  onClick={() => exec('justifyCenter')}>☰</ToolBtn>
         <ToolBtn title="靠右"  onClick={() => exec('justifyRight')}>➡</ToolBtn>
         <Sep />
-        <ToolBtn title="無序清單" onClick={() => exec('insertUnorderedList')}>• 清單</ToolBtn>
+        <ToolBtn title="項目符號清單" onClick={() => exec('insertUnorderedList')}>• 清單</ToolBtn>
+        <ToolBtn title="數字清單"     onClick={() => exec('insertOrderedList')}>1. 清單</ToolBtn>
+        <ToolBtn title="增加縮排" onClick={() => exec('indent')}>⇥</ToolBtn>
+        <ToolBtn title="減少縮排" onClick={() => exec('outdent')}>⇤</ToolBtn>
         <Sep />
 
         {/* Font size */}
@@ -102,6 +117,7 @@ export default function RichEditor({ value, onChange, minHeight = 100, maxHeight
         data-placeholder={placeholder}
         onInput={handleInput}
         onBlur={handleInput}
+        onKeyDown={handleKeyDown}
         style={{
           minHeight,
           maxHeight,
@@ -113,8 +129,25 @@ export default function RichEditor({ value, onChange, minHeight = 100, maxHeight
           color: 'var(--color-text)',
           background: 'var(--color-bg)',
           wordBreak: 'break-word',
+          // Ensure ul/ol have proper indentation (CSS resets often strip this)
+          '--list-indent': '1.5em',
         }}
       />
+
+      {/* Scoped list styles injected via a style tag */}
+      <style>{`
+        [contenteditable] ul,
+        [contenteditable] ol {
+          padding-left: 1.6em;
+          margin: 0.25em 0;
+        }
+        [contenteditable] ul { list-style-type: disc; }
+        [contenteditable] ol { list-style-type: decimal; }
+        [contenteditable] ul ul  { list-style-type: circle; }
+        [contenteditable] ul ul ul { list-style-type: square; }
+        [contenteditable] ol ol { list-style-type: lower-alpha; }
+        [contenteditable] li { margin: 0.1em 0; }
+      `}</style>
 
       <div style={{
         fontSize: 10, color: 'var(--color-text-muted)',
@@ -122,7 +155,7 @@ export default function RichEditor({ value, onChange, minHeight = 100, maxHeight
         background: 'var(--color-bg-subtle)',
         borderTop: '1px solid var(--color-border)',
       }}>
-        提示：選取文字後點擊工具列按鈕可套用格式
+        提示：選取文字後套用格式；清單中按 Tab / Shift+Tab 調整縮排
       </div>
     </div>
   )
