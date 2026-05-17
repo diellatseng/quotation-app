@@ -353,19 +353,25 @@ export default function QuotationDetailPage() {
 
         {/* Tab content */}
         {tab === 'preview' && (
-          <div style={{ overflowX: 'auto', background: '#e8e6de', borderRadius: 'var(--radius-md)', padding: 'var(--space-6)' }}>
-            <div style={{ boxShadow: 'var(--shadow-lg)', display: 'inline-block', minWidth: 794 }}>
-              <A4Preview
-                ref={previewRef}
-                quotation={qt}
-                services={services}
-                stages={stages}
-                client={qt.clients}
-                contactPerson={contactPerson}
-                companyInfo={COMPANY_INFO}
-                negLogs={negLogs}
-              />
-            </div>
+          <div style={{ 
+            overflowX: 'auto', 
+            background: '#e8e6de', 
+            borderRadius: 'var(--radius-md)', 
+            padding: 'var(--space-6)',
+            display: 'flex', 
+            justifyContent: 'center'  }}>
+              <div style={{ boxShadow: 'var(--shadow-lg)', flexShrink: 0 }}>
+                <A4Preview
+                  ref={previewRef}
+                  quotation={qt}
+                  services={services}
+                  stages={stages}
+                  client={qt.clients}
+                  contactPerson={contactPerson}
+                  companyInfo={COMPANY_INFO}
+                  negLogs={negLogs}
+                />
+              </div>
           </div>
         )}
 
