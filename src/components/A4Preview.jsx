@@ -183,7 +183,7 @@ function PageShell({ children, pageNum, totalPages, isFirst, isLast, companyInfo
 }
 
 // ─── Build content sections ───────────────────────────────────────────────────
-function buildSections({ quotation, services, stages, client, contactPerson, companyInfo, total, taxAmount, grandTotal, hasChecklist, negLogs = [] }) {
+function buildSections({ quotation, services, stages, client, contactPerson, companyInfo, total, taxAmount, grandTotal, hasChecklist, negLogs }) {
   const sec = []
 
   // Document header (company + title + meta)

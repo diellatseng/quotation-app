@@ -155,7 +155,11 @@ export default function WizardPage() {
 
   const saveDraft = async () => {
     setSaving(true)
-    if (!quotationId) {
+    // Use a local variable so services/stages always have the correct id,
+    // even on the very first save when quotationId state is still null.
+    let qid = quotationId
+
+    if (!qid) {
       // Insert new draft
       const { data: q, error: err } = await supabase
         .from('quotations')
@@ -171,7 +175,7 @@ export default function WizardPage() {
           land_section:         data.land_section,
           project_scale:        data.project_scale,
           project_owner:        data.project_owner,
-        project_name:         data.project_name,
+          project_name:         data.project_name,
           fee_amount:           Number(data.fee_amount) || 0,
           tax_included:         data.tax_included,
           notes:                data.notes,
@@ -179,10 +183,13 @@ export default function WizardPage() {
         .select()
         .single()
       if (!err && q) {
-        setQuotationId(q.id)
+        qid = q.id           // local var available immediately
+        setQuotationId(q.id) // also update React state for future calls
         success('草稿已儲存')
       } else {
         error('儲存草稿失敗：' + (err?.message || '未知錯誤'))
+        setSaving(false)
+        return
       }
     } else {
       // Update existing
@@ -200,20 +207,22 @@ export default function WizardPage() {
         fee_amount:           Number(data.fee_amount) || 0,
         tax_included:         data.tax_included,
         notes:                data.notes,
-      }).eq('id', quotationId)
+      }).eq('id', qid)
       if (!err) {
         success('草稿已儲存')
       } else {
         error('儲存草稿失敗：' + err.message)
+        setSaving(false)
+        return
       }
     }
 
     // Save services
-    await supabase.from('quotation_services').delete().eq('quotation_id', quotationId)
+    await supabase.from('quotation_services').delete().eq('quotation_id', qid)
     if (data.services.length) {
       await supabase.from('quotation_services').insert(
         data.services.map((s, i) => ({
-          quotation_id: quotationId,
+          quotation_id: qid,
           service_id:   s.service_id || null,
           service_name: s.service_name,
           category:     s.category || null,
@@ -227,14 +236,14 @@ export default function WizardPage() {
     }
 
     // Save payment stages
-    await supabase.from('payment_stages').delete().eq('quotation_id', quotationId)
+    await supabase.from('payment_stages').delete().eq('quotation_id', qid)
     if (data.payment_stages.length) {
       const fee = Number(data.fee_amount) || 0
       const tax = data.tax_included ? fee * 0.05 : 0
       const grand = fee + tax
       await supabase.from('payment_stages').insert(
         data.payment_stages.map((st, i) => ({
-          quotation_id: quotationId,
+          quotation_id: qid,
           stage_name:   st.stage_name,
           percentage:   Number(st.percentage),
           amount:       Number(st.percentage) / 100 * grand,
@@ -375,7 +384,7 @@ export default function WizardPage() {
     }
   }
 
-  const stepProps = { data, update, quotationId, loading, parentServices, negContext }
+  const stepProps = { data, update, loading, parentServices, negContext }
 
   return (
     <>

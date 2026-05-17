@@ -90,10 +90,7 @@ export default function Step5Preview({ data, onFinish, saving }) {
             ref={previewRef}
             quotation={quotation}
             services={data.services}
-            stages={data.payment_stages.map(st => ({
-              ...st,
-              stage_name: st.stage_name,
-            }))}
+            stages={data.payment_stages}
             client={data.client}
             contactPerson={selectedContact}
             companyInfo={COMPANY_INFO}

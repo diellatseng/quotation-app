@@ -77,14 +77,24 @@ export default function QuotationDetailPage() {
 
   const exportPDF = async () => {
     setExporting(true)
-    const { default: html2canvas } = await import('html2canvas')
-    const { jsPDF } = await import('jspdf')
-    const canvas = await html2canvas(previewRef.current, { scale: 2, useCORS: true, backgroundColor: '#ffffff' })
-    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
-    const w = pdf.internal.pageSize.getWidth()
-    pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, w, (canvas.height * w) / canvas.width)
-    pdf.save(`報價單-${qt.quote_number}.pdf`)
-    setExporting(false)
+    try {
+      const { default: html2canvas } = await import('html2canvas')
+      const { jsPDF } = await import('jspdf')
+      const pageEls = previewRef.current.querySelectorAll('[data-page]')
+      if (!pageEls.length) return
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+      const pdfW = pdf.internal.pageSize.getWidth()
+      const pdfH = pdf.internal.pageSize.getHeight()
+      for (let i = 0; i < pageEls.length; i++) {
+        if (i > 0) pdf.addPage()
+        const canvas = await html2canvas(pageEls[i], { scale: 2, useCORS: true, backgroundColor: '#ffffff' })
+        const imgH = (canvas.height * pdfW) / canvas.width
+        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, pdfW, Math.min(imgH, pdfH))
+      }
+      pdf.save(`報價單-${qt.quote_number}.pdf`)
+    } finally {
+      setExporting(false)
+    }
 
     if (qt.status === '草稿') {
       if (window.confirm('是否將狀態更新為「已報價」？')) setStatus('已報價')
@@ -109,16 +119,20 @@ export default function QuotationDetailPage() {
 
     try {
       const { default: html2canvas } = await import('html2canvas')
-      const canvas = await html2canvas(previewRef.current, { scale: 2, useCORS: true, backgroundColor: '#ffffff' })
       const { jsPDF } = await import('jspdf')
+      const pageEls = previewRef.current.querySelectorAll('[data-page]')
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
-      const w = pdf.internal.pageSize.getWidth()
-      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, w, (canvas.height * w) / canvas.width)
-      const pdfBase64 = pdf.output('datauristring') // base64
+      const pdfW = pdf.internal.pageSize.getWidth()
+      const pdfH = pdf.internal.pageSize.getHeight()
+      for (let i = 0; i < pageEls.length; i++) {
+        if (i > 0) pdf.addPage()
+        const canvas = await html2canvas(pageEls[i], { scale: 2, useCORS: true, backgroundColor: '#ffffff' })
+        const imgH = (canvas.height * pdfW) / canvas.width
+        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, pdfW, Math.min(imgH, pdfH))
+      }
+      const pdfBase64 = pdf.output('datauristring')
 
       const emailjs = await import('emailjs-com')
-      const tax = qt.tax_included ? qt.fee_amount * 0.05 : 0
-      const grand = qt.fee_amount + tax
 
       await emailjs.send(ejsSvc, ejsTmpl, {
         to_email:     recipientEmail,
