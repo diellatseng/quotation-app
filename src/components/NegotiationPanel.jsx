@@ -89,14 +89,16 @@ export default function NegotiationPanel({ quotationId, currentAmount, logs, onL
       )}
 
       {/* Add entry */}
-      <button
-        type="button"
-        className="btn btn-secondary btn-sm"
-        onClick={() => setOpen(v => !v)}
-        aria-expanded={open}
-      >
-        {open ? '取消' : '+ 新增議價記錄'}
-      </button>
+      <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 'var(--space-4)', marginTop: 'var(--space-2)' }}>
+        <button
+          type="button"
+          className="btn btn-secondary btn-sm"
+          onClick={() => setOpen(v => !v)}
+          aria-expanded={open}
+        >
+          {open ? '取消' : '+ 新增議價記錄'}
+        </button>
+      </div>
 
       {open && (
         <form onSubmit={handleSubmit} style={{

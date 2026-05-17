@@ -37,6 +37,7 @@ const initState = () => ({
   tax_included: false,
   notes: '',
   payment_stages: [{ id: crypto.randomUUID(), stage_name: '', percentage: 0 }],
+  version: 1,
 })
 
 export default function WizardPage() {
@@ -130,10 +131,10 @@ export default function WizardPage() {
         })),
         quote_number: q.quote_number,
         quote_date: q.quote_date,
-        // If arriving from negotiation, pre-fill the negotiated amount
         fee_amount: negAmount ? negAmount : (q.fee_amount?.toString() || ''),
         tax_included: q.tax_included,
         notes: q.notes || '',
+        version: q.version || 1,
       })
       setQuotationId(q.id)
 

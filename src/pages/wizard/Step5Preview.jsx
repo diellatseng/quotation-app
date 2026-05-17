@@ -10,24 +10,24 @@ const COMPANY_INFO = {
   email:   process.env.REACT_APP_COMPANY_EMAIL   || '',
 }
 
-export default function Step5Preview({ data, onFinish, saving }) {
+export default function Step5Preview({ data, onFinish, saving, negContext }) {
   const previewRef = useRef()
   const [exporting, setExporting] = useState(false)
 
   const selectedContact = data.contacts.find(c => c.id === data.selectedContactId) || data.contacts[0] || null
 
   const quotation = {
-    quote_number:   data.quote_number,
-    version:        1,
-    quote_date:     data.quote_date,
-    fee_amount:     Number(data.fee_amount) || 0,
-    tax_included:   data.tax_included,
-    notes:          data.notes,
+    quote_number:    data.quote_number,
+    version:         data.version || 1,
+    quote_date:      data.quote_date,
+    fee_amount:      Number(data.fee_amount) || 0,
+    tax_included:    data.tax_included,
+    notes:           data.notes,
     building_permit: data.building_permit,
-    land_section:   data.land_section,
-    project_scale:  data.project_scale,
-    project_owner:  data.project_owner,
-    project_name: data.project_name,
+    land_section:    data.land_section,
+    project_scale:   data.project_scale,
+    project_owner:   data.project_owner,
+    project_name:    data.project_name,
   }
 
   const exportPDF = async () => {
@@ -94,6 +94,13 @@ export default function Step5Preview({ data, onFinish, saving }) {
             client={data.client}
             contactPerson={selectedContact}
             companyInfo={COMPANY_INFO}
+            negLogs={negContext ? [{
+              id: 'preview',
+              logged_at: new Date().toISOString(),
+              old_amount: null,
+              new_amount: negContext.amount,
+              notes: negContext.notes,
+            }] : []}
           />
         </div>
       </div>

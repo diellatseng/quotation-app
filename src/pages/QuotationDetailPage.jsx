@@ -92,12 +92,12 @@ export default function QuotationDetailPage() {
         pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, pdfW, Math.min(imgH, pdfH))
       }
       pdf.save(`報價單-${qt.quote_number}.pdf`)
+      // Only prompt after successful export
+      if (qt.status === '草稿') {
+        if (window.confirm('是否將狀態更新為「已報價」？')) setStatus('已報價')
+      }
     } finally {
       setExporting(false)
-    }
-
-    if (qt.status === '草稿') {
-      if (window.confirm('是否將狀態更新為「已報價」？')) setStatus('已報價')
     }
   }
 
@@ -400,20 +400,20 @@ export default function QuotationDetailPage() {
               background: 'var(--color-bg-surface)',
               borderRadius: 'var(--radius-lg)',
               boxShadow: 'var(--shadow-lg)',
-              padding: 'var(--space-7)',
+              padding: 'var(--space-8) var(--space-7)',
               maxWidth: 480, width: '100%',
             }}>
-              <div style={{ fontSize: 22, marginBottom: 'var(--space-2)' }}>📋</div>
-              <h2 style={{ fontSize: 'var(--text-lg)', fontWeight: 700, marginBottom: 'var(--space-2)' }}>
+              <div style={{ fontSize: 28, marginBottom: 'var(--space-4)', lineHeight: 1 }}>📋</div>
+              <h2 style={{ fontSize: 'var(--text-xl)', fontWeight: 700, marginBottom: 'var(--space-3)', lineHeight: 1.3 }}>
                 建立第 {qt.version + 1} 版報價單
               </h2>
-              <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-2)' }}>
+              <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-2)', lineHeight: 1.7 }}>
                 議價已記錄。系統將自動建立新版本報價單（議價金額：NT$ {Number(negDialog.amount).toLocaleString('zh-TW')}）。
               </p>
-              <p style={{ fontSize: 'var(--text-base)', fontWeight: 600, marginBottom: 'var(--space-6)' }}>
+              <p style={{ fontSize: 'var(--text-base)', fontWeight: 600, marginBottom: 'var(--space-7)', color: 'var(--color-text)' }}>
                 是否同時更改服務內容？
               </p>
-              <div style={{ display: 'flex', gap: 'var(--space-3)', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: 'var(--space-3)', flexWrap: 'wrap', marginBottom: 'var(--space-4)' }}>
                 <button
                   className="btn btn-primary"
                   style={{ flex: 1, minWidth: 140 }}
@@ -429,13 +429,15 @@ export default function QuotationDetailPage() {
                   沿用原有服務內容
                 </button>
               </div>
-              <button
-                className="btn btn-ghost btn-sm"
-                style={{ marginTop: 'var(--space-4)', width: '100%', color: 'var(--color-text-muted)' }}
-                onClick={() => setNegDialog(null)}
-              >
-                稍後再說（不建立新版本）
-              </button>
+              <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 'var(--space-4)' }}>
+                <button
+                  className="btn btn-ghost btn-sm"
+                  style={{ width: '100%', color: 'var(--color-text-muted)' }}
+                  onClick={() => setNegDialog(null)}
+                >
+                  稍後再說（不建立新版本）
+                </button>
+              </div>
             </div>
           </div>
         )}

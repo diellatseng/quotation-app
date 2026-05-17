@@ -343,6 +343,7 @@ a:hover { text-decoration: underline; }
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  padding: var(--space-4);
 }
 
 .dialog-content {
@@ -350,8 +351,8 @@ a:hover { text-decoration: underline; }
   border-radius: var(--radius-lg);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
   max-width: 420px;
-  width: 90%;
-  padding: var(--space-8);
+  width: 100%;
+  padding: var(--space-7) var(--space-7) var(--space-6);
   animation: slideIn 0.2s ease-out;
 }
 
@@ -360,13 +361,14 @@ a:hover { text-decoration: underline; }
   font-weight: 700;
   color: var(--color-text);
   margin-bottom: var(--space-3);
+  line-height: 1.4;
 }
 
 .dialog-message {
   font-size: var(--text-base);
   color: var(--color-text-secondary);
-  line-height: 1.6;
-  margin-bottom: var(--space-6);
+  line-height: 1.7;
+  margin-bottom: var(--space-7);
 }
 
 .dialog-actions {
@@ -375,9 +377,14 @@ a:hover { text-decoration: underline; }
   justify-content: flex-end;
 }
 
-.dialog-actions .btn {
+.dialog-actions .btn:first-child {
+  /* Cancel: natural width, not stretched */
+  flex: 0 0 auto;
+}
+
+.dialog-actions .btn:last-child {
+  /* Confirm: takes remaining space */
   flex: 1;
-  max-width: none;
 }
 
 .btn-danger {
