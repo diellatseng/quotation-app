@@ -34,7 +34,8 @@ export default function QuotationDetailPage() {
   const [versions, setVersions]   = useState([])
   const [loading, setLoading]     = useState(true)
   const [tab, setTab]             = useState('preview')  // 'preview' | 'services' | 'negotiation'
-  const [showVersions, setShowVersions] = useState(false)
+  const [negDialog, setNegDialog] = useState(null)
+  const [showVersions, setShowVersions] = useState(false) // { amount, notes }
   const [exporting, setExporting] = useState(false)
   const [emailing, setEmailing]   = useState(false)
 
@@ -139,52 +140,67 @@ export default function QuotationDetailPage() {
     setEmailing(false)
   }
 
-  const createNewVersion = async () => {
-    if (!window.confirm('建立新版本報價單？原報價單將保留，新版本可修改後重新報價。')) return
-    const { data: newQt } = await supabase.from('quotations').insert([{
-      quote_number:    qt.quote_number,
-      version:         qt.version + 1,
-      parent_id:       qt.parent_id || qt.id,
-      status:          '草稿',
-      client_id:       qt.client_id,
-      contact_person_id: qt.contact_person_id,
+  const createVersionAfterNegotiation = async ({ amount, notes: negNotes, editServices }) => {
+    setNegDialog(null)
+    // Build new version row
+    const { data: newQt, error: err } = await supabase.from('quotations').insert([{
+      quote_number:        qt.quote_number,
+      version:             qt.version + 1,
+      parent_id:           qt.parent_id || qt.id,
+      status:              '草稿',
+      client_id:           qt.client_id,
+      contact_person_id:   qt.contact_person_id,
       project_template_id: qt.project_template_id,
-      building_permit: qt.building_permit,
-      land_section:    qt.land_section,
-      project_scale:   qt.project_scale,
-      project_owner:   qt.project_owner,
-      project_name: qt.project_name,
-      fee_amount:      qt.fee_amount,
-      tax_included:    qt.tax_included,
-      quote_date:      new Date().toISOString().split('T')[0],
-      notes:           qt.notes,
-      created_by:      user.id,
+      building_permit:     qt.building_permit,
+      land_section:        qt.land_section,
+      project_scale:       qt.project_scale,
+      project_owner:       qt.project_owner,
+      project_name:        qt.project_name,
+      fee_amount:          amount,
+      tax_included:        qt.tax_included,
+      quote_date:          new Date().toISOString().split('T')[0],
+      notes:               qt.notes,
+      is_negotiating:      true,
+      created_by:          user.id,
     }]).select().single()
+    if (err || !newQt) { error('建立新版本失敗：' + (err?.message || '')); return }
 
-    // Copy services (mark all as not-added initially; user can mark new ones)
+    // Copy services — all unchanged initially (diff will be computed in wizard if editServices)
     const newServices = services.map((s, i) => ({
-      quotation_id:   newQt.id,
-      service_id:     s.service_id,
-      service_name:   s.service_name,
-      category:       s.category,
-      checklist_items: s.checklist_items,
-      sort_order:     i,
-      is_added:       false,
+      quotation_id:    newQt.id,
+      service_id:      s.service_id,
+      service_name:    s.service_name,
+      category:        s.category,
+      description:     s.description || null,
+      checklist_items: s.checklist_items || [],
+      sort_order:      i,
+      is_added:        false,
+      diff_status:     null,
     }))
     if (newServices.length) await supabase.from('quotation_services').insert(newServices)
 
     // Copy payment stages
     const newStages = stages.map((st, i) => ({
       quotation_id: newQt.id,
-      stage_name: st.stage_name,
-      percentage: st.percentage,
-      amount: st.amount,
-      sort_order: i,
+      stage_name:   st.stage_name,
+      percentage:   st.percentage,
+      amount:       st.amount,
+      sort_order:   i,
     }))
     if (newStages.length) await supabase.from('payment_stages').insert(newStages)
 
-    success('新版本報價單已建立')
-    navigate(`/quotation/${newQt.id}`)
+    if (editServices) {
+      // Go to wizard step 3, carrying negotiation context
+      navigate(`/quotation/new?edit=${newQt.id}&step=3&negAmount=${amount}&negNotes=${encodeURIComponent(negNotes || '')}`)
+    } else {
+      success('新版本報價單已建立')
+      navigate(`/quotation/${newQt.id}`)
+    }
+  }
+
+  const handleNegLogged = (payload) => {
+    load()
+    setNegDialog(payload)
   }
 
   if (loading) return (
@@ -231,7 +247,7 @@ export default function QuotationDetailPage() {
           {qt.status === '已報價' && (
             <button className="btn btn-sm"
               style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)' }}
-              onClick={createNewVersion}>
+              onClick={() => navigate(`/quotation/new?edit=${qt.id}&step=1`)}>
               建立新版本
             </button>
           )}
@@ -333,6 +349,7 @@ export default function QuotationDetailPage() {
                 client={qt.clients}
                 contactPerson={contactPerson}
                 companyInfo={COMPANY_INFO}
+                negLogs={negLogs}
               />
             </div>
           </div>
@@ -352,8 +369,60 @@ export default function QuotationDetailPage() {
               quotationId={qt.id}
               currentAmount={qt.fee_amount}
               logs={negLogs}
-              onLogged={load}
+              onLogged={handleNegLogged}
             />
+          </div>
+        )}
+
+        {/* Post-negotiation version dialog */}
+        {negDialog && (
+          <div style={{
+            position: 'fixed', inset: 0, zIndex: 200,
+            background: 'rgba(0,0,0,0.45)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: 'var(--space-4)',
+          }}>
+            <div style={{
+              background: 'var(--color-bg-surface)',
+              borderRadius: 'var(--radius-lg)',
+              boxShadow: 'var(--shadow-lg)',
+              padding: 'var(--space-7)',
+              maxWidth: 480, width: '100%',
+            }}>
+              <div style={{ fontSize: 22, marginBottom: 'var(--space-2)' }}>📋</div>
+              <h2 style={{ fontSize: 'var(--text-lg)', fontWeight: 700, marginBottom: 'var(--space-2)' }}>
+                建立第 {qt.version + 1} 版報價單
+              </h2>
+              <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-2)' }}>
+                議價已記錄。系統將自動建立新版本報價單（議價金額：NT$ {Number(negDialog.amount).toLocaleString('zh-TW')}）。
+              </p>
+              <p style={{ fontSize: 'var(--text-base)', fontWeight: 600, marginBottom: 'var(--space-6)' }}>
+                是否同時更改服務內容？
+              </p>
+              <div style={{ display: 'flex', gap: 'var(--space-3)', flexWrap: 'wrap' }}>
+                <button
+                  className="btn btn-primary"
+                  style={{ flex: 1, minWidth: 140 }}
+                  onClick={() => createVersionAfterNegotiation({ ...negDialog, editServices: true })}
+                >
+                  ✎ 更改服務內容
+                </button>
+                <button
+                  className="btn btn-secondary"
+                  style={{ flex: 1, minWidth: 140 }}
+                  onClick={() => createVersionAfterNegotiation({ ...negDialog, editServices: false })}
+                >
+                  沿用原有服務內容
+                </button>
+              </div>
+              <button
+                className="btn btn-ghost btn-sm"
+                style={{ marginTop: 'var(--space-4)', width: '100%', color: 'var(--color-text-muted)' }}
+                onClick={() => setNegDialog(null)}
+              >
+                稍後再說（不建立新版本）
+              </button>
+            </div>
           </div>
         )}
       </div>

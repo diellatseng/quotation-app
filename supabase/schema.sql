@@ -185,7 +185,11 @@ SET updated_at = NOW()
 WHERE project_name IS NOT NULL;
 
 -- Migration: add description column to quotation_services
--- Run this against your Supabase project if it already exists
-
 ALTER TABLE quotation_services
   ADD COLUMN IF NOT EXISTS description TEXT;
+
+-- Migration: add diff_status for version comparison
+-- Values: NULL (unchanged) | 'added' | 'modified' | 'removed'
+ALTER TABLE quotation_services
+  ADD COLUMN IF NOT EXISTS diff_status TEXT
+    CHECK (diff_status IN ('added', 'modified', 'removed'));

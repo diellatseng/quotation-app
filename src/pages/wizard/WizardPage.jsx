@@ -40,8 +40,17 @@ const initState = () => ({
 })
 
 export default function WizardPage() {
-  const [step, setStep]   = useState(1)
-  const [data, setData]   = useState(initState)
+  const [searchParams] = useSearchParams()
+  const editId    = searchParams.get('edit')
+  const negAmount = searchParams.get('negAmount')
+  const negNotes  = searchParams.get('negNotes') ? decodeURIComponent(searchParams.get('negNotes')) : ''
+  
+  const initStep  = parseInt(searchParams.get('step') || '1', 10)
+
+  const [parentServices, setParentServices] = useState([]) // v(n-1) services for diff
+  const [negContext, setNegContext] = useState(           // carried from negotiation
+    negAmount ? { amount: Number(negAmount), notes: negNotes } : null
+  )
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(false)
   const [quotationId, setQuotationId] = useState(null)
@@ -50,10 +59,12 @@ export default function WizardPage() {
   const { success, error, warning } = useNotification()
   const navigate          = useNavigate()
 
-  const [searchParams] = useSearchParams()
-  const editId = searchParams.get('edit')
+
 
   const update = useCallback((fields) => setData(d => ({ ...d, ...fields })), [])
+
+  const [step, setStep]   = useState(initStep)
+  const [data, setData]   = useState(initState)
 
   // Load existing quotation if editing
   useEffect(() => {
@@ -115,14 +126,28 @@ export default function WizardPage() {
           description: s.description || '',
           checklist_items: s.checklist_items || [],
           is_added: s.is_added,
+          diff_status: s.diff_status || null,
         })),
         quote_number: q.quote_number,
         quote_date: q.quote_date,
-        fee_amount: q.fee_amount?.toString() || '',
+        // If arriving from negotiation, pre-fill the negotiated amount
+        fee_amount: negAmount ? negAmount : (q.fee_amount?.toString() || ''),
         tax_included: q.tax_included,
         notes: q.notes || '',
       })
       setQuotationId(q.id)
+
+      // Load parent version's services for diff computation
+      const parentId = q.parent_id
+      if (parentId) {
+        const { data: pSvcs } = await supabase
+          .from('quotation_services')
+          .select('service_name, category, description')
+          .eq('quotation_id', parentId)
+          .order('sort_order')
+        setParentServices(pSvcs || [])
+      }
+
       setLoading(false)
     }
     loadQuotation()
@@ -196,6 +221,7 @@ export default function WizardPage() {
           checklist_items: s.checklist_items || [],
           sort_order:   i,
           is_added:     s.is_added || false,
+          diff_status:  s.diff_status || null,
         }))
       )
     }
@@ -319,6 +345,7 @@ export default function WizardPage() {
             checklist_items: s.checklist_items || [],
             sort_order:   i,
             is_added:     s.is_added || false,
+            diff_status:  s.diff_status || null,
           }))
         )
       }
@@ -348,7 +375,7 @@ export default function WizardPage() {
     }
   }
 
-  const stepProps = { data, update, quotationId, loading }
+  const stepProps = { data, update, quotationId, loading, parentServices, negContext }
 
   return (
     <>
@@ -370,7 +397,7 @@ export default function WizardPage() {
       onStepClick={handleStepClick}
       saving={saving}
       canNext={canGoNext()}
-      nextLabel={step === 5 ? '確認報價單' : undefined}
+      nextLabel={step === 5 ? '完成並儲存' : undefined}
     >
       {step === 1 && <Step1Client  {...stepProps} />}
       {step === 2 && <Step2Project {...stepProps} />}

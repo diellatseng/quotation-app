@@ -30,7 +30,7 @@ const PRESETS = [
   },
 ]
 
-export default function Step4Confirm({ data, update }) {
+export default function Step4Confirm({ data, update, negContext }) {
   const fee = Number(data.fee_amount) || 0
   const tax = data.tax_included ? fee * 0.05 : 0
   const grand = fee + tax
@@ -199,6 +199,20 @@ export default function Step4Confirm({ data, update }) {
 
         <div style={{ marginBottom: 'var(--space-4)' }}>
           <label htmlFor="fee_amount" className="field-label">報價金額（未稅）*</label>
+          {negContext && (
+            <div style={{
+              fontSize: 'var(--text-xs)', color: 'var(--color-accent)',
+              marginBottom: 'var(--space-2)',
+              padding: '4px 10px',
+              background: 'var(--color-accent-subtle)',
+              border: '1px solid var(--color-accent)',
+              borderRadius: 'var(--radius-sm)',
+              display: 'inline-flex', gap: 6, alignItems: 'center',
+            }}>
+              <span>💬</span>
+              <span>議價金額已帶入（NT$ {Number(negContext.amount).toLocaleString('zh-TW')}）{negContext.notes ? `— ${negContext.notes}` : ''}</span>
+            </div>
+          )}
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
             <span style={{ fontSize: 'var(--text-md)', fontWeight: 600, color: 'var(--color-text-muted)', flexShrink: 0 }}>NT$</span>
             <input

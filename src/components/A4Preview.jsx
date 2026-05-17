@@ -18,7 +18,7 @@ const USABLE_H_CONT = A4_H - PAGE_HEADER_H - MARGIN_BOTTOM - PAGE_FOOTER_H - MAR
 
 // ─── Main component ───────────────────────────────────────────────────────────
 const A4Preview = forwardRef(function A4Preview(
-  { quotation, services, stages, client, contactPerson, companyInfo },
+  { quotation, services, stages, client, contactPerson, companyInfo, negLogs = [] },
   ref,
 ) {
   const total      = quotation.fee_amount || 0
@@ -29,7 +29,7 @@ const A4Preview = forwardRef(function A4Preview(
   const measureRef = useRef(null)
   const [pages, setPages] = useState(null)
 
-  const sections = buildSections({ quotation, services, stages, client, contactPerson, companyInfo, total, taxAmount, grandTotal, hasChecklist })
+  const sections = buildSections({ quotation, services, stages, client, contactPerson, companyInfo, total, taxAmount, grandTotal, hasChecklist, negLogs })
 
   // Dependency string: re-measure whenever any data that affects heights changes
   const depsKey = JSON.stringify({
@@ -72,6 +72,15 @@ const A4Preview = forwardRef(function A4Preview(
 
       {/* Rendered pages */}
       <div ref={ref} style={{ fontFamily: '"Noto Sans TC", "Microsoft JhengHei", sans-serif', background: 'transparent' }}>
+        <style>{`
+          .a4-desc ul, .a4-desc ol { padding-left: 1.4em; margin: 0.2em 0; }
+          .a4-desc ul { list-style-type: disc; }
+          .a4-desc ol { list-style-type: decimal; }
+          .a4-desc ul ul { list-style-type: circle; }
+          .a4-desc ul ul ul { list-style-type: square; }
+          .a4-desc ol ol { list-style-type: lower-alpha; }
+          .a4-desc li { margin: 0.1em 0; }
+        `}</style>
         {(pages || [sections]).map((pageSections, pageIdx) => (
           <PageShell
             key={pageIdx}
@@ -174,7 +183,7 @@ function PageShell({ children, pageNum, totalPages, isFirst, isLast, companyInfo
 }
 
 // ─── Build content sections ───────────────────────────────────────────────────
-function buildSections({ quotation, services, stages, client, contactPerson, companyInfo, total, taxAmount, grandTotal, hasChecklist }) {
+function buildSections({ quotation, services, stages, client, contactPerson, companyInfo, total, taxAmount, grandTotal, hasChecklist, negLogs = [] }) {
   const sec = []
 
   // Document header (company + title + meta)
@@ -269,13 +278,24 @@ function buildSections({ quotation, services, stages, client, contactPerson, com
             <tr style={idx % 2 === 1 ? { background: '#f9f9f7' } : {}}>
               <td style={{ ...a4.td, width: '6%',  verticalAlign: 'top', paddingTop: 8 }}>{idx + 1}</td>
               <td style={{ ...a4.td, width: '4rem', textAlign: 'left', color: '#666', fontSize: 10, verticalAlign: 'top', paddingTop: 8 }}>{svc.category || ''}</td>
-              <td style={{ ...a4.td, width: '25%', textAlign: 'left', fontWeight: svc.is_added ? 600 : 400, verticalAlign: 'top', paddingTop: 8 }}>
-                {svc.service_name}
-                {svc.is_added && <span style={{ marginLeft: 6, fontSize: 9, color: '#1a5fad' }}>▲新增</span>}
+              <td style={{ ...a4.td, width: '25%', textAlign: 'left', fontWeight: 400, verticalAlign: 'top', paddingTop: 8 }}>
+                {svc.diff_status === 'removed' ? (
+                  <span style={{ textDecoration: 'line-through', color: '#999' }}>{svc.service_name}</span>
+                ) : svc.service_name}
+                {svc.diff_status && (
+                  <span style={{
+                    display: 'inline-block', marginLeft: 5,
+                    fontSize: 8, fontWeight: 700, padding: '1px 5px',
+                    borderRadius: 3, verticalAlign: 'middle',
+                    ...a4DiffStyle[svc.diff_status],
+                  }}>
+                    {svc.diff_status === 'added' ? '▲新增' : svc.diff_status === 'modified' ? '✎更改' : '✕刪除'}
+                  </span>
+                )}
               </td>
               <td style={{ ...a4.td, width: 'auto', textAlign: 'left', verticalAlign: 'top', padding: '6px 10px' }}>
                 {svc.description
-                  ? <div style={a4.descriptionCell} dangerouslySetInnerHTML={{ __html: svc.description.replace(/\n/g, '<br>') }} />
+                  ? <div className="a4-desc" style={a4.descriptionCell} dangerouslySetInnerHTML={{ __html: svc.description.replace(/\n/g, '<br>') }} />
                   : <span style={{ color: '#bbb', fontSize: 10 }}>—</span>}
               </td>
             </tr>
@@ -312,6 +332,41 @@ function buildSections({ quotation, services, stages, client, contactPerson, com
       </div>
     ),
   })
+
+  // Negotiation history (only for versioned quotations with logs)
+  if (negLogs && negLogs.length > 0) {
+    sec.push({
+      key: 'neg-history',
+      element: (
+        <div style={{ ...a4.section, marginTop: 12 }}>
+          <div style={a4.sectionLabel}>議價歷程</div>
+          <table style={{ ...a4.table, width: '70%', marginLeft: 'auto' }}>
+            <thead>
+              <tr>
+                <th style={{ ...a4.th, textAlign: 'left', width: '40%' }}>議價日期</th>
+                <th style={{ ...a4.th, textAlign: 'left' }}>原報價</th>
+                <th style={a4.th}>議價後</th>
+              </tr>
+            </thead>
+            <tbody>
+              {negLogs.map((log, i) => (
+                <tr key={log.id || i} style={i % 2 === 1 ? { background: '#f9f9f7' } : {}}>
+                  <td style={{ ...a4.td, textAlign: 'left', fontSize: 10 }}>
+                    {new Date(log.logged_at).toLocaleDateString('zh-TW')}
+                    {log.notes && <div style={{ color: '#888', fontSize: 9, marginTop: 2 }}>{log.notes}</div>}
+                  </td>
+                  <td style={{ ...a4.td, textAlign: 'left', fontSize: 10, color: '#888' }}>
+                    <s>{fmt(log.old_amount)}</s>
+                  </td>
+                  <td style={{ ...a4.td, fontWeight: 700, fontSize: 10 }}>{fmt(log.new_amount)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ),
+    })
+  }
 
   // Payment stages
   if (stages.length > 0) {
@@ -484,10 +539,19 @@ const a4 = {
   th:              { background: '#1a1916', color: '#fff', padding: '7px 10px', textAlign: 'center', fontWeight: 700, fontSize: 11, border: '1px solid #1a1916' },
   td:              { padding: '6px 10px', textAlign: 'center', border: '1px solid #d4d2cb', color: '#333', fontSize: 12 },
   notesBox:        { background: '#f9f9f7', border: '1px solid #e0ded8', borderRadius: 4, padding: '10px 12px', fontSize: 11, lineHeight: 1.8, whiteSpace: 'pre-wrap' },
-  descriptionCell: { fontSize: 10, lineHeight: 1.6, color: '#333', wordBreak: 'break-word' },
+  descriptionCell: {
+    fontSize: 10, lineHeight: 1.6, color: '#333', wordBreak: 'break-word',
+    // ensure ul/ol indent renders correctly in PDF
+  },
   sigRow:          { display: 'flex', gap: 40, marginTop: 32, marginBottom: 24 },
   sigBlock:        { flex: 1 },
   sigTitle:        { fontSize: 12, fontWeight: 700, marginBottom: 24 },
   sigLine:         { borderTop: '1px solid #333', marginBottom: 8 },
   sigLabel2:       { fontSize: 11, color: '#555', marginTop: 6 },
+}
+
+const a4DiffStyle = {
+  added:    { background: '#dcfce7', color: '#166534' },
+  modified: { background: '#fef9c3', color: '#854d0e' },
+  removed:  { background: '#fee2e2', color: '#991b1b' },
 }

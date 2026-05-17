@@ -34,11 +34,13 @@ export default function NegotiationPanel({ quotationId, currentAmount, logs, onL
     }).eq('id', quotationId)
 
     success('議價記錄已儲存')
+    const savedAmount = Number(newAmount)
+    const savedNotes  = notes
     setNewAmount('')
     setNotes('')
     setOpen(false)
     setSaving(false)
-    onLogged?.()
+    onLogged?.({ amount: savedAmount, notes: savedNotes })
   }
 
   return (
