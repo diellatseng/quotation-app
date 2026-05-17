@@ -36,8 +36,8 @@ describe('StatusBadge', () => {
   })
 
   it('renders with small size', () => {
-    const { container } = render(<StatusBadge status="草稿" size="sm" />)
-    expect(container.firstChild).toBeInTheDocument()
+    render(<StatusBadge status="草稿" size="sm" />)
+    expect(screen.getByText('草稿')).toBeInTheDocument()
   })
 
   it('defaults to 草稿 for unknown status', () => {
