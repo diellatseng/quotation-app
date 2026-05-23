@@ -153,7 +153,7 @@ export default function DashboardPage() {
               aria-pressed={statusFilter === f}
             >{f}</button>
           ))}
-          <button
+          {/* <button
             className="filter-pill"
             onClick={() => setShowNegotiating(v => !v)}
             aria-pressed={showNegotiating}
@@ -162,7 +162,7 @@ export default function DashboardPage() {
               color: 'var(--status-negotiating-text)',
               borderColor: 'var(--status-negotiating-border)',
             } : undefined}
-          >議價中</button>
+          >議價中</button> */}
           <button
             className="filter-pill"
             onClick={() => setShowArchived(v => !v)}

@@ -312,7 +312,7 @@ export default function QuotationDetailPage() {
             { label: '合計金額', value: fmt(grand) },
             { label: '服務項目', value: `${services.length} 項` },
             { label: '付款階段', value: `${stages.length} 階段` },
-            { label: '議價次數', value: `${negLogs.length} 次` },
+            // { label: '議價次數', value: `${negLogs.length} 次` },
           ].map(c => (
             <div key={c.label} style={{
               background: 'var(--color-bg-surface)',
@@ -331,7 +331,7 @@ export default function QuotationDetailPage() {
           {[
             { key: 'preview', label: '預覽' },
             { key: 'services', label: '服務內容' },
-            { key: 'negotiation', label: `議價記錄（${negLogs.length}）` },
+            // { key: 'negotiation', label: `議價記錄（${negLogs.length}）` },
           ].map(t => (
             <button
               key={t.key}
@@ -382,7 +382,7 @@ export default function QuotationDetailPage() {
           </div>
         )}
 
-        {tab === 'negotiation' && (
+        {/* {tab === 'negotiation' && (
           <div className="card">
             <p className="section-title">議價記錄</p>
             <NegotiationPanel
@@ -392,7 +392,7 @@ export default function QuotationDetailPage() {
               onLogged={handleNegLogged}
             />
           </div>
-        )}
+        )} */}
 
         {/* Post-negotiation version dialog */}
         {negDialog && (
