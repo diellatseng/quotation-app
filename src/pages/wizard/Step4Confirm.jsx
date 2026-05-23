@@ -1,5 +1,7 @@
 // src/pages/wizard/Step4Confirm.jsx
+import { useState } from 'react'
 import ROCDateInput from '../../components/ROCDateInput'
+import Switch from '../../components/Switch'
 
 const fmt = (n) => `NT$ ${Number(n || 0).toLocaleString('zh-TW')}`
 
@@ -31,6 +33,7 @@ const PRESETS = [
 ]
 
 export default function Step4Confirm({ data, update, negContext }) {
+  const [useRoc, setUseRoc] = useState(true)
   const fee = Number(data.fee_amount) || 0
   const tax = data.tax_included ? fee * 0.05 : 0
   const grand = fee + tax
@@ -167,7 +170,18 @@ export default function Step4Confirm({ data, update, negContext }) {
 
       {/* Quotation info */}
       <div className="card" style={{ marginBottom: 'var(--space-5)' }}>
-        <p className="section-title">報價資訊</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-5)' }}>
+          <p className="section-title">報價資訊</p>
+          <Switch
+            checked={!useRoc}
+            onChange={(isCE) => setUseRoc(!isCE)}
+            labelOff="民國"
+            labelOn="西元"
+            id="dateFormatSwitch"
+            ariaLabel="切換日期格式"
+            size="sm"
+          />
+        </div>
         <div style={s.grid}>
           <div>
             <label htmlFor="quote_number" className="field-label">報價編號 *</label>
@@ -187,6 +201,7 @@ export default function Step4Confirm({ data, update, negContext }) {
               label="報價日期 *"
               value={data.quote_date}
               onChange={v => update({ quote_date: v })}
+              useRoc={useRoc}
               required
             />
           </div>

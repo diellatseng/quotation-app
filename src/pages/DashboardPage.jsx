@@ -7,6 +7,7 @@ import { useTheme } from '../context/ThemeContext'
 import { useNotification } from '../context/NotificationContext'
 import { formatRocDate } from '../lib/rocDate'
 import StatusBadge from '../components/StatusBadge'
+import Switch from '../components/Switch'
 
 const STATUS_FILTERS = ['全部', '草稿', '已報價', '已確認']
 const fmt = (n) => n ? `NT$ ${Number(n).toLocaleString('zh-TW')}` : '—'
@@ -163,16 +164,15 @@ export default function DashboardPage() {
               borderColor: 'var(--status-negotiating-border)',
             } : undefined}
           >議價中</button> */}
-          <button
-            className="filter-pill"
-            onClick={() => setShowArchived(v => !v)}
-            aria-pressed={showArchived}
-            style={showArchived ? {
-              background: 'var(--color-bg-subtle)',
-              color: 'var(--color-text-muted)',
-              borderColor: 'var(--color-border)',
-            } : undefined}
-          >{showArchived ? '隱藏已封存' : '顯示已封存'}</button>
+          <div style={{ marginLeft: 'auto' }}>
+            <Switch
+              checked={showArchived}
+              onChange={setShowArchived}
+              label="顯示已封存"
+              id="archiveToggle"
+              size="md"
+            />
+          </div>
         </div>
 
         {/* Table */}

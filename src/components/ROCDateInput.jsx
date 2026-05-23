@@ -6,12 +6,19 @@ import {
 } from '../lib/rocDate'
 
 /**
- * A date input that supports both ROC (民國) and CE (西元) formats.
+ * A controlled date input that supports both ROC (民國) and CE (西元) formats.
  * Internally always stores/emits CE date strings (YYYY-MM-DD).
  * Display format uses 年月日 separators.
+ * 
+ * Props:
+ *   value {string} - CE date string (YYYY-MM-DD)
+ *   onChange {function} - Callback when date changes
+ *   useRoc {boolean} - Current mode (controlled from parent)
+ *   id {string} - HTML id for input
+ *   label {string} - Label text
+ *   required {boolean} - Whether field is required
  */
-export default function ROCDateInput({ value, onChange, id, label, required }) {
-  const [useRoc, setUseRoc] = useState(true)
+export default function ROCDateInput({ value, onChange, useRoc = true, id, label, required }) {
   const [inputValue, setInputValue] = useState(null) // null = not editing, shows prop value
   const [error, setError] = useState('')
 
@@ -79,36 +86,11 @@ export default function ROCDateInput({ value, onChange, id, label, required }) {
     }
   }
 
-  const toggleMode = () => {
-    // Prevent mode switching if there's an invalid date
-    if (inputValue !== null && inputValue !== '' && error) {
-      setError('請先修正日期格式')
-      return
-    }
-
-    // If switching mode, reset inputValue to show converted format
-    setInputValue(null)
-    setUseRoc(r => !r)
-  }
-
   const placeholder = useRoc ? '114年12月31日 或 1141231' : '2026年12月31日 或 20261231'
 
   return (
     <div>
-      {label && (
-        <div className="roc-label-row">
-          <label htmlFor={id} className="field-label">{label}</label>
-          <button
-            type="button"
-            onClick={toggleMode}
-            className="roc-toggle"
-            aria-label={useRoc ? '切換至西元' : '切換至民國'}
-            disabled={error ? true : false}
-          >
-            {useRoc ? '民國' : '西元'}
-          </button>
-        </div>
-      )}
+      {label && <label htmlFor={id} className="field-label">{label}</label>}
       <input
         id={id}
         type="text"
