@@ -92,8 +92,8 @@ export default function DashboardPage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
             <button
               aria-label="縮小字體"
-              className="btn btn-ghost-inverse btn-sm"
-              style={{ minWidth: 'var(--tap-min)' }}
+              className="btn btn-ghost btn-sm"
+              style={{ color: 'var(--color-text-inverse)', minWidth: 'var(--tap-min)' }}
               onClick={() => setFontSize(baseFontSize - 1)}
             >A-</button>
             <span style={{ fontSize: 'var(--text-xs)', color: 'rgba(255,255,255,0.7)', minWidth: 32, textAlign: 'center' }}>
@@ -101,21 +101,23 @@ export default function DashboardPage() {
             </span>
             <button
               aria-label="放大字體"
-              className="btn btn-ghost-inverse btn-sm"
-              style={{ minWidth: 'var(--tap-min)' }}
+              className="btn btn-ghost btn-sm"
+              style={{ color: 'var(--color-text-inverse)', minWidth: 'var(--tap-min)' }}
               onClick={() => setFontSize(baseFontSize + 1)}
             >A+</button>
           </div>
           <button
-            className="btn btn-ghost-inverse btn-sm"
-            style={{ minWidth: 'var(--tap-min)' }}
+            className="btn btn-ghost btn-sm"
+            style={{ color: 'var(--color-text-inverse)', minWidth: 'var(--tap-min)' }}
             onClick={toggleContrast}
             aria-label={contrast === 'high' ? '關閉高對比' : '開啟高對比'}
           >
             {contrast === 'high' ? '標準' : '高對比'}
           </button>
-          <Link to="/admin/clients" className="btn btn-ghost-inverse btn-sm">管理</Link>
-          <button className="btn btn-ghost-inverse btn-sm"
+          <Link to="/admin/clients" className="btn btn-ghost btn-sm"
+            style={{ color: 'var(--color-text-inverse)' }}>管理</Link>
+          <button className="btn btn-ghost btn-sm"
+            style={{ color: 'var(--color-text-inverse)' }}
             onClick={signOut}>登出</button>
         </div>
       </header>
@@ -146,20 +148,30 @@ export default function DashboardPage() {
           {STATUS_FILTERS.map(f => (
             <button
               key={f}
-              className="btn-filter"
+              className="filter-pill"
               onClick={() => setStatusFilter(f)}
               aria-pressed={statusFilter === f}
             >{f}</button>
           ))}
           <button
-            className="btn-filter btn-filter-neg"
+            className="filter-pill"
             onClick={() => setShowNegotiating(v => !v)}
             aria-pressed={showNegotiating}
+            style={showNegotiating ? {
+              background: 'var(--status-negotiating-bg)',
+              color: 'var(--status-negotiating-text)',
+              borderColor: 'var(--status-negotiating-border)',
+            } : undefined}
           >議價中</button>
           <button
-            className="btn-filter btn-filter-archive"
+            className="filter-pill"
             onClick={() => setShowArchived(v => !v)}
             aria-pressed={showArchived}
+            style={showArchived ? {
+              background: 'var(--color-bg-subtle)',
+              color: 'var(--color-text-muted)',
+              borderColor: 'var(--color-border)',
+            } : undefined}
           >{showArchived ? '隱藏已封存' : '顯示已封存'}</button>
         </div>
 
@@ -188,7 +200,7 @@ export default function DashboardPage() {
                   cursor: 'pointer',
                 }} onClick={() => q.status === '草稿' ? navigate(`/quotation/new?edit=${q.id}`) : navigate(`/quotation/${q.id}`)}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-2)' }}>
-                    <span style={{ fontWeight: 700, fontSize: 'var(--text-sm)', fontFamily: 'var(--font-mono)' }}>
+                    <span style={{ fontWeight: 700, fontSize: 'var(--text-sm)', fontFamily: 'var(--font-mono)', background: 'var(--color-bg-subtle)', padding: '3px 10px', borderRadius: 'var(--radius-full)', border: '1px solid var(--color-border)' }}>
                       {q.quote_number}{q.version > 1 ? ` v${q.version}` : ''}
                     </span>
                     <StatusBadge status={q.status} isNegotiating={q.is_negotiating} size="sm" />
@@ -219,7 +231,7 @@ export default function DashboardPage() {
                     <tr key={q.id} style={{ cursor: 'pointer' }}
                       onClick={() => q.status === '草稿' ? navigate(`/quotation/new?edit=${q.id}`) : navigate(`/quotation/${q.id}`)}>
                       <td>
-                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-sm)', background: 'var(--color-bg-subtle)', border: '1px solid var(--color-border)', padding: '2px 10px', borderRadius: 'var(--radius-full)', whiteSpace: 'nowrap' }}>
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-sm)', background: 'var(--color-bg-subtle)', padding: '3px 10px', borderRadius: 'var(--radius-full)', border: '1px solid var(--color-border)' }}>
                           {q.quote_number}{q.version > 1 ? ` v${q.version}` : ''}
                         </span>
                       </td>
@@ -231,16 +243,14 @@ export default function DashboardPage() {
                       </td>
                       <td onClick={e => e.stopPropagation()}>
                         <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-                          <button
-                            className="btn-dashboard-action btn-dashboard-action--view"
+                          <button className="btn btn-sm btn-secondary"
                             onClick={() => q.status === '草稿' ? navigate(`/quotation/new?edit=${q.id}`) : navigate(`/quotation/${q.id}`)}>
-                            ↗ {q.status === '草稿' ? '編輯' : '檢視'}
+                            {q.status === '草稿' ? '編輯' : '檢視'}
                           </button>
                           {q.status !== '已封存' && (
-                            <button
-                              className="btn-dashboard-action btn-dashboard-action--archive"
+                            <button className="btn btn-sm btn-outline-muted"
                               onClick={() => archive(q.id)}>
-                              ⊘ 封存
+                              封存
                             </button>
                           )}
                         </div>

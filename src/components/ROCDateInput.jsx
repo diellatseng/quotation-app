@@ -25,21 +25,12 @@ export default function ROCDateInput({ value, onChange, id, label, required }) {
   return (
     <div>
       {label && (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-2)' }}>
-          <label htmlFor={id} className="field-label" style={{ margin: 0 }}>{label}</label>
+        <div className="roc-label-row">
+          <label htmlFor={id} className="field-label">{label}</label>
           <button
             type="button"
             onClick={toggleMode}
-            style={{
-              background: 'var(--color-bg-subtle)',
-              border: '1px solid var(--color-border)',
-              borderRadius: 'var(--radius-full)',
-              padding: '2px 10px',
-              fontSize: 'var(--text-xs)',
-              color: 'var(--color-text-secondary)',
-              cursor: 'pointer',
-              fontWeight: 600,
-            }}
+            className="roc-toggle"
             aria-label={useRoc ? '切換至西元' : '切換至民國'}
           >
             {useRoc ? '民國' : '西元'}
@@ -57,7 +48,7 @@ export default function ROCDateInput({ value, onChange, id, label, required }) {
         required={required}
         aria-label={label || (useRoc ? '民國日期' : '西元日期')}
       />
-      <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)' }}>
+      <p className="roc-hint">
         格式：{useRoc ? '民國年-月-日，例如 114-08-18' : '西元年-月-日，例如 2025-08-18'}
       </p>
     </div>

@@ -42,8 +42,8 @@ export default function Step2Project({ data, update }) {
 
   return (
     <div>
-      <h2 style={s.heading}>步驟 2：工程資料</h2>
-      <p style={s.desc}>選擇工程範本後，服務內容將自動載入（可在下一步調整）。</p>
+      <h2 className="page-heading">步驟 2：工程資料</h2>
+      <p className="page-desc">選擇工程範本後，服務內容將自動載入（可在下一步調整）。</p>
 
       {/* Template picker */}
       <div className="card" style={{ marginBottom: 'var(--space-6)' }}>
@@ -55,33 +55,29 @@ export default function Step2Project({ data, update }) {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
             {/* None option */}
-            <label style={tmplLabel(data.project_template_id === null)}>
+            <label className={`tmpl-option${data.project_template_id === null ? ' tmpl-option--selected' : ''}`}>
               <input type="radio" name="template" checked={data.project_template_id === null}
                 onChange={() => selectTemplate(null)} style={{ width: 20, height: 20 }} />
               <div>
-                <div style={{ fontWeight: 600 }}>不使用範本</div>
-                <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>服務內容將手動新增</div>
+                <div className="tmpl-option__name">不使用範本</div>
+                <div className="tmpl-option__meta">服務內容將手動新增</div>
               </div>
             </label>
             {templates.map(tmpl => (
-              <label key={tmpl.id} style={tmplLabel(data.project_template_id === tmpl.id)}>
+              <label key={tmpl.id} className={`tmpl-option${data.project_template_id === tmpl.id ? ' tmpl-option--selected' : ''}`}>
                 <input type="radio" name="template" checked={data.project_template_id === tmpl.id}
                   onChange={() => selectTemplate(tmpl)} style={{ width: 20, height: 20 }} />
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 600 }}>{tmpl.name}</div>
+                  <div className="tmpl-option__name">{tmpl.name}</div>
                   {tmpl.description && (
-                    <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>{tmpl.description}</div>
+                    <div className="tmpl-option__meta">{tmpl.description}</div>
                   )}
-                  <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-accent)', marginTop: 2 }}>
+                  <div className="tmpl-option__count">
                     {(tmpl.template_services || []).length} 項服務
                   </div>
                 </div>
                 {tmpl.category && (
-                  <span style={{
-                    fontSize: 'var(--text-xs)', padding: '2px 8px', flexShrink: 0,
-                    background: 'var(--color-bg-subtle)', borderRadius: 'var(--radius-full)',
-                    color: 'var(--color-text-muted)',
-                  }}>{tmpl.category}</span>
+                  <span className="category-pill">{tmpl.category}</span>
                 )}
               </label>
             ))}
@@ -92,7 +88,7 @@ export default function Step2Project({ data, update }) {
       {/* Project fields */}
       <div className="card">
         <p className="section-title">工程基本資料</p>
-        <div style={s.grid}>
+        <div className="field-grid">
           <div>
             <label className="field-label" htmlFor="project_owner">起造人</label>
             <input id="project_owner" {...field('project_owner')} placeholder="某某建設股份有限公司" />
@@ -117,20 +113,4 @@ export default function Step2Project({ data, update }) {
       </div>
     </div>
   )
-}
-
-const tmplLabel = (selected) => ({
-  display: 'flex', alignItems: 'flex-start', gap: 'var(--space-3)',
-  padding: 'var(--space-4)',
-  border: `1.5px solid ${selected ? 'var(--color-accent)' : 'var(--color-border)'}`,
-  borderRadius: 'var(--radius-md)',
-  cursor: 'pointer',
-  background: selected ? 'var(--color-accent-subtle)' : 'var(--color-bg-input)',
-  minHeight: 'var(--tap-min)',
-})
-
-const s = {
-  heading: { fontSize: 'var(--text-xl)', fontWeight: 700, marginBottom: 'var(--space-2)' },
-  desc: { fontSize: 'var(--text-base)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-6)' },
-  grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--space-4)' },
 }

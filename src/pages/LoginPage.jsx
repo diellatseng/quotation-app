@@ -25,14 +25,15 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={s.bg}>
-      <div style={s.card} role="main">
+    <div className="login-bg">
+      <div className="login-card" role="main">
+
         {/* Brand */}
-        <div style={s.brand}>
-          <div style={s.logoBox} aria-hidden="true">報</div>
+        <div className="login-brand">
+          <div className="login-logo" aria-hidden="true">報</div>
           <div>
-            <h1 style={s.title}>報價管理系統</h1>
-            <p style={s.subtitle}>Quotation Management</p>
+            <h1 className="login-title">報價管理系統</h1>
+            <p className="login-subtitle">Quotation Management</p>
           </div>
         </div>
 
@@ -77,68 +78,8 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <p style={s.hint}>帳號由管理員建立，如需帳號請聯繫管理員。</p>
+        <p className="login-hint">帳號由管理員建立，如需帳號請聯繫管理員。</p>
       </div>
     </div>
   )
-}
-
-const s = {
-  bg: {
-    minHeight: '100vh',
-    background: 'var(--color-bg)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 'var(--space-6)',
-  },
-  card: {
-    background: 'var(--color-bg-surface)',
-    borderRadius: 'var(--radius-lg)',
-    padding: 'var(--space-10)',
-    width: '100%',
-    maxWidth: 420,
-    boxShadow: 'var(--shadow-lg)',
-    border: '1px solid var(--color-border)',
-  },
-  brand: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 'var(--space-4)',
-    marginBottom: 'var(--space-8)',
-  },
-  logoBox: {
-    width: 56, height: 56,
-    background: 'var(--color-text)',
-    color: 'var(--color-text-inverse)',
-    borderRadius: 'var(--radius-md)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: 'var(--text-xl)',
-    fontWeight: 700,
-    flexShrink: 0,
-    letterSpacing: 0,
-  },
-  title: {
-    margin: 0,
-    fontSize: 'var(--text-lg)',
-    fontWeight: 700,
-    color: 'var(--color-text)',
-    letterSpacing: '0.04em',
-  },
-  subtitle: {
-    margin: 0,
-    fontSize: 'var(--text-xs)',
-    color: 'var(--color-text-muted)',
-    letterSpacing: '0.1em',
-    marginTop: 4,
-  },
-  hint: {
-    marginTop: 'var(--space-6)',
-    textAlign: 'center',
-    fontSize: 'var(--text-xs)',
-    color: 'var(--color-text-muted)',
-    lineHeight: 1.6,
-  },
 }
