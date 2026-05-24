@@ -1,5 +1,5 @@
 // src/pages/DashboardPage.jsx
-import { useState, useEffect } from 'react'
+import { React, useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
@@ -84,7 +84,10 @@ export default function DashboardPage() {
         <div style={hdr.left}>
           <div style={hdr.logo} aria-hidden="true">報</div>
           <div>
-            <h1 style={hdr.title}>報價管理系統</h1>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--space-2)' }}>
+              <h1 style={hdr.title}>報價管理系統</h1>
+              <p style={hdr.user}> v.0.0.2-test </p>
+            </div>
             <p style={hdr.user}>{user?.email}</p>
           </div>
         </div>
