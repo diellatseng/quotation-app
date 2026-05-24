@@ -1,6 +1,8 @@
 // src/components/ServiceTable.jsx
 import { useState, useRef } from 'react'
 import RichEditor from './RichEditor'
+import Icon from './Icon'
+import IconButton from './IconButton'
 
 export default function ServiceTable({ services, onChange, readOnly = false }) {
   const [expandedChecklist, setExpandedChecklist] = useState(null)
@@ -103,20 +105,23 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
             <span>⠿</span>拖曳左側可調整順序
           </span>
         )}
-
-        {hasAnyDesc && (
+        {hasAnyDesc && allCollapsed && (
           <div className="toolbar__right">
             <button type="button" onClick={expandAll}
               className="btn-xxs"
-              style={{ opacity: allCollapsed ? 1 : 0.45 }}
-              title="展開所有說明">
-              ▾ 全部展開
+              title="展開所有說明"
+              style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <Icon name="keyboard_arrow_left" title="展開所有說明" /> 全部展開
             </button>
+          </div>
+        )}
+        {hasAnyDesc && !allCollapsed && (
+          <div className="toolbar__right">
             <button type="button" onClick={collapseAll}
               className="btn-xxs"
-              style={{ opacity: !allCollapsed ? 1 : 0.45 }}
-              title="折疊所有說明">
-              ▸ 全部折疊
+              title="折疊所有說明"
+              style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <Icon name="keyboard_arrow_down" title="折疊所有說明" /> 全部折疊
             </button>
           </div>
         )}
@@ -253,35 +258,26 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                       aria-label="客戶準備清單"
                       className={`btn-xs${checklistOpen ? ' btn-xs--active' : ''}`}
                     >
-                      ☑ {checklistCount || ''}
+                      <Icon name="list" title="客戶準備清單" /> {checklistCount || ''}
                     </button>
 
                     {/* Delete */}
                     {!readOnly && (
-                      <button type="button" onClick={() => removeService(idx)}
-                        aria-label="刪除此服務項目" title="刪除"
+                      <IconButton
+                        icon="delete"
+                        title="刪除此服務項目"
+                        onClick={() => removeService(idx)}
                         className="btn-xs btn-xs--danger"
-                        style={{ padding: '0 var(--space-2)' }}>
-                        ✕
-                      </button>
+                      />
                     )}
 
                     {/* Collapse/expand chevron */}
-                    <button
-                      type="button"
+                    <IconButton
+                      icon={collapsed ? 'keyboard_arrow_left' : 'keyboard_arrow_down'}
+                      title={collapsed ? '展開說明' : '摺疊說明'}
                       onClick={() => toggleCollapse(idx)}
-                      aria-label={collapsed ? '展開說明' : '折疊說明'}
-                      title={collapsed ? '展開說明' : '折疊說明'}
                       className="btn-xs"
-                      style={{ padding: '0 var(--space-2)' }}
-                    >
-                      <span style={{
-                        display: 'inline-block',
-                        transition: 'transform 0.2s',
-                        transform: collapsed ? 'rotate(0deg)' : 'rotate(180deg)',
-                        lineHeight: 1,
-                      }}>▼</span>
-                    </button>
+                    />
                   </div>
                 )}
                 {isRemoved && <div style={{ marginLeft: 'auto' }} />}

@@ -1264,6 +1264,29 @@ a:hover { text-decoration: underline; }
   color: var(--color-text);
 }
 
+/* ── Material Symbols ───────────────────────────────────────────────────────
+   Styles for Google Material Symbols (modern design system)
+   Reference: https://developers.google.com/fonts/docs/material_symbols
+────────────────────────────────────────────────────────────────────────────── */
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 1.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: normal;
+  text-transform: none;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  -moz-osx-font-smoothing: grayscale;
+  color: inherit;
+}
+
 /* ── Tab bar ─────────────────────────────────────────────────────────────────
    Horizontal tab navigation (e.g. version selector in QuotationDetailPage).
 ────────────────────────────────────────────────────────────────────────────── */
