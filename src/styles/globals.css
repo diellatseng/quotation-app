@@ -1153,6 +1153,59 @@ a:hover { text-decoration: underline; }
   word-break: break-word;
 }
 
+/* ── Rich text content styles ─────────────────────────────────────────────────
+   Styles for HTML elements rendered from RichEditor: lists, paragraphs, etc.
+────────────────────────────────────────────────────────────────────────────── */
+.desc-block ul,
+.desc-block ol {
+  padding-left: 1.6em;
+  margin: 0.5em 0;
+}
+
+.desc-block ul {
+  list-style-type: disc;
+}
+
+.desc-block ol {
+  list-style-type: decimal;
+}
+
+.desc-block ul ul {
+  list-style-type: circle;
+  margin-top: 0.25em;
+  margin-bottom: 0.25em;
+}
+
+.desc-block ul ul ul {
+  list-style-type: square;
+}
+
+.desc-block ol ol {
+  list-style-type: lower-alpha;
+}
+
+.desc-block li {
+  margin: 0.3em 0;
+}
+
+.desc-block p {
+  margin: 0.5em 0;
+}
+
+.desc-block strong,
+.desc-block b {
+  font-weight: 700;
+}
+
+.desc-block em,
+.desc-block i {
+  font-style: italic;
+}
+
+.desc-block u {
+  text-decoration: underline;
+}
+
 /* ── Description empty state ─────────────────────────────────────────────────
    Dashed placeholder shown when a service has no description yet.
 ────────────────────────────────────────────────────────────────────────────── */

@@ -321,7 +321,7 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                   {!isEditing && hasDesc && (
                     <div
                       className="desc-block"
-                      dangerouslySetInnerHTML={{ __html: svc.description.replace(/\n/g, '<br>') }}
+                      dangerouslySetInnerHTML={{ __html: svc.description }}
                     />
                   )}
 
