@@ -1,6 +1,6 @@
 {
   "name": "quotation-app",
-  "version": "v0.0.3-test",
+  "version": "0.0.3",
   "private": true,
   "homepage": "https://diellatseng.github.io/quotation-app/",
   "dependencies": {
