@@ -79,6 +79,7 @@ export default function LoginPage() {
         </form>
 
         <p className="login-hint">帳號由管理員建立，如需帳號請聯繫管理員。</p>
+        <p className="login-hint">{process.env.REACT_APP_VERSION}</p>
       </div>
     </div>
   )

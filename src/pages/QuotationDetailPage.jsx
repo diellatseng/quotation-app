@@ -254,34 +254,33 @@ export default function QuotationDetailPage() {
             style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)' }}>
             {exporting ? '匯出中…' : '匯出 PDF'}
           </button>
-          <button className="btn btn-sm" onClick={sendEmail} disabled={emailing}
+          {/* <button className="btn btn-sm" onClick={sendEmail} disabled={emailing}
             style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)' }}>
             {emailing ? '發送中…' : '發送 Email'}
-          </button>
-          {qt.status === '已報價' && (
+          </button> */}
+          {/* {qt.status === '已報價' && (
             <button className="btn btn-sm"
               style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)' }}
               onClick={() => navigate(`/quotation/new?edit=${qt.id}&step=1`)}>
               建立新版本
             </button>
-          )}
+          )} */}
           {qt.status === '草稿' && (
-            <button className="btn btn-sm btn-primary" onClick={() => setStatus('已報價')}>
+            <button className="btn btn-sm" onClick={() => setStatus('已報價')}>
               標記為已報價
             </button>
           )}
           {qt.status === '已報價' && (
-            <button className="btn btn-sm btn-primary" onClick={() => setStatus('已確認')}>
+            <button className="btn btn-sm" onClick={() => setStatus('已確認')}>
               標記為已確認
             </button>
           )}
-          {qt.status !== '已封存' && (
-            <button className="btn btn-sm btn-ghost"
-              style={{ color: 'rgba(255,255,255,0.6)' }}
+          {/* {qt.status !== '已封存' && (
+            <button className="btn btn-sm btn-primary"
               onClick={() => { if(window.confirm('封存此報價單？')) setStatus('已封存') }}>
               封存
             </button>
-          )}
+          )} */}
         </div>
       </header>
 

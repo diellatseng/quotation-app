@@ -86,9 +86,9 @@ export default function DashboardPage() {
           <div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--space-2)' }}>
               <h1 style={hdr.title}>報價管理系統</h1>
-              <p style={hdr.user}> v.0.0.2-test </p>
+              <p style={hdr.subtitle}> {process.env.REACT_APP_VERSION} </p>
             </div>
-            <p style={hdr.user}>{user?.email}</p>
+            <p style={hdr.subtitle}>{user?.email}</p>
           </div>
         </div>
         <div style={hdr.right}>
@@ -251,7 +251,7 @@ export default function DashboardPage() {
                             {q.status === '草稿' ? '編輯' : '檢視'}
                           </button>
                           {q.status !== '已封存' && (
-                            <button className="btn btn-sm btn-outline-muted"
+                            <button className="btn btn-sm btn-secondary"
                               onClick={() => archive(q.id)}>
                               封存
                             </button>
@@ -292,7 +292,7 @@ const hdr = {
     fontSize: 'var(--text-lg)', fontWeight: 700, flexShrink: 0,
   },
   title: { margin: 0, fontSize: 'var(--text-md)', fontWeight: 700, letterSpacing: '0.04em' },
-  user: { margin: 0, fontSize: 'var(--text-xs)', color: 'rgba(255,255,255,0.6)', marginTop: 2 },
+  subtitle: { margin: 0, fontSize: 'var(--text-xs)', color: 'rgba(255,255,255,0.6)', marginTop: 2 },
   right: { display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'wrap' },
 }
 
