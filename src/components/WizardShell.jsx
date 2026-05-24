@@ -1,4 +1,5 @@
 // src/components/WizardShell.jsx
+import Button from './Button'
 
 const STEPS = [
   { num: 1, label: '客戶資料' },
@@ -159,43 +160,51 @@ export default function WizardShell({
           {/* Left: back actions */}
           <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
             {onBackToDashboard && (
-              <button
-                className="btn btn-secondary"
+              <Button
+                variant="normal"
+                size="normal"
                 onClick={onBackToDashboard}
                 disabled={saving}
                 aria-label="返回清單頁"
               >
                 ← 返回清單
-              </button>
+              </Button>
             )}
             {!isFirst && (
-              <button className="btn btn-secondary" onClick={onBack} aria-label="上一步">
+              <Button
+                variant="normal"
+                size="normal"
+                onClick={onBack}
+                aria-label="上一步"
+              >
                 ← {backLabel || '上一步'}
-              </button>
+              </Button>
             )}
           </div>
 
           {/* Right: save + next */}
           <div style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'center' }}>
             {onSaveDraft && (
-              <button
-                className="btn btn-ghost btn-sm"
+              <Button
+                variant="ghost"
+                size="normal"
                 onClick={onSaveDraft}
                 disabled={saving}
                 aria-label="儲存草稿"
               >
                 {saving ? '儲存中…' : '儲存草稿'}
-              </button>
+              </Button>
             )}
             {(!isLast || nextLabel) && (
-              <button
-                className="btn btn-primary"
+              <Button
+                variant="accent"
+                size="normal"
                 onClick={onNext}
                 disabled={isLast ? saving : !canNext}
                 aria-label="下一步"
               >
                 {nextLabel || '下一步'} →
-              </button>
+              </Button>
             )}
           </div>
         </div>

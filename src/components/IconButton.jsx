@@ -1,13 +1,16 @@
 import Icon from './Icon'
+import Button from './Button'
 
 /**
  * IconButton — Button with integrated Material Symbol icon
- * Avoids repetition of title and ensures consistent styling
+ * Uses the shared Button component for consistent styling
  *
  * @param {string} icon - Material Symbol name (e.g., 'delete', 'expand_more')
  * @param {string} title - Tooltip text (applied to both button and icon)
  * @param {function} onClick - Click handler
- * @param {string} className - Additional CSS classes (e.g., 'btn-xs--danger')
+ * @param {string} variant - Button variant: 'normal' | 'accent' | 'ghost' | 'danger' (default: 'normal')
+ * @param {string} size - Button size: 'sm' | 'normal' | 'lg' (default: 'normal')
+ * @param {string} className - Additional CSS classes
  * @param {object} style - Inline styles to override defaults
  * @param {string} label - aria-label for accessibility
  * @param {boolean} disabled - Disable the button
@@ -18,29 +21,33 @@ export default function IconButton({
   icon,
   title = '',
   onClick,
-  className = 'btn-xs',
+  variant = 'normal',
+  size = 'normal',
+  className = '',
   style = {},
   label = '',
   disabled = false,
   type = 'button',
 }) {
   return (
-    <button
+    <Button
       type={type}
       onClick={onClick}
+      variant={variant}
+      size={size}
       className={className}
-      title={title}
-      aria-label={label || title}
-      disabled={disabled}
       style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '0 var(--space-2)',
+        gap: '4px',
         ...style,
       }}
+      title={title}
+      aria-label={label || title}
+      disabled={disabled}
     >
       <Icon name={icon} title={title} />
-    </button>
+    </Button>
   )
 }

@@ -119,8 +119,9 @@ export default function DashboardPage() {
           >
             {contrast === 'high' ? '標準' : '高對比'}
           </button>
-          <Link to="/admin/clients" className="btn btn-ghost btn-sm"
-            style={{ color: 'var(--color-text-inverse)' }}>管理</Link>
+          <button className="btn btn-ghost btn-sm"
+            style={{ color: 'var(--color-text-inverse)' }}
+            onClick={() => navigate('/admin/clients')}>管理</button>
           <button className="btn btn-ghost btn-sm"
             style={{ color: 'var(--color-text-inverse)' }}
             onClick={signOut}>登出</button>
