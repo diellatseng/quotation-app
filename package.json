@@ -1,6 +1,6 @@
 {
   "name": "quotation-app",
-  "version": "0.0.4",
+  "version": "0.0.3",
   "private": true,
   "homepage": "https://diellatseng.github.io/quotation-app/",
   "dependencies": {
@@ -21,7 +21,7 @@
     "lint:fix": "eslint src/ --fix",
     "format": "prettier --write \"src/**/*.{js,jsx,json,css,md}\"",
     "format:check": "prettier --check \"src/**/*.{js,jsx,json,css,md}\"",
-    "deploy": "npm run build && gh-pages -d build"
+    "deploy": "npm version patch && npm run build && gh-pages -d build"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.1.5",

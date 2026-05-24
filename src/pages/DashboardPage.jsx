@@ -8,6 +8,7 @@ import { useNotification } from '../context/NotificationContext'
 import { formatRocDate } from '../lib/rocDate'
 import StatusBadge from '../components/StatusBadge'
 import Switch from '../components/Switch'
+import packageJson from '../../package.json';
 
 const STATUS_FILTERS = ['全部', '草稿', '已報價', '已確認']
 const fmt = (n) => n ? `NT$ ${Number(n).toLocaleString('zh-TW')}` : '—'
@@ -86,7 +87,7 @@ export default function DashboardPage() {
           <div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--space-2)' }}>
               <h1 style={hdr.title}>報價管理系統</h1>
-              <p style={hdr.subtitle}> {process.env.REACT_APP_VERSION} </p>
+              <p style={hdr.subtitle}> v{packageJson.version} </p>
             </div>
             <p style={hdr.subtitle}>{user?.email}</p>
           </div>

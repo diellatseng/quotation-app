@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useNotification } from '../context/NotificationContext'
+import packageJson from '../../package.json'
 
 export default function LoginPage() {
   const [email, setEmail]       = useState('')
@@ -79,7 +80,7 @@ export default function LoginPage() {
         </form>
 
         <p className="login-hint">帳號由管理員建立，如需帳號請聯繫管理員。</p>
-        <p className="login-hint">{process.env.REACT_APP_VERSION}</p>
+        <p className="login-hint">v{packageJson.version}</p>
       </div>
     </div>
   )
