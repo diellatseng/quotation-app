@@ -57,6 +57,18 @@ export function useExportPDF({ filename = '報價單', onSuccess } = {}) {
       print-color-adjust: exact;
       font-family: "Noto Sans TC", "Microsoft JhengHei", "Microsoft YaHei", sans-serif;
     }
+    /* List styles to ensure proper formatting in PDF */
+    ul, ol { 
+      margin: 0.2em 0;
+      padding-left: 1.4em;
+    }
+    ul { list-style-type: disc; }
+    ol { list-style-type: decimal; }
+    ul ul { list-style-type: circle; }
+    ul ul ul { list-style-type: square; }
+    ol ol { list-style-type: lower-alpha; }
+    li { margin: 0.1em 0; }
+    
     /* Hide the dashed page-break dividers that A4Preview renders between pages */
     [data-page] + div { display: none; }
     /* Force page break after each A4 page */
