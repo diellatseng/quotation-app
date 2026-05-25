@@ -54,7 +54,7 @@ app.post('/api/export-pdf', async (req, res) => {
     
     // Force reflow to ensure all content is laid out
     await page.evaluate(() => {
-      document.body.offsetHeight // Trigger reflow
+      void document.body.offsetHeight // Trigger reflow
     })
 
     // Use print-to-PDF to respect CSS page breaks
