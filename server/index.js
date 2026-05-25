@@ -3,15 +3,30 @@ const puppeteer = require('puppeteer')
 
 const app = express()
 const PORT = process.env.PORT || 3001
-const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || 'https://yourusername.github.io'
+
+// 允許的來源列表
+// 本地開發: http://localhost:3000
+// GitHub Pages: https://diellatseng.github.io
+const ALLOWED_ORIGINS = [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'https://diellatseng.github.io'
+]
 
 app.use(express.json({ limit: '10mb' }))
 
-// CORS
+// CORS middleware — 嚴格只允許指定的來源
 app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', ALLOWED_ORIGIN)
+  const origin = req.headers.origin
+
+  if (ALLOWED_ORIGINS.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin)
+  }
+
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+  res.setHeader('Access-Control-Allow-Credentials', 'true')
+
   if (req.method === 'OPTIONS') return res.status(200).end()
   next()
 })
