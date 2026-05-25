@@ -216,8 +216,8 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                   </span>
                 ) : (
                   <input
-                    className="field-input"
-                    style={{ flex: 2, minWidth: 0, fontWeight: 600, height: 36, minHeight: 'unset' }}
+                    className="field-input field-input--sm"
+                    style={{ flex: 2, minWidth: 0, fontWeight: 600 }}
                     value={svc.service_name}
                     onChange={e => updateService(idx, 'service_name', e.target.value)}
                     placeholder="服務項目名稱"
@@ -232,8 +232,8 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                   )
                 ) : (
                   <input
-                    className="field-input"
-                    style={{ width: 110, minWidth: 0, fontSize: 'var(--text-sm)', height: 36, minHeight: 'unset', borderRadius: 'var(--radius-sm)' }}
+                    className="field-input field-input--sm"
+                    style={{ width: 110, minWidth: 0 }}
                     value={svc.category || ''}
                     onChange={e => updateService(idx, 'category', e.target.value)}
                     placeholder="類別"
@@ -377,8 +377,8 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                           <span style={{ flex: 1, fontSize: 'var(--text-sm)' }}>{item.item_text}</span>
                         ) : (
                           <input
-                            className="field-input"
-                            style={{ flex: 1, fontSize: 'var(--text-sm)', background: 'var(--color-bg-surface)', minHeight: 'unset', height: 36 }}
+                            className="field-input field-input--sm"
+                            style={{ flex: 1 }}
                             value={item.item_text}
                             onChange={e => updateChecklistItem(idx, iIdx, e.target.value)}
                             placeholder="準備項目說明"

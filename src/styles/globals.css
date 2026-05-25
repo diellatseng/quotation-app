@@ -177,6 +177,13 @@ a:hover { text-decoration: underline; }
 }
 .field-input::placeholder { color: var(--color-text-muted); }
 
+/* Input size variant — compact height for inline inputs (e.g. ServiceTable) */
+.field-input--sm {
+  min-height: unset;
+  height: 36px;
+  font-size: var(--text-sm);
+}
+
 /* ── Buttons ── */
 .btn {
   display: inline-flex;
