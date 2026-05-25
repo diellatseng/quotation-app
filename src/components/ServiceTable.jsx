@@ -3,6 +3,7 @@ import { useState, useRef } from 'react'
 import RichEditor from './RichEditor'
 import Icon from './Icon'
 import IconButton from './IconButton'
+import Button from '../components/Button'
 
 export default function ServiceTable({ services, onChange, readOnly = false }) {
   const [expandedChecklist, setExpandedChecklist] = useState(null)
@@ -89,9 +90,13 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
     <div className="empty-state">
       <p className="empty-state__message">尚無服務項目。請從工程範本載入或手動新增。</p>
       {!readOnly && (
-        <button type="button" className="btn btn-secondary" onClick={addService}>
+        <Button
+          variant="accent"
+          size="normal"
+          onClick={addService}
+        >
           + 新增服務項目
-        </button>
+        </Button>
       )}
     </div>
   )
@@ -113,6 +118,7 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
               style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
               <Icon name="keyboard_arrow_left" title="展開所有說明" /> 全部展開
             </button>
+
           </div>
         )}
         {hasAnyDesc && !allCollapsed && (
@@ -265,18 +271,20 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                     {!readOnly && (
                       <IconButton
                         icon="delete"
-                        title="刪除此服務項目"
+                        tooltip="刪除此服務項目"
                         onClick={() => removeService(idx)}
-                        className="btn-xs btn-xs--danger"
+                        variant="danger"
+                        size="sm"
                       />
                     )}
 
                     {/* Collapse/expand chevron */}
                     <IconButton
                       icon={collapsed ? 'keyboard_arrow_left' : 'keyboard_arrow_down'}
-                      title={collapsed ? '展開說明' : '摺疊說明'}
+                      tooltip={collapsed ? '展開說明' : '摺疊說明'}
                       onClick={() => toggleCollapse(idx)}
-                      className="btn-xs"
+                      variant="ghost"
+                      size="sm"
                     />
                   </div>
                 )}
@@ -294,22 +302,32 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                     <span className="subsection-label">說明</span>
 
                     {!readOnly && !isEditing && (
-                      <button type="button" onClick={() => startEdit(idx)}
-                        className="btn-xxs">
-                        ✎ {hasDesc ? '編輯' : '新增說明'}
-                      </button>
+                      <IconButton
+                        icon="edit"
+                        label={hasDesc ? '編輯' : '新增說明'}
+                        tooltip={hasDesc ? '編輯說明' : '新增說明'}
+                        onClick={() => startEdit(idx)}
+                        variant="normal"
+                        size="sm"
+                      />
                     )}
 
                     {!readOnly && isEditing && (
                       <div style={{ display: 'flex', gap: 6 }}>
-                        <button type="button" onClick={cancelEdit}
-                          className="btn-xxs">
+                        <Button
+                          size="sm"
+                          style={{ display: 'flex', gap: 6 }}
+                          onClick={cancelEdit}
+                        >
                           取消
-                        </button>
-                        <button type="button" onClick={() => commitEdit(idx)}
-                          className="btn-xxs btn-xxs--accent">
-                          ✓ 完成
-                        </button>
+                        </Button>            
+                        <Button
+                          variant="accent"
+                          size="sm"
+                          onClick={() => commitEdit(idx)}
+                        >
+                          完成
+                        </Button>
                       </div>
                     )}
                   </div>
@@ -398,11 +416,14 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                   </div>
 
                   {!readOnly && (
-                    <button type="button" className="btn btn-ghost btn-sm"
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       style={{ marginTop: 'var(--space-3)' }}
-                      onClick={() => addChecklistItem(idx)}>
+                      onClick={() => addChecklistItem(idx)}
+                    >
                       + 新增清單項目
-                    </button>
+                    </Button>
                   )}
                 </div>
               )}
@@ -412,11 +433,13 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
       </div>
 
       {!readOnly && (
-        <button type="button" className="btn btn-secondary"
+        <Button
+          variant="normal"
           style={{ marginTop: 'var(--space-4)', width: '100%' }}
-          onClick={addService}>
+          onClick={addService}
+        >
           + 新增服務項目
-        </button>
+        </Button>
       )}
     </div>
   )

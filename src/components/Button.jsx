@@ -8,12 +8,16 @@
  *  - size: string ('sm' | 'normal' | 'lg')
  *  - className: string (extra classes)
  *  - style: object (inline overrides)
+ *  - title: string (tooltip text)
+ *  - aria-label: string (accessibility label)
+ *  - disabled: boolean
+ *  - type: string ('button' | 'submit' | 'reset')
+ *  - onClick: function
  *  - children
- *  - ...rest (onClick, type, disabled, aria-*)
  *
  * Usage:
  *  <Button variant="primary" size="lg">新增</Button>
- *  <Button variant="ghost" size="sm">取消</Button>
+ *  <Button variant="ghost" size="sm" title="取消">取消</Button>
  */
 
 import '../styles/components/Button.css'

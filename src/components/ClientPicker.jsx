@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { useNotification } from '../context/NotificationContext'
+import Button from '../components/Button'
 
 export default function ClientPicker({ value, onChange, disabled = false }) {
   const [clients, setClients]       = useState([])
@@ -133,31 +134,19 @@ export default function ClientPicker({ value, onChange, disabled = false }) {
                 <div style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)' }}>
                   找不到符合的客戶
                 </div>
-                <button
+                <Button
                   type="button"
+                  variant="accent"
+                  size="sm"
                   onClick={() => {
                     setNewClient(p => ({ ...p, company_name: search }))
                     setShowCreate(true)
                     setSearch('')
                   }}
-                  style={{
-                    padding: 'var(--space-2) var(--space-3)',
-                    background: 'var(--color-accent)',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: 'var(--radius-md)',
-                    cursor: disabled ? 'not-allowed' : 'pointer',
-                    fontSize: 'var(--text-sm)',
-                    fontWeight: 600,
-                    transition: 'opacity var(--transition)',
-                    opacity: disabled ? 0.5 : 1,
-                  }}
-                  onMouseEnter={e => !disabled && (e.currentTarget.style.opacity = '0.9')}
-                  onMouseLeave={e => !disabled && (e.currentTarget.style.opacity = '1')}
                   disabled={disabled}
                 >
                   使用「{search}」建立新客戶
-                </button>
+                </Button>
               </div>
             ) : (
               filtered.map((c, idx) => (
@@ -190,15 +179,16 @@ export default function ClientPicker({ value, onChange, disabled = false }) {
       </div>
 
       {/* Toggle create */}
-      <button
+      <Button
         type="button"
-        className="btn btn-ghost btn-sm"
+        variant="ghost"
+        size="sm"
         onClick={() => setShowCreate(v => !v)}
         aria-expanded={showCreate}
         disabled={disabled}
       >
         {showCreate ? '取消' : '+ 建立新客戶'}
-      </button>
+      </Button>
 
       {/* Create form */}
       {showCreate && (
@@ -273,10 +263,22 @@ export default function ClientPicker({ value, onChange, disabled = false }) {
           </Grid>
 
           <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
-            <button className="btn btn-primary" type="button" onClick={createClient} disabled={loading || disabled}>
+            <Button
+              variant="primary"
+              type="button"
+              onClick={createClient}
+              disabled={loading || disabled}
+            >
               {loading ? '建立中…' : '建立客戶'}
-            </button>
-            <button className="btn btn-ghost" type="button" onClick={() => setShowCreate(false)} disabled={disabled}>取消</button>
+            </Button>
+            <Button
+              variant="ghost"
+              type="button"
+              onClick={() => setShowCreate(false)}
+              disabled={disabled}
+            >
+              取消
+            </Button>
           </div>
         </div>
       )}

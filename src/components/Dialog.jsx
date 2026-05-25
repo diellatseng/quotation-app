@@ -1,3 +1,5 @@
+import Button from '../components/Button'
+
 export default function Dialog({ 
   isOpen, 
   title, 
@@ -6,7 +8,6 @@ export default function Dialog({
   cancelText = '取消',
   onConfirm, 
   onCancel,
-  isDangerous = false,
 }) {
   if (!isOpen) return null
 
@@ -17,18 +18,21 @@ export default function Dialog({
         {message && <p className="dialog-message">{message}</p>}
         
         <div className="dialog-actions">
-          <button 
-            className="btn btn-ghost" 
+
+          <Button
+            variant="ghost"
+            size="normal"
             onClick={onCancel}
-          >
+          > 
             {cancelText}
-          </button>
-          <button 
-            className={isDangerous ? 'btn btn-danger' : 'btn btn-primary'} 
+          </Button>
+          <Button
+            variant="primary"
+            size="normal"
             onClick={onConfirm}
-          >
+          > 
             {confirmText}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

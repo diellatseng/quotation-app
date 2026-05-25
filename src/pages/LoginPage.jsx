@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useNotification } from '../context/NotificationContext'
+import Button from '../components/Button'
 import packageJson from '../../package.json'
 
 export default function LoginPage() {
@@ -69,14 +70,14 @@ export default function LoginPage() {
             />
           </div>
 
-          <button
+          <Button
             type="submit"
-            className="btn btn-primary"
+            variant="primary"
             disabled={loading}
             style={{ width: '100%', fontSize: 'var(--text-md)' }}
           >
             {loading ? '登入中…' : '登入'}
-          </button>
+          </Button>
         </form>
 
         <p className="login-hint">帳號由管理員建立，如需帳號請聯繫管理員。</p>
