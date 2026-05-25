@@ -8,6 +8,8 @@ import { useNotification } from '../context/NotificationContext'
 import { formatRocDate } from '../lib/rocDate'
 import StatusBadge from '../components/StatusBadge'
 import Switch from '../components/Switch'
+import Button from '../components/Button'
+import FilterPill from '../components/FilterPill'
 import packageJson from '../../package.json';
 
 const STATUS_FILTERS = ['全部', '草稿', '已報價', '已確認']
@@ -95,36 +97,53 @@ export default function DashboardPage() {
         <div style={hdr.right}>
           {/* Accessibility controls */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-            <button
-              aria-label="縮小字體"
-              className="btn btn-ghost btn-sm"
+            <Button
+              variant="ghost"
+              size="sm"
               style={{ color: 'var(--color-text-inverse)', minWidth: 'var(--tap-min)' }}
               onClick={() => setFontSize(baseFontSize - 1)}
-            >A-</button>
+              aria-label="縮小字體"
+            >
+              A-
+            </Button>
             <span style={{ fontSize: 'var(--text-xs)', color: 'rgba(255,255,255,0.7)', minWidth: 32, textAlign: 'center' }}>
               {baseFontSize}px
             </span>
-            <button
-              aria-label="放大字體"
-              className="btn btn-ghost btn-sm"
+            <Button
+              variant="ghost"
+              size="sm"
               style={{ color: 'var(--color-text-inverse)', minWidth: 'var(--tap-min)' }}
               onClick={() => setFontSize(baseFontSize + 1)}
-            >A+</button>
+              aria-label="放大字體"
+            >
+              A+
+            </Button>
           </div>
-          <button
-            className="btn btn-ghost btn-sm"
+          <Button
+            variant="ghost"
+            size="sm"
             style={{ color: 'var(--color-text-inverse)', minWidth: 'var(--tap-min)' }}
             onClick={toggleContrast}
             aria-label={contrast === 'high' ? '關閉高對比' : '開啟高對比'}
           >
             {contrast === 'high' ? '標準' : '高對比'}
-          </button>
-          <button className="btn btn-ghost btn-sm"
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
             style={{ color: 'var(--color-text-inverse)' }}
-            onClick={() => navigate('/admin/clients')}>管理</button>
-          <button className="btn btn-ghost btn-sm"
+            onClick={() => navigate('/admin/clients')}
+          >
+            管理
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
             style={{ color: 'var(--color-text-inverse)' }}
-            onClick={signOut}>登出</button>
+            onClick={signOut}
+          >
+            登出
+          </Button>
         </div>
       </header>
 
@@ -140,24 +159,25 @@ export default function DashboardPage() {
             placeholder="搜尋報價編號、客戶名稱…"
             aria-label="搜尋報價單"
           />
-          <button
-            className="btn btn-primary"
+          <Button
+            variant="primary"
             onClick={() => navigate('/quotation/new')}
             aria-label="新增報價單"
           >
             + 新增報價單
-          </button>
+          </Button>
         </div>
 
         {/* Filter pills */}
         <div style={tb.filters}>
           {STATUS_FILTERS.map(f => (
-            <button
+            <FilterPill
               key={f}
-              className="filter-pill"
-              onClick={() => setStatusFilter(f)}
-              aria-pressed={statusFilter === f}
-            >{f}</button>
+              pressed={statusFilter === f}
+              onChange={() => setStatusFilter(f)}
+            >
+              {f}
+            </FilterPill>
           ))}
           {/* <button
             className="filter-pill"
@@ -189,10 +209,13 @@ export default function DashboardPage() {
           <div style={{ textAlign: 'center', padding: 'var(--space-12)', color: 'var(--color-text-muted)' }}>
             <div style={{ fontSize: 48, marginBottom: 'var(--space-4)' }}>📋</div>
             <p>尚無報價單</p>
-            <button className="btn btn-primary" style={{ marginTop: 'var(--space-4)' }}
-              onClick={() => navigate('/quotation/new')}>
+            <Button
+              variant="primary"
+              style={{ marginTop: 'var(--space-4)' }}
+              onClick={() => navigate('/quotation/new')}
+            >
               建立第一份報價單
-            </button>
+            </Button>
           </div>
         ) : (
           <div style={{ background: 'var(--color-bg-surface)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)', overflow: 'hidden', boxShadow: 'var(--shadow-sm)' }}>
@@ -248,15 +271,21 @@ export default function DashboardPage() {
                       </td>
                       <td onClick={e => e.stopPropagation()}>
                         <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-                          <button className="btn btn-sm btn-secondary"
-                            onClick={() => q.status === '草稿' ? navigate(`/quotation/new?edit=${q.id}`) : navigate(`/quotation/${q.id}`)}>
+                          <Button
+                            variant="normal"
+                            size="sm"
+                            onClick={() => q.status === '草稿' ? navigate(`/quotation/new?edit=${q.id}`) : navigate(`/quotation/${q.id}`)}
+                          >
                             {q.status === '草稿' ? '編輯' : '檢視'}
-                          </button>
+                          </Button>
                           {q.status !== '已封存' && (
-                            <button className="btn btn-sm btn-secondary"
-                              onClick={() => archive(q.id)}>
+                            <Button
+                              variant="normal"
+                              size="sm"
+                              onClick={() => archive(q.id)}
+                            >
                               封存
-                            </button>
+                            </Button>
                           )}
                         </div>
                       </td>

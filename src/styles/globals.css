@@ -185,24 +185,9 @@ a:hover { text-decoration: underline; }
 }
 
 /* ── Buttons ── */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  min-height: var(--tap-min);
-  padding: var(--space-3) var(--space-6);
-  border-radius: var(--radius-md);
-  font-size: var(--text-base);
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--transition);
-  border: 1.5px solid transparent;
-  white-space: nowrap;
-  text-decoration: none;
-}
-.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+/* New Button component styles are in src/styles/components/Button.css */
 
+/* Legacy button styles (used by other components that haven't migrated to Button component) */
 .btn-primary {
   background: var(--color-text);
   color: var(--color-text-inverse);
@@ -254,31 +239,7 @@ a:hover { text-decoration: underline; }
   border-color: var(--color-border-strong);
 }
 
-/* Filter pills — full-pill shape, consistent with StatusBadge */
-.filter-pill {
-  display: inline-flex;
-  align-items: center;
-  height: 28px;
-  padding: 0 14px;
-  border-radius: var(--radius-full);
-  font-size: var(--text-sm);
-  font-weight: 500;
-  border: 1.5px solid var(--color-border);
-  background: var(--color-bg-surface);
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  transition: all var(--transition);
-  white-space: nowrap;
-}
-.filter-pill:hover:not(:disabled) {
-  border-color: var(--color-border-strong);
-  color: var(--color-text);
-}
-.filter-pill[aria-pressed="true"] {
-  background: var(--color-text);
-  color: var(--color-text-inverse);
-  border-color: var(--color-text);
-}
+/* Filter pill styles moved to src/styles/components/FilterPill.css */
 
 .btn-ghost {
   background: transparent;
@@ -295,80 +256,6 @@ a:hover { text-decoration: underline; }
   min-height: 36px;
   padding: var(--space-2) var(--space-4);
   font-size: var(--text-sm);
-}
-
-/* ── Button variants (using --variant and --size props) ────────────────────
-   Provides consistent styling across Button and IconButton components.
-   Usage: <Button variant="accent" size="lg" />
-────────────────────────────────────────────────────────────────────────────── */
-
-/* ── Normal variant (default save/submit style) ── */
-.btn--normal {
-  background: var(--color-bg-surface);
-  color: var(--color-text);
-  border-color: var(--color-border-strong);
-}
-.btn--normal:hover:not(:disabled) {
-  background: var(--color-bg-subtle);
-  border-color: var(--color-text-secondary);
-}
-
-/* ── Accent variant (primary action style) ── */
-.btn--accent {
-  background: var(--color-accent);
-  color: #fff;
-  border-color: var(--color-accent);
-}
-.btn--accent:hover:not(:disabled) {
-  background: var(--color-accent-hover);
-  border-color: var(--color-accent-hover);
-}
-
-/* ── Ghost variant (minimal style) ── */
-.btn--ghost {
-  background: transparent;
-  color: var(--color-text-secondary);
-  border-color: transparent;
-}
-.btn--ghost:hover:not(:disabled) {
-  background: var(--color-border);
-  color: var(--color-text);
-  border-color: var(--color-border);
-}
-
-/* ── Danger variant (destructive action) ── */
-.btn--danger {
-  background: var(--color-danger-bg);
-  color: var(--color-danger);
-  border-color: var(--color-danger);
-}
-.btn--danger:hover:not(:disabled) {
-  background: var(--color-danger);
-  color: #fff;
-  border-color: var(--color-danger);
-}
-
-/* ── Button sizes ──────────────────────────────────────────────────────────── */
-
-/* Small size */
-.btn--size-sm {
-  min-height: 32px;
-  padding: var(--space-1) var(--space-3);
-  font-size: var(--text-xs);
-}
-
-/* Normal size (default) */
-.btn--size-normal {
-  min-height: var(--tap-min);
-  padding: var(--space-3) var(--space-6);
-  font-size: var(--text-base);
-}
-
-/* Large size */
-.btn--size-lg {
-  min-height: 48px;
-  padding: var(--space-4) var(--space-8);
-  font-size: var(--text-md);
 }
 
 /* ── Card ── */
