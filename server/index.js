@@ -43,6 +43,9 @@ app.post('/api/export-pdf', async (req, res) => {
     })
     const page = await browser.newPage()
 
+    // Set A4 viewport (794px wide at 96 dpi for A4 width)
+    await page.setViewport({ width: 794, height: 1123 })
+
     // 用 setContent 而不是 navigate，直接傳 HTML 字串
     await page.setContent(html, { waitUntil: 'networkidle0' })
 

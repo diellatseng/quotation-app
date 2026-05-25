@@ -42,13 +42,32 @@ export function useExportPDF({ filename = '報價單', onSuccess } = {}) {
 <html>
 <head>
   <meta charset="utf-8">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    html, body { 
+      width: 100%;
+      height: 100%;
+    }
+    body { 
+      background: white; 
+      -webkit-print-color-adjust: exact; 
+      print-color-adjust: exact;
+      font-family: "Noto Sans TC", "Microsoft JhengHei", "Microsoft YaHei", sans-serif;
+    }
     /* Hide the dashed page-break dividers that A4Preview renders between pages */
     [data-page] + div { display: none; }
     /* Force page break after each A4 page */
-    [data-page] { break-after: page; break-inside: avoid; }
+    [data-page] { 
+      display: block;
+      break-after: page;
+      page-break-after: always;
+      -webkit-region-break-after: always;
+      break-inside: avoid;
+      -webkit-column-break-inside: avoid;
+    }
   </style>
 </head>
 <body>
