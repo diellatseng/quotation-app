@@ -50,10 +50,10 @@ app.post('/api/export-pdf', async (req, res) => {
     await page.setContent(html, { waitUntil: 'networkidle0' })
 
     const pdf = await page.pdf({
-      format: 'A4',
+      width: '794px',
+      height: '1123px',
       printBackground: true,
-      margin: { top: 0, right: 0, bottom: 0, left: 0 },
-      preferCSSPageBreak: true,
+      margin: 0,
     })
 
     res.setHeader('Content-Type', 'application/pdf')

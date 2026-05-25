@@ -71,14 +71,15 @@ export function useExportPDF({ filename = '報價單', onSuccess } = {}) {
     
     /* Hide the dashed page-break dividers that A4Preview renders between pages */
     [data-page] + div { display: none; }
-    /* Force page break after each A4 page */
+    /* Force page break after each A4 page - set explicit A4 height (794x1123 at 96dpi) */
     [data-page] { 
+      width: 794px;
+      height: 1123px;
       display: block;
       break-after: page;
       page-break-after: always;
-      -webkit-region-break-after: always;
       break-inside: avoid;
-      -webkit-column-break-inside: avoid;
+      overflow: hidden;
     }
   </style>
 </head>
