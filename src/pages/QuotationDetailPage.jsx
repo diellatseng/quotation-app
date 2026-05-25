@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useNotification } from '../context/NotificationContext'
+import { useExportPDF } from '../hooks/useExportPDF'
 import { formatRocDate } from '../lib/rocDate'
 import StatusBadge from '../components/StatusBadge'
 import NegotiationPanel from '../components/NegotiationPanel'
@@ -36,8 +37,17 @@ export default function QuotationDetailPage() {
   const [tab, setTab]             = useState('preview')  // 'preview' | 'services' | 'negotiation'
   const [negDialog, setNegDialog] = useState(null)
   const [showVersions, setShowVersions] = useState(false) // { amount, notes }
-  const [exporting, setExporting] = useState(false)
   const [emailing, setEmailing]   = useState(false)
+
+  const { exporting, exportPDF } = useExportPDF({
+    filename: `報價單-${qt?.quote_number || ''}`,
+    onSuccess: async () => {
+      // Only prompt after successful export
+      if (qt.status === '草稿') {
+        if (window.confirm('是否將狀態更新為「已報價」？')) setStatus('已報價')
+      }
+    }
+  })
 
   const load = async () => {
     setLoading(true)
@@ -73,32 +83,6 @@ export default function QuotationDetailPage() {
     await supabase.from('quotations').update({ status }).eq('id', qt.id)
     setQt(q => ({ ...q, status }))
     success(`狀態已更新為「${status}」`)
-  }
-
-  const exportPDF = async () => {
-    setExporting(true)
-    try {
-      const { default: html2canvas } = await import('html2canvas')
-      const { jsPDF } = await import('jspdf')
-      const pageEls = previewRef.current.querySelectorAll('[data-page]')
-      if (!pageEls.length) return
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
-      const pdfW = pdf.internal.pageSize.getWidth()
-      const pdfH = pdf.internal.pageSize.getHeight()
-      for (let i = 0; i < pageEls.length; i++) {
-        if (i > 0) pdf.addPage()
-        const canvas = await html2canvas(pageEls[i], { scale: 2, useCORS: true, backgroundColor: '#ffffff' })
-        const imgH = (canvas.height * pdfW) / canvas.width
-        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, pdfW, Math.min(imgH, pdfH))
-      }
-      pdf.save(`報價單-${qt.quote_number}.pdf`)
-      // Only prompt after successful export
-      if (qt.status === '草稿') {
-        if (window.confirm('是否將狀態更新為「已報價」？')) setStatus('已報價')
-      }
-    } finally {
-      setExporting(false)
-    }
   }
 
   const sendEmail = async () => {
@@ -250,7 +234,7 @@ export default function QuotationDetailPage() {
 
         {/* Actions */}
         <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
-          <button className="btn btn-sm" onClick={exportPDF} disabled={exporting}
+          <button className="btn btn-sm" onClick={() => exportPDF(previewRef)} disabled={exporting}
             style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)' }}>
             {exporting ? '匯出中…' : '匯出 PDF'}
           </button>
