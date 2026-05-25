@@ -36,7 +36,9 @@ export function useExportPDF({ filename = '報價單', onSuccess } = {}) {
       // Collect the outer HTML of every A4 page rendered by A4Preview.
       // Puppeteer will receive this as a complete, self-contained document —
       // all styles are already inlined by React so no external CSS is needed.
-      const pagesHtml = Array.from(pageEls).map(el => el.outerHTML).join('\n')
+      const pagesHtml = Array.from(pageEls)
+        .map((el, idx) => idx === pageEls.length - 1 ? el.outerHTML : el.outerHTML + '<div style="page-break-after: always; break-after: page;"></div>')
+        .join('\n')
 
       const html = `<!DOCTYPE html>
 <html>
@@ -71,15 +73,12 @@ export function useExportPDF({ filename = '報價單', onSuccess } = {}) {
     
     /* Hide the dashed page-break dividers that A4Preview renders between pages */
     [data-page] + div { display: none; }
-    /* Force page break after each A4 page - set explicit A4 height (794x1123 at 96dpi) */
+    /* Force page break after each A4 page */
     [data-page] { 
-      width: 794px;
-      height: 1123px;
       display: block;
       break-after: page;
       page-break-after: always;
       break-inside: avoid;
-      overflow: hidden;
     }
   </style>
 </head>

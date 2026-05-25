@@ -49,11 +49,20 @@ app.post('/api/export-pdf', async (req, res) => {
     // 用 setContent 而不是 navigate，直接傳 HTML 字串
     await page.setContent(html, { waitUntil: 'networkidle0' })
 
+    // Wait for all fonts to load and let layout settle
+    await page.evaluateHandle('document.fonts.ready')
+    
+    // Force reflow to ensure all content is laid out
+    await page.evaluate(() => {
+      document.body.offsetHeight // Trigger reflow
+    })
+
+    // Use print-to-PDF to respect CSS page breaks
     const pdf = await page.pdf({
-      width: '794px',
-      height: '1123px',
+      format: 'A4',
       printBackground: true,
-      margin: 0,
+      margin: { top: 0, right: 0, bottom: 0, left: 0 },
+      scale: 1,
     })
 
     res.setHeader('Content-Type', 'application/pdf')
