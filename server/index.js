@@ -50,6 +50,7 @@ app.post('/api/export-pdf', async (req, res) => {
       format: 'A4',
       printBackground: true,
       margin: { top: 0, right: 0, bottom: 0, left: 0 },
+      preferCSSPageBreak: true,
     })
 
     res.setHeader('Content-Type', 'application/pdf')

@@ -47,6 +47,8 @@ export function useExportPDF({ filename = '報價單', onSuccess } = {}) {
     body { background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     /* Hide the dashed page-break dividers that A4Preview renders between pages */
     [data-page] + div { display: none; }
+    /* Force page break after each A4 page */
+    [data-page] { break-after: page; break-inside: avoid; }
   </style>
 </head>
 <body>
