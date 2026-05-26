@@ -146,6 +146,7 @@ export default function QuotationDetailPage() {
       version:             qt.version + 1,
       parent_id:           qt.parent_id || qt.id,
       status:              '草稿',
+      project_id:          qt.project_id,
       client_id:           qt.client_id,
       contact_person_id:   qt.contact_person_id,
       project_template_id: qt.project_template_id,
@@ -177,9 +178,10 @@ export default function QuotationDetailPage() {
     }))
     if (newServices.length) await supabase.from('quotation_services').insert(newServices)
 
-    // Copy payment stages
+    // Copy payment stages (with project_id)
     const newStages = stages.map((st, i) => ({
       quotation_id: newQt.id,
+      project_id:   qt.project_id,
       stage_name:   st.stage_name,
       percentage:   st.percentage,
       amount:       st.amount,
