@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/quotation-app/static/css/main.0171c568.css",
-    "main.js": "/quotation-app/static/js/main.579a4713.js",
+    "main.js": "/quotation-app/static/js/main.f36b1335.js",
     "static/js/239.e13925d3.chunk.js": "/quotation-app/static/js/239.e13925d3.chunk.js",
     "static/js/762.820b566b.chunk.js": "/quotation-app/static/js/762.820b566b.chunk.js",
     "static/js/344.3ccb3bb0.chunk.js": "/quotation-app/static/js/344.3ccb3bb0.chunk.js",
@@ -9,7 +9,7 @@
     "static/js/455.739c6a8a.chunk.js": "/quotation-app/static/js/455.739c6a8a.chunk.js",
     "index.html": "/quotation-app/index.html",
     "main.0171c568.css.map": "/quotation-app/static/css/main.0171c568.css.map",
-    "main.579a4713.js.map": "/quotation-app/static/js/main.579a4713.js.map",
+    "main.f36b1335.js.map": "/quotation-app/static/js/main.f36b1335.js.map",
     "239.e13925d3.chunk.js.map": "/quotation-app/static/js/239.e13925d3.chunk.js.map",
     "762.820b566b.chunk.js.map": "/quotation-app/static/js/762.820b566b.chunk.js.map",
     "344.3ccb3bb0.chunk.js.map": "/quotation-app/static/js/344.3ccb3bb0.chunk.js.map",
@@ -18,6 +18,6 @@
   },
   "entrypoints": [
     "static/css/main.0171c568.css",
-    "static/js/main.579a4713.js"
+    "static/js/main.f36b1335.js"
   ]
 }
