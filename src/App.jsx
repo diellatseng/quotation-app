@@ -53,7 +53,7 @@ export default function App() {
     <ThemeProvider>
       <NotificationProvider>
         <AuthProvider>
-          <BrowserRouter>
+          <BrowserRouter basename={process.env.PUBLIC_URL || '/'}>
             <AppRoutes />
           </BrowserRouter>
         </AuthProvider>
