@@ -1,5 +1,5 @@
 // src/pages/LoginPage.jsx
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useNotification } from '../context/NotificationContext'
@@ -9,10 +9,36 @@ import packageJson from '../../package.json'
 export default function LoginPage() {
   const [email, setEmail]       = useState('')
   const [password, setPassword] = useState('')
+  const [rememberMe, setRememberMe] = useState(false)
   const [loading, setLoading]   = useState(false)
-  const { signIn }              = useAuth()
+  const { user, loading: authLoading, signIn } = useAuth()
   const { error }               = useNotification()
   const navigate                = useNavigate()
+
+  // 初始化時：從 localStorage 載入記住的 email
+  useEffect(() => {
+    const savedEmail = localStorage.getItem('rememberedEmail')
+    if (savedEmail) {
+      setEmail(savedEmail)
+      setRememberMe(true)
+    }
+  }, [])
+
+  // 監聽 email 或 rememberMe 變化，更新 localStorage
+  useEffect(() => {
+    if (rememberMe && email) {
+      localStorage.setItem('rememberedEmail', email)
+    } else {
+      localStorage.removeItem('rememberedEmail')
+    }
+  }, [email, rememberMe])
+
+  // 如果已登入，自動重定向到 dashboard
+  useEffect(() => {
+    if (!authLoading && user) {
+      navigate('/dashboard', { replace: true })
+    }
+  }, [user, authLoading, navigate])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -24,6 +50,18 @@ export default function LoginPage() {
       navigate('/dashboard')
     }
     setLoading(false)
+  }
+
+  // 如果正在檢查認證狀態，顯示載入中
+  if (authLoading) {
+    return (
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        minHeight: '100vh', color: 'var(--color-text-muted)',
+      }}>
+        檢查登入狀態…
+      </div>
+    )
   }
 
   return (
@@ -68,6 +106,19 @@ export default function LoginPage() {
               required
               aria-required="true"
             />
+          </div>
+
+          <div style={{ marginBottom: 'var(--space-5)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+            <input
+              id="rememberMe"
+              type="checkbox"
+              checked={rememberMe}
+              onChange={e => setRememberMe(e.target.checked)}
+              style={{ cursor: 'pointer' }}
+            />
+            <label htmlFor="rememberMe" style={{ cursor: 'pointer', fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>
+              記住我的帳號
+            </label>
           </div>
 
           <Button
