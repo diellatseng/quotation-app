@@ -204,7 +204,7 @@ export default function QuotationDetailPage() {
   }
 
   if (loading) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', color: 'var(--color-text-muted)' }}>
+    <div className="detail-loading">
       載入中…
     </div>
   )
@@ -214,43 +214,32 @@ export default function QuotationDetailPage() {
   const grand = fee + (qt.tax_included ? fee * 0.05 : 0)
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--color-bg)' }}>
+    <div className="detail-page">
       {/* Header */}
-      <header style={hdr.bar}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)', flexWrap: 'wrap' }}>
-          <button className="btn btn-ghost btn-sm" onClick={() => navigate('/dashboard')}
-            style={{ color: 'var(--color-text-inverse)' }}>← 返回</button>
+      <header className="detail-header">
+        <div className="detail-header__left">
+          <button className="btn btn-ghost btn-sm" onClick={() => navigate('/dashboard')}>
+            ← 返回
+          </button>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-              <h1 style={hdr.title}>{qt.quote_number}</h1>
+            <div className="detail-header__title-row">
+              <h1 className="detail-header__title">{qt.quote_number}</h1>
               {qt.version > 1 && (
-                <span style={{ fontSize: 'var(--text-xs)', background: 'rgba(255,255,255,0.2)', color: '#fff', padding: '2px 8px', borderRadius: 'var(--radius-full)' }}>
+                <span className="detail-header__version">
                   v{qt.version}
                 </span>
               )}
               <StatusBadge status={qt.status} isNegotiating={qt.is_negotiating} size="sm" />
             </div>
-            <p style={hdr.sub}>{qt.clients?.company_name} ／ {formatRocDate(qt.quote_date)}</p>
+            <p className="detail-header__subtitle">{qt.clients?.company_name} ／ {formatRocDate(qt.quote_date)}</p>
           </div>
         </div>
 
         {/* Actions */}
-        <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
-          <button className="btn btn-sm" onClick={() => exportPDF(previewRef)} disabled={exporting}
-            style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)' }}>
+        <div className="detail-header__actions">
+          <button className="btn btn-sm" onClick={() => exportPDF(previewRef)} disabled={exporting}>
             {exporting ? '匯出中…' : '匯出 PDF'}
           </button>
-          {/* <button className="btn btn-sm" onClick={sendEmail} disabled={emailing}
-            style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)' }}>
-            {emailing ? '發送中…' : '發送 Email'}
-          </button> */}
-          {/* {qt.status === '已報價' && (
-            <button className="btn btn-sm"
-              style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)' }}
-              onClick={() => navigate(`/quotation/new?edit=${qt.id}&step=1`)}>
-              建立新版本
-            </button>
-          )} */}
           {qt.status === '草稿' && (
             <button className="btn btn-sm" onClick={() => setStatus('已報價')}>
               標記為已報價
@@ -270,18 +259,18 @@ export default function QuotationDetailPage() {
         </div>
       </header>
 
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: 'var(--space-6) var(--space-5)' }}>
+      <main className="detail-main">
         {/* Version history */}
         {versions.length > 1 && (
-          <div style={{ marginBottom: 'var(--space-5)' }}>
+          <div className="detail-versions">
             <button className="btn btn-ghost btn-sm" onClick={() => setShowVersions(v => !v)}>
               {showVersions ? '隱藏' : '查看'}版本歷程（共 {versions.length} 版）
             </button>
             {showVersions && (
-              <div style={{ marginTop: 'var(--space-3)', display: 'flex', gap: 'var(--space-3)', flexWrap: 'wrap' }}>
+              <div className="detail-versions__list">
                 {versions.map(v => (
                   <button key={v.id} className="btn btn-sm btn-secondary"
-                    style={{ opacity: v.id === id ? 1 : 0.6 }}
+                    data-current={v.id === id}
                     onClick={() => navigate(`/quotation/${v.id}`)}>
                     v{v.version} — {fmt(v.fee_amount)} — <StatusBadge status={v.status} size="sm" />
                   </button>
@@ -292,27 +281,22 @@ export default function QuotationDetailPage() {
         )}
 
         {/* Summary cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 'var(--space-4)', marginBottom: 'var(--space-6)' }}>
+        <div className="detail-summary">
           {[
             { label: '合計金額', value: fmt(grand) },
             { label: '服務項目', value: `${services.length} 項` },
             { label: '付款階段', value: `${stages.length} 階段` },
             // { label: '議價次數', value: `${negLogs.length} 次` },
           ].map(c => (
-            <div key={c.label} style={{
-              background: 'var(--color-bg-surface)',
-              border: '1px solid var(--color-border)',
-              borderRadius: 'var(--radius-md)',
-              padding: 'var(--space-4)',
-            }}>
-              <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-2)', fontWeight: 600 }}>{c.label}</p>
-              <p style={{ fontSize: 'var(--text-lg)', fontWeight: 700 }}>{c.value}</p>
+            <div key={c.label} className="stat-card detail-summary__card">
+              <p className="stat-card__label">{c.label}</p>
+              <p className="stat-card__value">{c.value}</p>
             </div>
           ))}
         </div>
 
         {/* Tab nav */}
-        <div style={{ display: 'flex', gap: 'var(--space-2)', marginBottom: 'var(--space-5)', borderBottom: '1px solid var(--color-border)', paddingBottom: 0 }}>
+        <div className="tab-bar detail-tabs" role="tablist">
           {[
             { key: 'preview', label: '預覽' },
             { key: 'services', label: '服務內容' },
@@ -320,16 +304,8 @@ export default function QuotationDetailPage() {
           ].map(t => (
             <button
               key={t.key}
+              className="tab-item"
               onClick={() => setTab(t.key)}
-              style={{
-                padding: 'var(--space-3) var(--space-4)',
-                background: 'none', border: 'none', cursor: 'pointer',
-                fontSize: 'var(--text-base)', fontWeight: tab === t.key ? 700 : 400,
-                color: tab === t.key ? 'var(--color-text)' : 'var(--color-text-muted)',
-                borderBottom: `2px solid ${tab === t.key ? 'var(--color-text)' : 'transparent'}`,
-                marginBottom: -1,
-                minHeight: 'var(--tap-min)',
-              }}
               aria-selected={tab === t.key}
               role="tab"
             >{t.label}</button>
@@ -338,25 +314,19 @@ export default function QuotationDetailPage() {
 
         {/* Tab content */}
         {tab === 'preview' && (
-          <div style={{ 
-            overflowX: 'auto', 
-            background: '#e8e6de', 
-            borderRadius: 'var(--radius-md)', 
-            padding: 'var(--space-6)',
-            display: 'flex', 
-            justifyContent: 'center'  }}>
-              <div style={{ boxShadow: 'var(--shadow-lg)', flexShrink: 0 }}>
-                <A4Preview
-                  ref={previewRef}
-                  quotation={qt}
-                  services={services}
-                  stages={stages}
-                  client={qt.clients}
-                  contactPerson={contactPerson}
-                  companyInfo={COMPANY_INFO}
-                  negLogs={negLogs}
-                />
-              </div>
+          <div className="detail-preview-tray">
+            <div className="detail-preview-paper">
+              <A4Preview
+                ref={previewRef}
+                quotation={qt}
+                services={services}
+                stages={stages}
+                client={qt.clients}
+                contactPerson={contactPerson}
+                companyInfo={COMPANY_INFO}
+                negLogs={negLogs}
+              />
+            </div>
           </div>
         )}
 
@@ -381,49 +351,35 @@ export default function QuotationDetailPage() {
 
         {/* Post-negotiation version dialog */}
         {negDialog && (
-          <div style={{
-            position: 'fixed', inset: 0, zIndex: 200,
-            background: 'rgba(0,0,0,0.45)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            padding: 'var(--space-4)',
-          }}>
-            <div style={{
-              background: 'var(--color-bg-surface)',
-              borderRadius: 'var(--radius-lg)',
-              boxShadow: 'var(--shadow-lg)',
-              padding: 'var(--space-8) var(--space-7)',
-              maxWidth: 480, width: '100%',
-            }}>
-              <div style={{ fontSize: 28, marginBottom: 'var(--space-4)', lineHeight: 1 }}>📋</div>
-              <h2 style={{ fontSize: 'var(--text-xl)', fontWeight: 700, marginBottom: 'var(--space-3)', lineHeight: 1.3 }}>
+          <div className="detail-dialog">
+            <div className="detail-dialog__content">
+              <div className="detail-dialog__icon">📋</div>
+              <h2 className="detail-dialog__title">
                 建立第 {qt.version + 1} 版報價單
               </h2>
-              <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-2)', lineHeight: 1.7 }}>
+              <p className="detail-dialog__body">
                 議價已記錄。系統將自動建立新版本報價單（議價金額：NT$ {Number(negDialog.amount).toLocaleString('zh-TW')}）。
               </p>
-              <p style={{ fontSize: 'var(--text-base)', fontWeight: 600, marginBottom: 'var(--space-7)', color: 'var(--color-text)' }}>
+              <p className="detail-dialog__question">
                 是否同時更改服務內容？
               </p>
-              <div style={{ display: 'flex', gap: 'var(--space-3)', flexWrap: 'wrap', marginBottom: 'var(--space-4)' }}>
+              <div className="detail-dialog__actions">
                 <button
                   className="btn btn-primary"
-                  style={{ flex: 1, minWidth: 140 }}
                   onClick={() => createVersionAfterNegotiation({ ...negDialog, editServices: true })}
                 >
                   ✎ 更改服務內容
                 </button>
                 <button
                   className="btn btn-secondary"
-                  style={{ flex: 1, minWidth: 140 }}
                   onClick={() => createVersionAfterNegotiation({ ...negDialog, editServices: false })}
                 >
                   沿用原有服務內容
                 </button>
               </div>
-              <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 'var(--space-4)' }}>
+              <div className="detail-dialog__footer">
                 <button
                   className="btn btn-ghost btn-sm"
-                  style={{ width: '100%', color: 'var(--color-text-muted)' }}
                   onClick={() => setNegDialog(null)}
                 >
                   稍後再說（不建立新版本）
@@ -432,23 +388,7 @@ export default function QuotationDetailPage() {
             </div>
           </div>
         )}
-      </div>
+      </main>
     </div>
   )
-}
-
-const hdr = {
-  bar: {
-    background: 'var(--color-text)',
-    color: '#fff',
-    padding: 'var(--space-4) var(--space-6)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 'var(--space-4)',
-    flexWrap: 'wrap',
-    position: 'sticky', top: 0, zIndex: 100,
-  },
-  title: { margin: 0, fontSize: 'var(--text-md)', fontWeight: 700, fontFamily: 'var(--font-mono)' },
-  sub: { margin: 0, fontSize: 'var(--text-xs)', color: 'rgba(255,255,255,0.65)', marginTop: 2 },
 }
