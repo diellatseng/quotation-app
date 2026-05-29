@@ -36,7 +36,11 @@ const initState = () => ({
   fee_amount: '',
   tax_included: false,
   notes: '',
-  payment_stages: [{ id: crypto.randomUUID(), stage_name: '', percentage: 0 }],
+  payment_stages: [
+    { id: crypto.randomUUID(), stage_name: '開工前', percentage: 30 },
+    { id: crypto.randomUUID(), stage_name: '施工中', percentage: 40 },
+    { id: crypto.randomUUID(), stage_name: '完工後', percentage: 30 },
+  ],
   version: 1,
 })
 

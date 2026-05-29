@@ -23,7 +23,7 @@ export default function WizardShell({
   children,
 }) {
   const isFirst = currentStep === 1
-  const isLast  = currentStep === 5
+  const isLast = currentStep === 5
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: 'var(--color-bg)' }}>
@@ -55,7 +55,7 @@ export default function WizardShell({
           padding: 0,
         }}>
           {STEPS.map((step, idx) => {
-            const isDone    = step.num < currentStep
+            const isDone = step.num < currentStep
             const isCurrent = step.num === currentStep
             return (
               <li key={step.num} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
@@ -75,7 +75,7 @@ export default function WizardShell({
                   onClick={() => onStepClick && onStepClick(step.num)}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 'var(--space-2)',
-                    background: 'none', border: 'none', cursor: isDone || isCurrent ? 'pointer' : 'default',
+                    background: 'none', border: 'none', cursor: onStepClick ? 'pointer' : 'default',
                     padding: '4px 6px', borderRadius: 'var(--radius-md)',
                     transition: 'background var(--transition)',
                   }}

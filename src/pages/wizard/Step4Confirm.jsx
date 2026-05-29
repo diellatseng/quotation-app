@@ -7,27 +7,27 @@ const fmt = (n) => `NT$ ${Number(n || 0).toLocaleString('zh-TW')}`
 
 const PRESETS = [
   {
-    label: '四階段（依範本）',
-    stages: [
-      { stage_name: '開工完成', percentage: 20 },
-      { stage_name: '結構體10樓完成', percentage: 20 },
-      { stage_name: '結構體頂樓完成', percentage: 20 },
-      { stage_name: '取得使用執照', percentage: 40 },
-    ],
-  },
-  {
-    label: '兩階段（50/50）',
+    label: '兩階段（開工/完工）',
     stages: [
       { stage_name: '開工前', percentage: 50 },
       { stage_name: '完工後', percentage: 50 },
     ],
   },
   {
-    label: '三階段（30/40/30）',
+    label: '三階段（開工/施工/完工）',
     stages: [
       { stage_name: '開工前', percentage: 30 },
       { stage_name: '施工中', percentage: 40 },
       { stage_name: '完工後', percentage: 30 },
+    ],
+  },
+  {
+    label: '四階段',
+    stages: [
+      { stage_name: '開工完成', percentage: 20 },
+      { stage_name: '結構體X樓完成', percentage: 20 },
+      { stage_name: '結構體頂樓完成', percentage: 20 },
+      { stage_name: '取得使用執照', percentage: 40 },
     ],
   },
 ]
@@ -61,6 +61,108 @@ export default function Step4Confirm({ data, update, negContext }) {
       <h2 style={s.heading}>步驟 4：報價確認與付款</h2>
       <p style={s.desc}>設定付款方式、填寫報價資訊與金額。</p>
 
+      {/* Service fee */}
+      <div className="card" style={{ marginBottom: 'var(--space-5)' }}>
+        <p className="section-title">服務費用</p>
+
+        <div style={{ marginBottom: 'var(--space-4)' }}>
+          <label htmlFor="fee_amount" className="field-label">報價金額（未稅）*</label>
+          {negContext && (
+            <div style={{
+              fontSize: 'var(--text-xs)', color: 'var(--color-accent)',
+              marginBottom: 'var(--space-2)',
+              padding: '4px 10px',
+              background: 'var(--color-accent-subtle)',
+              border: '1px solid var(--color-accent)',
+              borderRadius: 'var(--radius-sm)',
+              display: 'inline-flex', gap: 6, alignItems: 'center',
+            }}>
+              <span>💬</span>
+              <span>議價金額已帶入（NT$ {Number(negContext.amount).toLocaleString('zh-TW')}）{negContext.notes ? `— ${negContext.notes}` : ''}</span>
+            </div>
+          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+            <span style={{ fontSize: 'var(--text-md)', fontWeight: 600, color: 'var(--color-text-muted)', flexShrink: 0 }}>NT$</span>
+            <input
+              id="fee_amount"
+              type="number"
+              inputMode="decimal"
+              min="0"
+              className="field-input"
+              value={data.fee_amount}
+              onChange={e => {
+                const value = e.target.value.replace(/[^\d.]/g, '');
+                update({ fee_amount: value });
+              }}
+              onPaste={e => {
+                e.preventDefault();
+                const pastedText = e.clipboardData.getData('text');
+                const cleanedValue = pastedText.replace(/[^\d.]/g, '');
+                update({ fee_amount: cleanedValue });
+              }}
+              placeholder="1,570,000"
+              required
+              aria-required="true"
+            />
+          </div>
+        </div>
+
+        <label style={{
+          display: 'flex', alignItems: 'center', gap: 'var(--space-3)',
+          cursor: 'pointer', minHeight: 'var(--tap-min)',
+          padding: 'var(--space-3) var(--space-4)',
+          border: `1.5px solid ${data.tax_included ? 'var(--color-accent)' : 'var(--color-border)'}`,
+          borderRadius: 'var(--radius-md)',
+          background: data.tax_included ? 'var(--color-accent-subtle)' : 'var(--color-bg-input)',
+        }}>
+          <input
+            type="checkbox"
+            checked={data.tax_included}
+            onChange={e => update({ tax_included: e.target.checked })}
+            style={{ width: 22, height: 22 }}
+            aria-label="含稅（加計5%營業稅）"
+          />
+          <div>
+            <div style={{ fontWeight: 600 }}>含稅（加計 5% 營業稅）</div>
+            {data.tax_included && fee > 0 && (
+              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+                稅額：{fmt(tax)}
+              </div>
+            )}
+          </div>
+        </label>
+
+        {/* Amount summary */}
+        {fee > 0 && (
+          <div style={{
+            marginTop: 'var(--space-4)',
+            padding: 'var(--space-4)',
+            background: 'var(--color-bg-subtle)',
+            borderRadius: 'var(--radius-md)',
+            border: '1px solid var(--color-border)',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-2)' }}>
+              <span style={{ color: 'var(--color-text-secondary)' }}>服務費用（未稅）</span>
+              <span style={{ fontWeight: 600 }}>{fmt(fee)}</span>
+            </div>
+            {data.tax_included && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-2)' }}>
+                <span style={{ color: 'var(--color-text-secondary)' }}>營業稅（5%）</span>
+                <span>{fmt(tax)}</span>
+              </div>
+            )}
+            <div style={{
+              display: 'flex', justifyContent: 'space-between',
+              paddingTop: 'var(--space-2)', borderTop: '1px solid var(--color-border)',
+              fontSize: 'var(--text-md)', fontWeight: 700,
+            }}>
+              <span>合計</span>
+              <span style={{ color: 'var(--color-accent)' }}>{fmt(grand)}</span>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Payment stages */}
       <div className="card" style={{ marginBottom: 'var(--space-5)' }}>
         <p className="section-title">付款階段</p>
@@ -77,12 +179,16 @@ export default function Step4Confirm({ data, update, negContext }) {
           border: `1px solid ${isValid ? 'var(--color-success)' : totalPct > 0 ? 'var(--color-warning)' : 'var(--color-border)'}`,
           marginBottom: 'var(--space-5)',
         }}>
-          <span style={{ fontSize: 'var(--text-sm)', fontWeight: 600,
-            color: isValid ? 'var(--color-success)' : 'var(--color-warning)' }}>
+          <span style={{
+            fontSize: 'var(--text-sm)', fontWeight: 600,
+            color: isValid ? 'var(--color-success)' : 'var(--color-warning)'
+          }}>
             {isValid ? '✓ 百分比合計 = 100%' : `百分比合計：${totalPct}%（需達 100%）`}
           </span>
-          <span style={{ fontSize: 'var(--text-lg)', fontWeight: 700,
-            color: isValid ? 'var(--color-success)' : 'var(--color-warning)' }}>
+          <span style={{
+            fontSize: 'var(--text-lg)', fontWeight: 700,
+            color: isValid ? 'var(--color-success)' : 'var(--color-warning)'
+          }}>
             {totalPct}%
           </span>
         </div>
@@ -111,7 +217,7 @@ export default function Step4Confirm({ data, update, negContext }) {
                 value={st.stage_name}
                 onChange={e => updateStage(idx, 'stage_name', e.target.value)}
                 placeholder="付款階段名稱（例：開工完成）"
-                aria-label={`第${idx+1}階段名稱`}
+                aria-label={`第${idx + 1}階段名稱`}
               />
 
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexShrink: 0 }}>
@@ -122,7 +228,7 @@ export default function Step4Confirm({ data, update, negContext }) {
                   min="0" max="100" step="0.1"
                   value={st.percentage}
                   onChange={e => updateStage(idx, 'percentage', e.target.value)}
-                  aria-label={`第${idx+1}階段百分比`}
+                  aria-label={`第${idx + 1}階段百分比`}
                 />
                 <span style={{ fontSize: 'var(--text-base)', fontWeight: 700, color: 'var(--color-text-secondary)' }}>%</span>
               </div>
@@ -130,7 +236,7 @@ export default function Step4Confirm({ data, update, negContext }) {
               <button
                 type="button"
                 onClick={() => removeStage(idx)}
-                aria-label={`刪除第${idx+1}付款階段`}
+                aria-label={`刪除第${idx + 1}付款階段`}
                 style={{
                   background: 'none', border: 'none', cursor: 'pointer',
                   color: 'var(--color-danger)', fontSize: 'var(--text-md)', padding: 'var(--space-2)',
@@ -208,97 +314,6 @@ export default function Step4Confirm({ data, update, negContext }) {
         </div>
       </div>
 
-      {/* Service fee */}
-      <div className="card" style={{ marginBottom: 'var(--space-5)' }}>
-        <p className="section-title">服務費用</p>
-
-        <div style={{ marginBottom: 'var(--space-4)' }}>
-          <label htmlFor="fee_amount" className="field-label">報價金額（未稅）*</label>
-          {negContext && (
-            <div style={{
-              fontSize: 'var(--text-xs)', color: 'var(--color-accent)',
-              marginBottom: 'var(--space-2)',
-              padding: '4px 10px',
-              background: 'var(--color-accent-subtle)',
-              border: '1px solid var(--color-accent)',
-              borderRadius: 'var(--radius-sm)',
-              display: 'inline-flex', gap: 6, alignItems: 'center',
-            }}>
-              <span>💬</span>
-              <span>議價金額已帶入（NT$ {Number(negContext.amount).toLocaleString('zh-TW')}）{negContext.notes ? `— ${negContext.notes}` : ''}</span>
-            </div>
-          )}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-            <span style={{ fontSize: 'var(--text-md)', fontWeight: 600, color: 'var(--color-text-muted)', flexShrink: 0 }}>NT$</span>
-            <input
-              id="fee_amount"
-              type="number"
-              min="0"
-              className="field-input"
-              value={data.fee_amount}
-              onChange={e => update({ fee_amount: e.target.value })}
-              placeholder="1,570,000"
-              required
-              aria-required="true"
-            />
-          </div>
-        </div>
-
-        <label style={{
-          display: 'flex', alignItems: 'center', gap: 'var(--space-3)',
-          cursor: 'pointer', minHeight: 'var(--tap-min)',
-          padding: 'var(--space-3) var(--space-4)',
-          border: `1.5px solid ${data.tax_included ? 'var(--color-accent)' : 'var(--color-border)'}`,
-          borderRadius: 'var(--radius-md)',
-          background: data.tax_included ? 'var(--color-accent-subtle)' : 'var(--color-bg-input)',
-        }}>
-          <input
-            type="checkbox"
-            checked={data.tax_included}
-            onChange={e => update({ tax_included: e.target.checked })}
-            style={{ width: 22, height: 22 }}
-            aria-label="含稅（加計5%營業稅）"
-          />
-          <div>
-            <div style={{ fontWeight: 600 }}>含稅（加計 5% 營業稅）</div>
-            {data.tax_included && fee > 0 && (
-              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
-                稅額：{fmt(tax)}
-              </div>
-            )}
-          </div>
-        </label>
-
-        {/* Amount summary */}
-        {fee > 0 && (
-          <div style={{
-            marginTop: 'var(--space-4)',
-            padding: 'var(--space-4)',
-            background: 'var(--color-bg-subtle)',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--color-border)',
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-2)' }}>
-              <span style={{ color: 'var(--color-text-secondary)' }}>服務費用（未稅）</span>
-              <span style={{ fontWeight: 600 }}>{fmt(fee)}</span>
-            </div>
-            {data.tax_included && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-2)' }}>
-                <span style={{ color: 'var(--color-text-secondary)' }}>營業稅（5%）</span>
-                <span>{fmt(tax)}</span>
-              </div>
-            )}
-            <div style={{
-              display: 'flex', justifyContent: 'space-between',
-              paddingTop: 'var(--space-2)', borderTop: '1px solid var(--color-border)',
-              fontSize: 'var(--text-md)', fontWeight: 700,
-            }}>
-              <span>合計</span>
-              <span style={{ color: 'var(--color-accent)' }}>{fmt(grand)}</span>
-            </div>
-          </div>
-        )}
-      </div>
 
       {/* Notes */}
       <div className="card">
