@@ -6,13 +6,14 @@ import { useAuth } from '../hooks/useAuth'
 import { useTheme } from '../context/ThemeContext'
 import { useNotification } from '../context/NotificationContext'
 import { formatRocDate } from '../lib/rocDate'
+import Dialog from '../components/Dialog'
 import StatusBadge from '../components/StatusBadge'
 import Switch from '../components/Switch'
 import Button from '../components/Button'
 import FilterPill from '../components/FilterPill'
 import packageJson from '../../package.json';
 
-const STATUS_FILTERS = ['全部', '草稿', '已報價', '已確認']
+const STATUS_FILTERS = ['全部', '草稿', '已報價', '已確認', '已結案']
 const fmt = (n) => n ? `NT$ ${Number(n).toLocaleString('zh-TW')}` : '—'
 
 export default function DashboardPage() {
@@ -22,6 +23,8 @@ export default function DashboardPage() {
   const [statusFilter, setStatusFilter] = useState('全部')
   const [showArchived, setShowArchived] = useState(false)
   const [showNegotiating] = useState(false)
+  const [quotationId, setQuotationId] = useState(null)
+  const [showExitDialog, setShowExitDialog] = useState(false)
   const { user, signOut } = useAuth()
   const { baseFontSize, setFontSize, contrast, toggleContrast } = useTheme()
   const { success, error } = useNotification()
@@ -65,9 +68,27 @@ export default function DashboardPage() {
   useEffect(() => { fetchQuotations() }, [showArchived]) // eslint-disable-line
 
   const archive = async (id) => {
-    if (!window.confirm('結案此報價單？結案後將從列表隱藏，但資料不會刪除。')) return
     await supabase.from('quotations').update({ status: '已結案' }).eq('id', id)
     success('已結案')
+    fetchQuotations()
+  }
+
+  const handleDelete = (id) => {
+    setQuotationId(id)
+    setShowExitDialog(true)
+  }
+
+  const handleDeleteConfirm = async (id) => {
+    setShowExitDialog(false)
+    await deleteQuotation()
+  }
+
+  const handleDeleteCancel = () => {
+    setShowExitDialog(false)
+  }
+  const deleteQuotation = async () => {
+    await supabase.from('quotations').update({ status: '已刪除' }).eq('id', quotationId)
+    success('已刪除')
     fetchQuotations()
   }
 
@@ -77,11 +98,21 @@ export default function DashboardPage() {
       (q.clients?.company_name || '').includes(search)
     const matchStatus = statusFilter === '全部' || q.status === statusFilter
     const matchNeg = !showNegotiating || q.is_negotiating
-    return matchSearch && matchStatus && matchNeg
+    const matchDelete = q.status !== '已刪除'
+    return matchSearch && matchStatus && matchNeg && matchDelete
   })
 
   return (
     <div className="dashboard-page">
+      <Dialog
+        isOpen={showExitDialog}
+        title="刪除報價單"
+        message="確定要刪除這份報價單嗎？"
+        confirmText="刪除"
+        cancelText="取消"
+        onConfirm={handleDeleteConfirm}
+        onCancel={handleDeleteCancel}
+      />
       {/* Top bar */}
       <header className="dashboard-header">
         <div className="dashboard-header__left">
@@ -170,8 +201,13 @@ export default function DashboardPage() {
           {STATUS_FILTERS.map(f => (
             <FilterPill
               key={f}
-              pressed={statusFilter === f}
-              onChange={() => setStatusFilter(f)}
+              pressed={
+                statusFilter === f
+              }
+              onChange={() => {
+                setStatusFilter(f)
+                setShowArchived(f === '已結案')
+              }}
             >
               {f}
             </FilterPill>
@@ -274,6 +310,13 @@ export default function DashboardPage() {
                               結案
                             </Button>
                           )}
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            onClick={() => handleDelete(q.id)}
+                          >
+                            刪除
+                          </Button>
                         </div>
                       </td>
                     </tr>

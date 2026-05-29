@@ -23,7 +23,12 @@
 
 /* Active/selected state */
 .filter-pill[aria-pressed="true"] {
-  background: var(--color-text);
+  background: var(--color-accent);
   color: var(--color-text-inverse);
-  border-color: var(--color-text);
+  border-color: var(--color-accent);
+}
+
+.filter-pill[aria-pressed="true"]:hover:not(:disabled) {
+  color: var(--color-text-inverse);
+  border-color: var(--color-accent);
 }

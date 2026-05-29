@@ -250,12 +250,11 @@ export default function QuotationDetailPage() {
               標記為已確認
             </button>
           )}
-          {/* {qt.status !== '已結案' && (
-            <button className="btn btn-sm btn-primary"
-              onClick={() => { if(window.confirm('結案此報價單？')) setStatus('已結案') }}>
-              結案
+          {qt.status === '已確認' && (
+            <button className="btn btn-sm" onClick={() => setStatus('已結案')}>
+              標記為已結案
             </button>
-          )} */}
+          )}
         </div>
       </header>
 

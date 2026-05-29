@@ -38,8 +38,8 @@
 }
 
 .btn--primary:hover:not(:disabled) {
-  background: var(--color-text-secondary);
-  border-color: var(--color-text-secondary);
+  background: var(--color-accent);
+  border-color: var(--color-accent);
 }
 
 /* Normal variant (default save/submit style) */
