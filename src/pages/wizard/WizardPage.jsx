@@ -185,7 +185,7 @@ export default function WizardPage() {
       if (projErr || !proj) {
         error('建立專案失敗：' + (projErr?.message || '未知錯誤'))
         setSaving(false)
-        return
+        return null
       }
       projectId = proj.id
       console.log('✅ Project created:', projectId)
@@ -220,7 +220,7 @@ export default function WizardPage() {
       } else {
         error('儲存草稿失敗：' + (err?.message || '未知錯誤'))
         setSaving(false)
-        return
+        return null
       }
     } else {
       // Update existing
@@ -244,7 +244,7 @@ export default function WizardPage() {
       } else {
         error('儲存草稿失敗：' + err.message)
         setSaving(false)
-        return
+        return null
       }
     }
 
@@ -267,15 +267,24 @@ export default function WizardPage() {
     }
 
     // Save payment stages
+    let stageProjectId = projectId
+    if (!stageProjectId) {
+      const { data: existingQuotation } = await supabase
+        .from('quotations')
+        .select('project_id')
+        .eq('id', qid)
+        .single()
+      stageProjectId = existingQuotation?.project_id || null
+    }
     await supabase.from('payment_stages').delete().eq('quotation_id', qid)
-    if (data.payment_stages.length && projectId) {
+    if (data.payment_stages.length && stageProjectId) {
       const fee = Number(data.fee_amount) || 0
       const tax = data.tax_included ? fee * 0.05 : 0
       const grand = fee + tax
       await supabase.from('payment_stages').insert(
         data.payment_stages.map((st, i) => ({
           quotation_id: qid,
-          project_id:   projectId,
+          project_id:   stageProjectId,
           stage_name:   st.stage_name,
           percentage:   Number(st.percentage),
           amount:       Number(st.percentage) / 100 * grand,
@@ -284,6 +293,7 @@ export default function WizardPage() {
       )
     }
     setSaving(false)
+    return qid
   }
 
   const canGoNext = () => {
@@ -324,127 +334,9 @@ export default function WizardPage() {
   }
 
   const handleFinish = async () => {
-    setSaving(true)
-    try {
-      // 1. Create project if needed (for new quotations)
-      let projectId = null
-      let qid = quotationId
-      
-      if (!qid) {
-        // New quotation → create project first
-        const { data: proj, error: projErr } = await supabase
-          .from('projects')
-          .insert([{
-            name:              data.project_name || `Project-${Date.now()}`,
-            client_id:         data.client?.id || null,
-            contact_person_id: data.selectedContactId || null,
-            building_permit:   data.building_permit,
-            land_section:      data.land_section,
-            project_scale:     data.project_scale,
-            project_owner:     data.project_owner,
-            total_amount:      Number(data.fee_amount) || 0,
-            tax_included:      data.tax_included,
-            status:            '已報價',
-            created_by:        user.id,
-          }])
-          .select()
-          .single()
-        if (projErr || !proj) { 
-          error('建立專案失敗：' + (projErr?.message || '未知錯誤'))
-          setSaving(false)
-          return
-        }
-        projectId = proj.id
-      }
-
-      // 2. Upsert the quotation record
-      if (!qid) {
-        const { data: q, error: err } = await supabase
-          .from('quotations')
-          .insert([{
-            quote_number:        data.quote_number,
-            status:              '已報價',
-            created_by:          user.id,
-            quote_date:          data.quote_date,
-            project_id:          projectId,
-            client_id:           data.client?.id || null,
-            contact_person_id:   data.selectedContactId || null,
-            project_template_id: data.project_template_id || null,
-            building_permit:     data.building_permit,
-            land_section:        data.land_section,
-            project_scale:       data.project_scale,
-            project_owner:       data.project_owner,
-            project_name:        data.project_name,
-            fee_amount:          Number(data.fee_amount) || 0,
-            tax_included:        data.tax_included,
-            notes:               data.notes,
-          }])
-          .select()
-          .single()
-        if (err || !q) { error('儲存失敗：' + (err?.message || '未知錯誤')); setSaving(false); return }
-        qid = q.id
-        setQuotationId(qid)
-      } else {
-        const { error: err } = await supabase.from('quotations').update({
-          quote_number:        data.quote_number,
-          status:              '已報價',
-          quote_date:          data.quote_date,
-          client_id:           data.client?.id || null,
-          contact_person_id:   data.selectedContactId || null,
-          project_template_id: data.project_template_id || null,
-          building_permit:     data.building_permit,
-          land_section:        data.land_section,
-          project_scale:       data.project_scale,
-          project_owner:       data.project_owner,
-          project_name:        data.project_name,
-          fee_amount:          Number(data.fee_amount) || 0,
-          tax_included:        data.tax_included,
-          notes:               data.notes,
-        }).eq('id', qid)
-        if (err) { error('儲存失敗：' + err.message); setSaving(false); return }
-      }
-
-      // 2. Save services
-      await supabase.from('quotation_services').delete().eq('quotation_id', qid)
-      if (data.services.length) {
-        await supabase.from('quotation_services').insert(
-          data.services.map((s, i) => ({
-            quotation_id: qid,
-            service_id:   s.service_id || null,
-            service_name: s.service_name,
-            category:     s.category || null,
-            description:  s.description || null,
-            checklist_items: s.checklist_items || [],
-            sort_order:   i,
-            is_added:     s.is_added || false,
-            diff_status:  s.diff_status || null,
-          }))
-        )
-      }
-
-      // 3. Save payment stages (with project_id)
-      await supabase.from('payment_stages').delete().eq('quotation_id', qid)
-      if (data.payment_stages.length) {
-        const fee   = Number(data.fee_amount) || 0
-        const tax   = data.tax_included ? fee * 0.05 : 0
-        const grand = fee + tax
-        await supabase.from('payment_stages').insert(
-          data.payment_stages.map((st, i) => ({
-            quotation_id: qid,
-            project_id:   projectId,
-            stage_name:   st.stage_name,
-            percentage:   Number(st.percentage),
-            amount:       Number(st.percentage) / 100 * grand,
-            sort_order:   i,
-          }))
-        )
-      }
-
-      // 4. Single toast then navigate
-      success('報價單已儲存！')
+    const qid = await saveDraft()
+    if (qid) {
       navigate(`/quotation/${qid}`)
-    } finally {
-      setSaving(false)
     }
   }
 
@@ -465,7 +357,7 @@ export default function WizardPage() {
       currentStep={step}
       onNext={step === 5 ? handleFinish : handleNext}
       onBack={handleBack}
-      onSaveDraft={saveDraft}
+      onSaveDraft={step === 5 ? null : saveDraft}
       onBackToDashboard={handleBackToDashboard}
       onStepClick={handleStepClick}
       saving={saving}
