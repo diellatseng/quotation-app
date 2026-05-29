@@ -79,6 +79,23 @@
   border-color: var(--color-border);
 }
 
+/* Ghost inverse variant (minimal style for dark backgrounds) */
+.btn--ghost-inverse {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.82);
+  border-color: transparent;
+}
+
+.btn--ghost-inverse:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.btn--ghost-inverse:active:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+}
+
 /* Danger variant (destructive action) */
 .btn--danger {
   background: var(--color-danger-bg);

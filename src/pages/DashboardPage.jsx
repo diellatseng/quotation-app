@@ -98,9 +98,9 @@ export default function DashboardPage() {
           {/* Accessibility controls */}
           <div className="dashboard-accessibility">
             <Button
-              variant="ghost"
+              variant="ghost-inverse"
               size="sm"
-              className="btn-ghost-inverse dashboard-header__button"
+              className="dashboard-header__button"
               onClick={() => setFontSize(baseFontSize - 1)}
               aria-label="縮小字體"
             >
@@ -110,9 +110,9 @@ export default function DashboardPage() {
               {baseFontSize}px
             </span>
             <Button
-              variant="ghost"
+              variant="ghost-inverse"
               size="sm"
-              className="btn-ghost-inverse dashboard-header__button"
+              className="dashboard-header__button"
               onClick={() => setFontSize(baseFontSize + 1)}
               aria-label="放大字體"
             >
@@ -120,26 +120,24 @@ export default function DashboardPage() {
             </Button>
           </div>
           <Button
-            variant="ghost"
+            variant="ghost-inverse"
             size="sm"
-            className="btn-ghost-inverse dashboard-header__button"
+            className="dashboard-header__button"
             onClick={toggleContrast}
             aria-label={contrast === 'high' ? '關閉高對比' : '開啟高對比'}
           >
             {contrast === 'high' ? '標準' : '高對比'}
           </Button>
           <Button
-            variant="ghost"
+            variant="ghost-inverse"
             size="sm"
-            className="btn-ghost-inverse"
             onClick={() => navigate('/admin/clients')}
           >
             管理
           </Button>
           <Button
-            variant="ghost"
+            variant="ghost-inverse"
             size="sm"
-            className="btn-ghost-inverse"
             onClick={signOut}
           >
             登出

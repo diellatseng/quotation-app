@@ -1,10 +1,10 @@
 /**
  * Button — shared button with `variant` and `size` props
- * - `variant` controls color/background/border: 'primary' | 'normal' | 'accent' | 'ghost' | 'danger'
+ * - `variant` controls color/background/border: 'primary' | 'normal' | 'accent' | 'ghost' | 'ghost-inverse' | 'danger'
  * - `size` controls padding/height: 'sm' | 'normal' | 'lg'
  *
  * Props:
- *  - variant: string ('primary' | 'normal' | 'accent' | 'ghost' | 'danger')
+ *  - variant: string ('primary' | 'normal' | 'accent' | 'ghost' | 'ghost-inverse' | 'danger')
  *  - size: string ('sm' | 'normal' | 'lg')
  *  - className: string (extra classes)
  *  - style: object (inline overrides)

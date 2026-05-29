@@ -809,21 +809,6 @@ a:hover { text-decoration: underline; }
   .no-print { display: none !important; }
 }
 
-/* ── Ghost button on dark/inverted surface (header toolbar) ── */
-.btn-ghost-inverse {
-  background: transparent;
-  color: rgba(255,255,255,0.82);
-  border: 1.5px solid transparent;
-}
-.btn-ghost-inverse:hover:not(:disabled) {
-  background: rgba(255,255,255,0.12);
-  color: #ffffff;
-  border-color: rgba(255,255,255,0.25);
-}
-.btn-ghost-inverse:active:not(:disabled) {
-  background: rgba(255,255,255,0.2);
-}
-
 /* ── Filter pill variants ── */
 /* Negotiating — uses status colour when active */
 .filter-pill--neg[aria-pressed="true"] {
