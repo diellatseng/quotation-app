@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "https://diellatseng.github.io/quotation-app/static/css/main.ed027b7b.css",
-    "main.js": "https://diellatseng.github.io/quotation-app/static/js/main.a98b548b.js",
+    "main.css": "https://diellatseng.github.io/quotation-app/static/css/main.09c960b6.css",
+    "main.js": "https://diellatseng.github.io/quotation-app/static/js/main.9106ead8.js",
     "static/js/239.e13925d3.chunk.js": "https://diellatseng.github.io/quotation-app/static/js/239.e13925d3.chunk.js",
     "static/js/762.820b566b.chunk.js": "https://diellatseng.github.io/quotation-app/static/js/762.820b566b.chunk.js",
     "static/js/344.3ccb3bb0.chunk.js": "https://diellatseng.github.io/quotation-app/static/js/344.3ccb3bb0.chunk.js",
     "static/js/213.a51ea8b6.chunk.js": "https://diellatseng.github.io/quotation-app/static/js/213.a51ea8b6.chunk.js",
     "static/js/455.739c6a8a.chunk.js": "https://diellatseng.github.io/quotation-app/static/js/455.739c6a8a.chunk.js",
     "index.html": "https://diellatseng.github.io/quotation-app/index.html",
-    "main.ed027b7b.css.map": "https://diellatseng.github.io/quotation-app/static/css/main.ed027b7b.css.map",
-    "main.a98b548b.js.map": "https://diellatseng.github.io/quotation-app/static/js/main.a98b548b.js.map",
+    "main.09c960b6.css.map": "https://diellatseng.github.io/quotation-app/static/css/main.09c960b6.css.map",
+    "main.9106ead8.js.map": "https://diellatseng.github.io/quotation-app/static/js/main.9106ead8.js.map",
     "239.e13925d3.chunk.js.map": "https://diellatseng.github.io/quotation-app/static/js/239.e13925d3.chunk.js.map",
     "762.820b566b.chunk.js.map": "https://diellatseng.github.io/quotation-app/static/js/762.820b566b.chunk.js.map",
     "344.3ccb3bb0.chunk.js.map": "https://diellatseng.github.io/quotation-app/static/js/344.3ccb3bb0.chunk.js.map",
@@ -17,7 +17,7 @@
     "455.739c6a8a.chunk.js.map": "https://diellatseng.github.io/quotation-app/static/js/455.739c6a8a.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.ed027b7b.css",
-    "static/js/main.a98b548b.js"
+    "static/css/main.09c960b6.css",
+    "static/js/main.9106ead8.js"
   ]
 }
