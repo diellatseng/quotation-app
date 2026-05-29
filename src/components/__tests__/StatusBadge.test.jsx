@@ -18,9 +18,9 @@ describe('StatusBadge', () => {
     expect(screen.getByText('已確認')).toBeInTheDocument()
   })
 
-  it('renders 已封存 status', () => {
-    render(<StatusBadge status="已封存" />)
-    expect(screen.getByText('已封存')).toBeInTheDocument()
+  it('renders 已結案 status', () => {
+    render(<StatusBadge status="已結案" />)
+    expect(screen.getByText('已結案')).toBeInTheDocument()
   })
 
   it('shows 議價中 tag when isNegotiating is true', () => {

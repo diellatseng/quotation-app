@@ -133,7 +133,7 @@ npm start
 | **報價單建立** | 5 步驟精靈：客戶 → 工程 → 服務 → 確認 → 預覽 |
 | **民國/西元** | 日期輸入支援切換，內部以西元儲存 |
 | **付款方式** | 多階段付款，百分比自動計算金額 |
-| **狀態管理** | 草稿 → 已報價 → 已確認 → 已封存 |
+| **狀態管理** | 草稿 → 已報價 → 已確認 → 已結案 |
 | **議價記錄** | 完整議價歷程、金額變更追蹤 |
 | **版本控制** | 建立新版本報價單、差異標示（藍色 = 新增項目） |
 | **PDF 匯出** | A4 格式，含報價單主頁 + 客戶準備清單附件 |
@@ -168,7 +168,7 @@ service_checklist_items  → 客戶準備清單（1-to-many → services）
 
 quotations               → 報價單主檔
   ├── quote_number, version, parent_id (版本鏈)
-  ├── status: 草稿 | 已報價 | 已確認 | 已封存
+  ├── status: 草稿 | 已報價 | 已確認 | 已結案
   ├── is_negotiating (bool tag)
   ├── client_id, contact_person_id
   ├── 工程資料：building_permit, land_section, project_scale...
@@ -249,8 +249,8 @@ A: 免費版每月 200 封。如需更多，可升級 EmailJS 方案，或改用
 ### Q: 如何修改報價單樣式？
 A: 編輯 `src/components/A4Preview.jsx` 中的 `a4` 樣式物件。
 
-### Q: 為什麼封存的報價單看不到？
-A: Dashboard 預設隱藏已封存，點擊「顯示已封存」即可查看。
+### Q: 為什麼結案的報價單看不到？
+A: Dashboard 預設隱藏已結案，點擊「顯示已結案」即可查看。
 
 ### Q: 可以同時使用多個公司嗎？
 A: 目前公司資訊寫在 `.env`，單一公司。如需多公司，請在資料庫新增 `companies` 表並修改報價單邏輯。

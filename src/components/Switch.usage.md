@@ -68,10 +68,10 @@
  *         <Switch
  *           checked={showArchived}
  *           onChange={handleArchiveToggle}
- *           labelOff="隱藏已封存"
- *           labelOn="顯示已封存"
+ *           labelOff="隱藏已結案"
+ *           labelOn="顯示已結案"
  *           id="archiveToggle"
- *           ariaLabel="切換是否顯示已封存的報價"
+ *           ariaLabel="切換是否顯示已結案的報價"
  *           size="md"
  *         />
  *       </div>

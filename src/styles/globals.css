@@ -1020,7 +1020,7 @@ a:hover {
 
 .page-body {
   flex: 1;
-  max-width: 1100px;
+  max-width: 1280px;
   width: 100%;
   margin: 0 auto;
   padding: var(--space-6) var(--space-5);
@@ -1543,12 +1543,6 @@ a:hover {
   text-align: center;
 }
 
-.dashboard-main {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: var(--space-6) var(--space-5);
-}
-
 .dashboard-toolbar,
 .dashboard-filters {
   display: flex;
@@ -1732,12 +1726,6 @@ a:hover {
   font-size: var(--text-xs);
 }
 
-.detail-main {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: var(--space-6) var(--space-5);
-}
-
 .detail-versions {
   margin-bottom: var(--space-5);
 }
@@ -1899,7 +1887,7 @@ a:hover {
   border-color: var(--color-text-secondary);
 }
 
-/* Secondary/destructive action (封存) — outline, muted; hints danger on hover */
+/* Secondary/destructive action (結案) — outline, muted; hints danger on hover */
 .btn-dashboard-action--archive {
   background: var(--color-bg-surface);
   color: var(--color-text-muted);

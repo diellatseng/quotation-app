@@ -198,3 +198,27 @@ ALTER TABLE quotation_services
 -- Migration: add mobile number for client's responsible person
 ALTER TABLE clients
   ADD COLUMN IF NOT EXISTS responsible_person_mobile TEXT;
+
+-- ============================================================
+-- Migration: rename status '已封存'→'已結案', add '已刪除'
+-- Applies to: quotations table
+-- ============================================================
+
+-- 1. 移除舊的 CHECK constraint
+--    （constraint 名稱是 Postgres 自動產生的，用以下 query 先確認）
+--    SELECT conname FROM pg_constraint
+--    WHERE conrelid = 'quotations'::regclass AND contype = 'c';
+--    通常會是 quotations_status_check
+
+ALTER TABLE quotations
+  DROP CONSTRAINT IF EXISTS quotations_status_check;
+
+-- 2. 加上新的 CHECK constraint（包含改名後的值 + 新值）
+ALTER TABLE quotations
+  ADD CONSTRAINT quotations_status_check
+  CHECK (status IN ('草稿','已報價','已確認','已結案','已刪除'));
+
+-- 3. 把現有的 '已封存' 資料改成 '已結案'
+UPDATE quotations
+SET status = '已結案'
+WHERE status = '已封存';

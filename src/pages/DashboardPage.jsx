@@ -16,16 +16,16 @@ const STATUS_FILTERS = ['全部', '草稿', '已報價', '已確認']
 const fmt = (n) => n ? `NT$ ${Number(n).toLocaleString('zh-TW')}` : '—'
 
 export default function DashboardPage() {
-  const [quotations, setQuotations]   = useState([])
-  const [loading, setLoading]         = useState(true)
-  const [search, setSearch]           = useState('')
+  const [quotations, setQuotations] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('全部')
   const [showArchived, setShowArchived] = useState(false)
   const [showNegotiating] = useState(false)
-  const { user, signOut }             = useAuth()
+  const { user, signOut } = useAuth()
   const { baseFontSize, setFontSize, contrast, toggleContrast } = useTheme()
-  const { success, error }            = useNotification()
-  const navigate                      = useNavigate()
+  const { success, error } = useNotification()
+  const navigate = useNavigate()
 
   const fetchQuotations = async () => {
     setLoading(true)
@@ -39,19 +39,19 @@ export default function DashboardPage() {
       `)
       .order('created_at', { ascending: false })
 
-    if (!showArchived) q = q.neq('status', '已封存')
+    if (!showArchived) q = q.neq('status', '已結案')
 
     const { data, error: err } = await q
     if (err) { error('載入失敗：' + err.message); setLoading(false); return }
 
     // Only show latest version of each chain
     const latestMap = {}
-    ;(data || []).forEach(qt => {
-      const root = getRootId(qt, data)
-      if (!latestMap[root] || qt.version > latestMap[root].version) {
-        latestMap[root] = qt
-      }
-    })
+      ; (data || []).forEach(qt => {
+        const root = getRootId(qt, data)
+        if (!latestMap[root] || qt.version > latestMap[root].version) {
+          latestMap[root] = qt
+        }
+      })
     setQuotations(Object.values(latestMap))
     setLoading(false)
   }
@@ -65,9 +65,9 @@ export default function DashboardPage() {
   useEffect(() => { fetchQuotations() }, [showArchived]) // eslint-disable-line
 
   const archive = async (id) => {
-    if (!window.confirm('封存此報價單？封存後將從列表隱藏，但資料不會刪除。')) return
-    await supabase.from('quotations').update({ status: '已封存' }).eq('id', id)
-    success('已封存')
+    if (!window.confirm('結案此報價單？結案後將從列表隱藏，但資料不會刪除。')) return
+    await supabase.from('quotations').update({ status: '已結案' }).eq('id', id)
+    success('已結案')
     fetchQuotations()
   }
 
@@ -145,7 +145,7 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      <main className="dashboard-main">
+      <main className="page-body">
         {/* Toolbar */}
         <div className="dashboard-toolbar">
           <input
@@ -180,7 +180,7 @@ export default function DashboardPage() {
             <Switch
               checked={showArchived}
               onChange={setShowArchived}
-              label="顯示已封存"
+              label="顯示已結案"
               id="archiveToggle"
               size="md"
             />
@@ -265,13 +265,13 @@ export default function DashboardPage() {
                           >
                             {q.status === '草稿' ? '編輯' : '檢視'}
                           </Button>
-                          {q.status !== '已封存' && (
+                          {q.status !== '已結案' && (
                             <Button
                               variant="normal"
                               size="sm"
                               onClick={() => archive(q.id)}
                             >
-                              封存
+                              結案
                             </Button>
                           )}
                         </div>

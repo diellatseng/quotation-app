@@ -14,7 +14,7 @@
  * <Switch
  *   checked={showArchived}
  *   onChange={setShowArchived}
- *   label="顯示已封存"
+ *   label="顯示已結案"
  *   id="archiveToggle"
  * />
  */
@@ -53,7 +53,7 @@ export default function Switch({
         <label htmlFor={id} className="switch-label-single">
           {label}
         </label>
-        
+
         <button
           id={id}
           role="switch"
@@ -77,7 +77,7 @@ export default function Switch({
       <label htmlFor={id} className="switch-label-off">
         {labelOff}
       </label>
-      
+
       <button
         id={id}
         role="switch"

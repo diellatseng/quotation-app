@@ -1,10 +1,10 @@
 // src/components/StatusBadge.jsx
 
 const STATUS_MAP = {
-  '草稿':  { label: '草稿',  varStatus: 'draft' },
+  '草稿': { label: '草稿', varStatus: 'draft' },
   '已報價': { label: '已報價', varStatus: 'quoted' },
   '已確認': { label: '已確認', varStatus: 'confirmed' },
-  '已封存': { label: '已封存', varStatus: 'archived' },
+  '已結案': { label: '已結案', varStatus: 'archived' },
 }
 
 export default function StatusBadge({ status, isNegotiating = false, size = 'md' }) {

@@ -14,30 +14,30 @@ import A4Preview from '../components/A4Preview'
 const fmt = (n) => `NT$ ${Number(n || 0).toLocaleString('zh-TW')}`
 
 const COMPANY_INFO = {
-  name:    process.env.REACT_APP_COMPANY_NAME    || '公司名稱',
+  name: process.env.REACT_APP_COMPANY_NAME || '公司名稱',
   address: process.env.REACT_APP_COMPANY_ADDRESS || '公司地址',
-  phone:   process.env.REACT_APP_COMPANY_PHONE   || '公司電話',
-  fax:     process.env.REACT_APP_COMPANY_FAX     || '',
-  email:   process.env.REACT_APP_COMPANY_EMAIL   || '',
+  phone: process.env.REACT_APP_COMPANY_PHONE || '公司電話',
+  fax: process.env.REACT_APP_COMPANY_FAX || '',
+  email: process.env.REACT_APP_COMPANY_EMAIL || '',
 }
 
 export default function QuotationDetailPage() {
-  const { id }           = useParams()
-  const navigate         = useNavigate()
-  const { user }         = useAuth()
+  const { id } = useParams()
+  const navigate = useNavigate()
+  const { user } = useAuth()
   const { success, error, info } = useNotification()
-  const previewRef       = useRef()
+  const previewRef = useRef()
 
-  const [qt, setQt]               = useState(null)
-  const [services, setServices]   = useState([])
-  const [stages, setStages]       = useState([])
-  const [negLogs, setNegLogs]     = useState([])
-  const [versions, setVersions]   = useState([])
-  const [loading, setLoading]     = useState(true)
-  const [tab, setTab]             = useState('preview')  // 'preview' | 'services' | 'negotiation'
+  const [qt, setQt] = useState(null)
+  const [services, setServices] = useState([])
+  const [stages, setStages] = useState([])
+  const [negLogs, setNegLogs] = useState([])
+  const [versions, setVersions] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [tab, setTab] = useState('preview')  // 'preview' | 'services' | 'negotiation'
   const [negDialog, setNegDialog] = useState(null)
   const [showVersions, setShowVersions] = useState(false) // { amount, notes }
-  const [emailing, setEmailing]   = useState(false)
+  const [emailing, setEmailing] = useState(false)
 
   const { exporting, exportPDF } = useExportPDF({
     filename: `報價單-${qt?.quote_number || ''}`,
@@ -89,9 +89,9 @@ export default function QuotationDetailPage() {
     const recipientEmail = qt.contact_persons?.email || qt.clients?.email
     if (!recipientEmail) { error('聯絡人或客戶無電子郵件，無法發送'); return }
 
-    const ejsKey   = process.env.REACT_APP_EMAILJS_PUBLIC_KEY
-    const ejsSvc   = process.env.REACT_APP_EMAILJS_SERVICE_ID
-    const ejsTmpl  = process.env.REACT_APP_EMAILJS_TEMPLATE_ID
+    const ejsKey = process.env.REACT_APP_EMAILJS_PUBLIC_KEY
+    const ejsSvc = process.env.REACT_APP_EMAILJS_SERVICE_ID
+    const ejsTmpl = process.env.REACT_APP_EMAILJS_TEMPLATE_ID
 
     if (!ejsKey || !ejsSvc || !ejsTmpl) {
       error('尚未設定 EmailJS 設定值，請參閱 README 完成設定')
@@ -119,14 +119,14 @@ export default function QuotationDetailPage() {
       const emailjs = await import('emailjs-com')
 
       await emailjs.send(ejsSvc, ejsTmpl, {
-        to_email:     recipientEmail,
-        to_name:      qt.contact_persons?.name || qt.clients?.company_name || '',
+        to_email: recipientEmail,
+        to_name: qt.contact_persons?.name || qt.clients?.company_name || '',
         quote_number: qt.quote_number,
-        client_name:  qt.clients?.company_name || '',
-        amount:       fmt(grand),
-        quote_date:   formatRocDate(qt.quote_date),
+        client_name: qt.clients?.company_name || '',
+        amount: fmt(grand),
+        quote_date: formatRocDate(qt.quote_date),
         company_name: COMPANY_INFO.name,
-        pdf_content:  pdfBase64,
+        pdf_content: pdfBase64,
       }, ejsKey)
 
       // Auto-set to 已報價
@@ -142,50 +142,50 @@ export default function QuotationDetailPage() {
     setNegDialog(null)
     // Build new version row
     const { data: newQt, error: err } = await supabase.from('quotations').insert([{
-      quote_number:        qt.quote_number,
-      version:             qt.version + 1,
-      parent_id:           qt.parent_id || qt.id,
-      status:              '草稿',
-      project_id:          qt.project_id,
-      client_id:           qt.client_id,
-      contact_person_id:   qt.contact_person_id,
+      quote_number: qt.quote_number,
+      version: qt.version + 1,
+      parent_id: qt.parent_id || qt.id,
+      status: '草稿',
+      project_id: qt.project_id,
+      client_id: qt.client_id,
+      contact_person_id: qt.contact_person_id,
       project_template_id: qt.project_template_id,
-      building_permit:     qt.building_permit,
-      land_section:        qt.land_section,
-      project_scale:       qt.project_scale,
-      project_owner:       qt.project_owner,
-      project_name:        qt.project_name,
-      fee_amount:          amount,
-      tax_included:        qt.tax_included,
-      quote_date:          new Date().toISOString().split('T')[0],
-      notes:               qt.notes,
-      is_negotiating:      true,
-      created_by:          user.id,
+      building_permit: qt.building_permit,
+      land_section: qt.land_section,
+      project_scale: qt.project_scale,
+      project_owner: qt.project_owner,
+      project_name: qt.project_name,
+      fee_amount: amount,
+      tax_included: qt.tax_included,
+      quote_date: new Date().toISOString().split('T')[0],
+      notes: qt.notes,
+      is_negotiating: true,
+      created_by: user.id,
     }]).select().single()
     if (err || !newQt) { error('建立新版本失敗：' + (err?.message || '')); return }
 
     // Copy services — all unchanged initially (diff will be computed in wizard if editServices)
     const newServices = services.map((s, i) => ({
-      quotation_id:    newQt.id,
-      service_id:      s.service_id,
-      service_name:    s.service_name,
-      category:        s.category,
-      description:     s.description || null,
+      quotation_id: newQt.id,
+      service_id: s.service_id,
+      service_name: s.service_name,
+      category: s.category,
+      description: s.description || null,
       checklist_items: s.checklist_items || [],
-      sort_order:      i,
-      is_added:        false,
-      diff_status:     null,
+      sort_order: i,
+      is_added: false,
+      diff_status: null,
     }))
     if (newServices.length) await supabase.from('quotation_services').insert(newServices)
 
     // Copy payment stages (with project_id)
     const newStages = stages.map((st, i) => ({
       quotation_id: newQt.id,
-      project_id:   qt.project_id,
-      stage_name:   st.stage_name,
-      percentage:   st.percentage,
-      amount:       st.amount,
-      sort_order:   i,
+      project_id: qt.project_id,
+      stage_name: st.stage_name,
+      percentage: st.percentage,
+      amount: st.amount,
+      sort_order: i,
     }))
     if (newStages.length) await supabase.from('payment_stages').insert(newStages)
 
@@ -250,16 +250,16 @@ export default function QuotationDetailPage() {
               標記為已確認
             </button>
           )}
-          {/* {qt.status !== '已封存' && (
+          {/* {qt.status !== '已結案' && (
             <button className="btn btn-sm btn-primary"
-              onClick={() => { if(window.confirm('封存此報價單？')) setStatus('已封存') }}>
-              封存
+              onClick={() => { if(window.confirm('結案此報價單？')) setStatus('已結案') }}>
+              結案
             </button>
           )} */}
         </div>
       </header>
 
-      <main className="detail-main">
+      <main className="page-body">
         {/* Version history */}
         {versions.length > 1 && (
           <div className="detail-versions">
@@ -333,7 +333,7 @@ export default function QuotationDetailPage() {
         {tab === 'services' && (
           <div className="card">
             <p className="section-title">服務內容（唯讀）</p>
-            <ServiceTable services={services} onChange={() => {}} readOnly={true} />
+            <ServiceTable services={services} onChange={() => { }} readOnly={true} />
           </div>
         )}
 
