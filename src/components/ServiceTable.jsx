@@ -10,6 +10,7 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
   const [editingDesc,       setEditingDesc]       = useState(null)
   const [draftDesc,         setDraftDesc]         = useState('')
   const [collapsedDescs,    setCollapsedDescs]    = useState({})
+  const [actionMenuIdx,     setActionMenuIdx]     = useState(null)
 
   // ── Drag state ────────────────────────────────────────────────────────────
   const dragIdx      = useRef(null)
@@ -58,6 +59,11 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
     updateService(idx, 'description', draftDesc)
     setEditingDesc(null); setDraftDesc('')
   }
+  const startEditFromMenu = (idx) => {
+    setCollapsedDescs(p => ({ ...p, [idx]: false }))
+    setActionMenuIdx(null)
+    startEdit(idx)
+  }
 
   // ── Description collapse ──────────────────────────────────────────────────
   const isCollapsed  = (idx) => collapsedDescs[idx] ?? false
@@ -84,6 +90,19 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
   const removeChecklistItem = (si, ii) =>
     updateService(si, 'checklist_items',
       (services[si].checklist_items || []).filter((_, i) => i !== ii))
+  const toggleChecklist = (idx) => {
+    const shouldOpen = expandedChecklist !== idx
+    setExpandedChecklist(shouldOpen ? idx : null)
+    setActionMenuIdx(null)
+    if (!shouldOpen) return
+
+    window.history.replaceState(null, '', '#ExpandedChecklist')
+    setTimeout(() => {
+      const panel = document.getElementById('ExpandedChecklist')
+      panel?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      panel?.focus({ preventScroll: true })
+    }, 0)
+  }
 
   // ── Empty state ───────────────────────────────────────────────────────────
   if (!services.length) return (
@@ -164,7 +183,7 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
           return (
             <div
               key={svc.id || idx}
-              draggable={!readOnly && !isRemoved}
+              draggable={!readOnly && !isRemoved && !isEditing}
               onDragStart={() => !isRemoved && handleDragStart(idx)}
               onDragEnter={() => handleDragEnter(idx)}
               onDragOver={e => e.preventDefault()}
@@ -173,7 +192,7 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                 border: cardBorder,
                 borderRadius: 'var(--radius-md)',
                 background: cardBg,
-                overflow: 'hidden',
+                overflow: actionMenuIdx === idx ? 'visible' : 'hidden',
                 opacity: isDragging ? 0.4 : isRemoved ? 0.7 : 1,
                 transition: 'opacity 0.15s, border-color 0.15s',
                 cursor: isDragging ? 'grabbing' : 'default',
@@ -255,37 +274,71 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                 {!isRemoved && (
                   <div style={{ display: 'flex', gap: 5, marginLeft: 'auto', flexShrink: 0, alignItems: 'center' }}>
 
-                    {/* Checklist toggle */}
-                    <button
-                      type="button"
-                      onClick={() => setExpandedChecklist(checklistOpen ? null : idx)}
-                      aria-expanded={checklistOpen}
-                      title="客戶準備清單"
-                      aria-label="客戶準備清單"
-                      className={`btn-xs${checklistOpen ? ' btn-xs--active' : ''}`}
-                    >
-                      <Icon name="list" title="客戶準備清單" /> {checklistCount || ''}
-                    </button>
-
-                    {/* Delete */}
-                    {!readOnly && (
-                      <IconButton
-                        icon="delete"
-                        tooltip="刪除此服務項目"
-                        onClick={() => removeService(idx)}
-                        variant="danger"
-                        size="sm"
-                      />
-                    )}
-
                     {/* Collapse/expand chevron */}
                     <IconButton
                       icon={collapsed ? 'keyboard_arrow_left' : 'keyboard_arrow_down'}
                       tooltip={collapsed ? '展開說明' : '摺疊說明'}
-                      onClick={() => toggleCollapse(idx)}
+                      onClick={() => {
+                        setActionMenuIdx(null)
+                        toggleCollapse(idx)
+                      }}
                       variant="ghost"
                       size="sm"
                     />
+
+                    {/* More actions */}
+                    <div style={{ position: 'relative' }}>
+                      <IconButton
+                        icon="more_horiz"
+                        tooltip="更多操作"
+                        onClick={() => setActionMenuIdx(actionMenuIdx === idx ? null : idx)}
+                        variant="ghost"
+                        size="sm"
+                      />
+                      {actionMenuIdx === idx && (
+                        <div
+                          style={{
+                            position: 'absolute',
+                            top: 'calc(100% + 4px)',
+                            right: 0,
+                            zIndex: 20,
+                            minWidth: 168,
+                            padding: 'var(--space-2)',
+                            background: 'var(--color-bg-surface)',
+                            border: '1px solid var(--color-border)',
+                            borderRadius: 'var(--radius-md)',
+                            boxShadow: 'var(--shadow-lg)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 4,
+                          }}
+                        >
+                          <ActionMenuButton
+                            icon="list"
+                            label={`客戶準備清單${checklistCount ? ` (${checklistCount})` : ''}`}
+                            onClick={() => toggleChecklist(idx)}
+                          />
+                          {!readOnly && !isEditing && (
+                            <ActionMenuButton
+                              icon="edit"
+                              label={hasDesc ? '編輯說明' : '新增說明'}
+                              onClick={() => startEditFromMenu(idx)}
+                            />
+                          )}
+                          {!readOnly && (
+                            <ActionMenuButton
+                              icon="delete"
+                              label="刪除此項目"
+                              danger
+                              onClick={() => {
+                                setActionMenuIdx(null)
+                                removeService(idx)
+                              }}
+                            />
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
                 {isRemoved && <div style={{ marginLeft: 'auto' }} />}
@@ -300,17 +353,6 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                     marginBottom: (isEditing || hasDesc) ? 'var(--space-2)' : 0,
                   }}>
                     <span className="subsection-label">說明</span>
-
-                    {!readOnly && !isEditing && (
-                      <IconButton
-                        icon="edit"
-                        label={hasDesc ? '編輯' : '新增說明'}
-                        tooltip={hasDesc ? '編輯說明' : '新增說明'}
-                        onClick={() => startEdit(idx)}
-                        variant="normal"
-                        size="sm"
-                      />
-                    )}
 
                     {!readOnly && isEditing && (
                       <div style={{ display: 'flex', gap: 6 }}>
@@ -371,10 +413,16 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
 
               {/* ── Checklist panel ──────────────────────────────────────── */}
               {!isRemoved && checklistOpen && (
-                <div style={{
-                  borderTop: '1px solid var(--color-border)',
-                  padding: 'var(--space-4)', background: 'var(--color-bg-subtle)',
-                }}>
+                <div
+                  id="ExpandedChecklist"
+                  tabIndex={-1}
+                  style={{
+                    borderTop: '1px solid var(--color-border)',
+                    padding: 'var(--space-4)', background: 'var(--color-bg-subtle)',
+                    scrollMarginTop: 'var(--space-6)',
+                    outline: 'none',
+                  }}
+                >
                   <p className="subsection-label" style={{ marginBottom: 'var(--space-3)' }}>
                     客戶準備清單
                   </p>
@@ -458,4 +506,32 @@ function DiffBadge({ type }) {
   const cls = classMap[type]
   if (!cls) return null
   return <span className={cls}>{labelMap[type]}</span>
+}
+
+function ActionMenuButton({ icon, label, onClick, danger = false }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 'var(--space-2)',
+        width: '100%',
+        padding: 'var(--space-2) var(--space-3)',
+        border: 'none',
+        borderRadius: 'var(--radius-sm)',
+        background: 'transparent',
+        color: danger ? 'var(--color-danger)' : 'var(--color-text)',
+        cursor: 'pointer',
+        fontSize: 'var(--text-sm)',
+        fontWeight: 600,
+        textAlign: 'left',
+        whiteSpace: 'nowrap',
+      }}
+    >
+      <Icon name={icon} title={label} />
+      {label}
+    </button>
+  )
 }

@@ -127,7 +127,8 @@ export default function RichEditor({ value, onChange, minHeight = 100, maxHeight
           lineHeight: 1.7,
           outline: 'none',
           color: 'var(--color-text)',
-          background: 'var(--color-bg)',
+          background: '#fff',
+          cursor: 'text',
           wordBreak: 'break-word',
           // Ensure ul/ol have proper indentation (CSS resets often strip this)
           '--list-indent': '1.5em',
