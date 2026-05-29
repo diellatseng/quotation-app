@@ -13,7 +13,7 @@ export default function ClientsAdmin() {
   const { success, error }      = useNotification()
 
   function emptyClient() {
-    return { company_name: '', address: '', phone: '', fax: '', email: '', responsible_person_name: '', responsible_person_title: '' }
+    return { company_name: '', address: '', phone: '', fax: '', email: '', responsible_person_name: '', responsible_person_mobile: '', responsible_person_title: '' }
   }
 
   const load = async () => {
@@ -117,6 +117,7 @@ export default function ClientsAdmin() {
               <F label="電話" value={form.phone} onChange={v => setForm(f => ({ ...f, phone: v }))} />
               <F label="傳真" value={form.fax} onChange={v => setForm(f => ({ ...f, fax: v }))} />
               <F label="負責人姓名" value={form.responsible_person_name} onChange={v => setForm(f => ({ ...f, responsible_person_name: v }))} />
+              <F label="負責人手機" value={form.responsible_person_mobile} onChange={v => setForm(f => ({ ...f, responsible_person_mobile: v }))} />
               <F label="負責人職稱" value={form.responsible_person_title} onChange={v => setForm(f => ({ ...f, responsible_person_title: v }))} />
             </div>
             <F label="地址" value={form.address} onChange={v => setForm(f => ({ ...f, address: v }))} />

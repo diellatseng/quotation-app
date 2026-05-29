@@ -12,7 +12,7 @@ export default function ClientPicker({ value, onChange, disabled = false }) {
   const [highlightedIndex, setHighlightedIndex] = useState(-1)
   const [newClient, setNewClient]   = useState({
     company_name: '', address: '', phone: '', fax: '', email: '',
-    responsible_person_name: '', responsible_person_title: '',
+    responsible_person_name: '', responsible_person_mobile: '', responsible_person_title: '',
   })
   const [newContact, setNewContact] = useState({ name: '', mobile: '', office_phone: '', fax: '', email: '' })
   const { success, error } = useNotification()
@@ -234,6 +234,12 @@ export default function ClientPicker({ value, onChange, disabled = false }) {
               <input className="field-input" value={newClient.responsible_person_name}
                 onChange={e => setNewClient(p => ({ ...p, responsible_person_name: e.target.value }))} />
             </Field>
+            <Field label="負責人手機">
+              <input className="field-input" value={newClient.responsible_person_mobile}
+                onChange={e => setNewClient(p => ({ ...p, responsible_person_mobile: e.target.value }))} />
+            </Field>
+          </Grid>
+          <Grid>
             <Field label="負責人職稱">
               <input className="field-input" value={newClient.responsible_person_title}
                 onChange={e => setNewClient(p => ({ ...p, responsible_person_title: e.target.value }))} />

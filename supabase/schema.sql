@@ -12,6 +12,7 @@ CREATE TABLE clients (
   fax                     TEXT,
   email                   TEXT,
   responsible_person_name TEXT,
+  responsible_person_mobile TEXT,
   responsible_person_title TEXT,
   created_at              TIMESTAMPTZ DEFAULT NOW(),
   updated_at              TIMESTAMPTZ DEFAULT NOW()
@@ -193,3 +194,7 @@ ALTER TABLE quotation_services
 ALTER TABLE quotation_services
   ADD COLUMN IF NOT EXISTS diff_status TEXT
     CHECK (diff_status IN ('added', 'modified', 'removed'));
+
+-- Migration: add mobile number for client's responsible person
+ALTER TABLE clients
+  ADD COLUMN IF NOT EXISTS responsible_person_mobile TEXT;
