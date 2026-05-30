@@ -20,7 +20,8 @@
 // The parent owns `openId` so it can close any open menu when another opens,
 // or close on outside-click via the exported `useActionMenuClose` hook.
 
-import { useEffect } from 'react'
+import { useEffect, useState, useRef } from 'react'
+import { createPortal } from 'react-dom';
 import IconButton from './IconButton'
 
 // ── Hook: close menu on any outside click ────────────────────────────────────
@@ -41,9 +42,22 @@ export function useActionMenuClose(openId, onClose) {
 // ── ActionMenu ────────────────────────────────────────────────────────────────
 export default function ActionMenu({ id, openId, onOpen, onClose, children }) {
   const isOpen = openId === id
+  const triggerRef = useRef(null)
+  const [coords, setCoords] = useState({ top: 0, right: 0 })
+
+  // Calculate coordinates relative to the viewport when opened
+  useEffect(() => {
+    if (isOpen && triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect()
+      setCoords({
+        top: rect.bottom + 4, // 4px spacing below the button
+        right: window.innerWidth - rect.right // Matches right alignment perfectly
+      })
+    }
+  }, [isOpen])
 
   return (
-    <div className="action-menu">
+    <div className="action-menu" ref={triggerRef}>
       <IconButton
         icon="more_horiz"
         tooltip="更多操作"
@@ -54,10 +68,20 @@ export default function ActionMenu({ id, openId, onOpen, onClose, children }) {
           isOpen ? onClose() : onOpen(id)
         }}
       />
-      {isOpen && (
-        <div className="action-menu__dropdown" onClick={(e) => e.stopPropagation()}>
+      {isOpen && createPortal(
+        <div
+          className="action-menu__dropdown"
+          style={{
+            position: 'fixed',
+            top: `${coords.top}px`,
+            right: `${coords.right}px`,
+            left: 'auto', // overrides default CSS overrides if any
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
           {children}
-        </div>
+        </div>,
+        document.body // Teleports the dropdown container to the body root
       )}
     </div>
   )

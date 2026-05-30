@@ -4,18 +4,20 @@ import RichEditor from './RichEditor'
 import Icon from './Icon'
 import IconButton from './IconButton'
 import Button from '../components/Button'
+import ActionMenu, { ActionMenuItem, useActionMenuClose } from '../components/ActionMenu'
 
 export default function ServiceTable({ services, onChange, readOnly = false }) {
   const [expandedChecklist, setExpandedChecklist] = useState(null)
-  const [editingDesc,       setEditingDesc]       = useState(null)
-  const [draftDesc,         setDraftDesc]         = useState('')
-  const [collapsedDescs,    setCollapsedDescs]    = useState({})
-  const [actionMenuIdx,     setActionMenuIdx]     = useState(null)
+  const [editingDesc, setEditingDesc] = useState(null)
+  const [draftDesc, setDraftDesc] = useState('')
+  const [collapsedDescs, setCollapsedDescs] = useState({})
+  const [actionMenuId, setActionMenuId] = useState(null)
+  useActionMenuClose(actionMenuId, () => setActionMenuId(null))
 
   // ── Drag state ────────────────────────────────────────────────────────────
-  const dragIdx      = useRef(null)
-  const dragOverIdx  = useRef(null)
-  const [draggingIdx,      setDraggingIdx]      = useState(null)
+  const dragIdx = useRef(null)
+  const dragOverIdx = useRef(null)
+  const [draggingIdx, setDraggingIdx] = useState(null)
   const [dragOverIdxState, setDragOverIdxState] = useState(null)
 
   const handleDragStart = (idx) => { dragIdx.current = idx; setDraggingIdx(idx) }
@@ -30,7 +32,7 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
       const [item] = next.splice(from, 1)
       next.splice(to, 0, item)
       onChange(next)
-      if (editingDesc === from)      setEditingDesc(to)
+      if (editingDesc === from) setEditingDesc(to)
       if (expandedChecklist === from) setExpandedChecklist(to)
     }
     dragIdx.current = null; dragOverIdx.current = null
@@ -43,7 +45,7 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
   }
   const removeService = (idx) => {
     onChange(services.filter((_, i) => i !== idx))
-    if (editingDesc === idx)      setEditingDesc(null)
+    if (editingDesc === idx) setEditingDesc(null)
     if (expandedChecklist === idx) setExpandedChecklist(null)
     const next = { ...collapsedDescs }; delete next[idx]; setCollapsedDescs(next)
   }
@@ -53,29 +55,28 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
   }])
 
   // ── Description edit/save ─────────────────────────────────────────────────
-  const startEdit  = (idx) => { setEditingDesc(idx); setDraftDesc(services[idx].description || '') }
-  const cancelEdit = ()    => { setEditingDesc(null); setDraftDesc('') }
+  const startEdit = (idx) => { setEditingDesc(idx); setDraftDesc(services[idx].description || '') }
+  const cancelEdit = () => { setEditingDesc(null); setDraftDesc('') }
   const commitEdit = (idx) => {
     updateService(idx, 'description', draftDesc)
     setEditingDesc(null); setDraftDesc('')
   }
   const startEditFromMenu = (idx) => {
     setCollapsedDescs(p => ({ ...p, [idx]: false }))
-    setActionMenuIdx(null)
     startEdit(idx)
   }
 
   // ── Description collapse ──────────────────────────────────────────────────
-  const isCollapsed  = (idx) => collapsedDescs[idx] ?? false
+  const isCollapsed = (idx) => collapsedDescs[idx] ?? false
   const toggleCollapse = (idx) => setCollapsedDescs(p => ({ ...p, [idx]: !p[idx] }))
 
   // collapse-all / expand-all helpers (toolbar)
-  const descIndices  = services.reduce((acc, s, i) =>
+  const descIndices = services.reduce((acc, s, i) =>
     (!s._removed && (s.description || '').trim()) ? [...acc, i] : acc, [])
-  const hasAnyDesc   = descIndices.length > 0
+  const hasAnyDesc = descIndices.length > 0
   const allCollapsed = hasAnyDesc && descIndices.every(i => collapsedDescs[i])
-  const collapseAll  = () => { const n = {}; descIndices.forEach(i => { n[i] = true }); setCollapsedDescs(n) }
-  const expandAll    = () => setCollapsedDescs({})
+  const collapseAll = () => { const n = {}; descIndices.forEach(i => { n[i] = true }); setCollapsedDescs(n) }
+  const expandAll = () => setCollapsedDescs({})
 
   // ── Checklist CRUD ────────────────────────────────────────────────────────
   const addChecklistItem = (idx) => {
@@ -93,7 +94,6 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
   const toggleChecklist = (idx) => {
     const shouldOpen = expandedChecklist !== idx
     setExpandedChecklist(shouldOpen ? idx : null)
-    setActionMenuIdx(null)
     if (!shouldOpen) return
 
     window.history.replaceState(null, '', '#ExpandedChecklist')
@@ -156,33 +156,33 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
         {services.map((svc, idx) => {
           const isDragging = draggingIdx === idx
-          const isOver     = dragOverIdxState === idx && draggingIdx !== idx
-          const isEditing  = editingDesc === idx
-          const hasDesc    = (svc.description || '').trim().length > 0
-          const collapsed  = isCollapsed(idx)
-          const diff       = svc.diff_status
-          const isRemoved  = diff === 'removed'
+          const isOver = dragOverIdxState === idx && draggingIdx !== idx
+          const isEditing = editingDesc === idx
+          const hasDesc = (svc.description || '').trim().length > 0
+          const collapsed = isCollapsed(idx)
+          const diff = svc.diff_status
+          const isRemoved = diff === 'removed'
           const checklistCount = (svc.checklist_items || []).filter(i => i.item_text?.trim()).length
-          const checklistOpen  = expandedChecklist === idx
+          const checklistOpen = expandedChecklist === idx
 
           // Dynamic border/bg depend on runtime state — kept as inline (legitimate dynamic values)
-          const cardBorder = isOver            ? '2px dashed var(--color-accent)'
-            : diff === 'added'                 ? '1.5px solid #86efac'
-            : diff === 'modified'              ? '1.5px solid #fde047'
-            : diff === 'removed'               ? '1.5px solid #fca5a5'
-            : svc.is_added                     ? '1.5px solid var(--color-accent)'
-            : '1px solid var(--color-border)'
+          const cardBorder = isOver ? '2px dashed var(--color-accent)'
+            : diff === 'added' ? '1.5px solid #86efac'
+              : diff === 'modified' ? '1.5px solid #fde047'
+                : diff === 'removed' ? '1.5px solid #fca5a5'
+                  : svc.is_added ? '1.5px solid var(--color-accent)'
+                    : '1px solid var(--color-border)'
 
-          const cardBg = isDragging            ? 'var(--color-bg-subtle)'
-            : diff === 'added'                 ? '#f0fdf4'
-            : diff === 'modified'              ? '#fefce8'
-            : diff === 'removed'               ? '#fef2f2'
-            : svc.is_added                     ? 'var(--color-accent-subtle)'
-            : 'var(--color-bg-surface)'
+          const cardBg = isDragging ? 'var(--color-bg-subtle)'
+            : diff === 'added' ? '#f0fdf4'
+              : diff === 'modified' ? '#fefce8'
+                : diff === 'removed' ? '#fef2f2'
+                  : svc.is_added ? 'var(--color-accent-subtle)'
+                    : 'var(--color-bg-surface)'
 
           return (
             <div
-              key={svc.id || idx}
+              key={svc.service_id || idx}
               draggable={!readOnly && !isRemoved && !isEditing}
               onDragStart={() => !isRemoved && handleDragStart(idx)}
               onDragEnter={() => handleDragEnter(idx)}
@@ -192,7 +192,7 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                 border: cardBorder,
                 borderRadius: 'var(--radius-md)',
                 background: cardBg,
-                overflow: actionMenuIdx === idx ? 'visible' : 'hidden',
+                overflow: actionMenuId === svc.service_id ? 'visible' : 'hidden',
                 opacity: isDragging ? 0.4 : isRemoved ? 0.7 : 1,
                 transition: 'opacity 0.15s, border-color 0.15s',
                 cursor: isDragging ? 'grabbing' : 'default',
@@ -211,7 +211,7 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                     cursor: 'grab', flexShrink: 0, userSelect: 'none',
                     display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 3, padding: '4px 3px',
                   }}>
-                    {[0,1,2,3,4,5].map(i => (
+                    {[0, 1, 2, 3, 4, 5].map(i => (
                       <span key={i} style={{ display: 'block', width: 3, height: 3, borderRadius: '50%', background: 'var(--color-text-muted)' }} />
                     ))}
                   </div>
@@ -279,7 +279,7 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                       icon={collapsed ? 'keyboard_arrow_left' : 'keyboard_arrow_down'}
                       tooltip={collapsed ? '展開說明' : '摺疊說明'}
                       onClick={() => {
-                        setActionMenuIdx(null)
+                        setActionMenuId(null)
                         toggleCollapse(idx)
                       }}
                       variant="ghost"
@@ -287,58 +287,28 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                     />
 
                     {/* More actions */}
-                    <div style={{ position: 'relative' }}>
-                      <IconButton
-                        icon="more_horiz"
-                        tooltip="更多操作"
-                        onClick={() => setActionMenuIdx(actionMenuIdx === idx ? null : idx)}
-                        variant="ghost"
-                        size="sm"
-                      />
-                      {actionMenuIdx === idx && (
-                        <div
-                          style={{
-                            position: 'absolute',
-                            top: 'calc(100% + 4px)',
-                            right: 0,
-                            zIndex: 20,
-                            minWidth: 168,
-                            padding: 'var(--space-2)',
-                            background: 'var(--color-bg-surface)',
-                            border: '1px solid var(--color-border)',
-                            borderRadius: 'var(--radius-md)',
-                            boxShadow: 'var(--shadow-lg)',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: 4,
-                          }}
-                        >
-                          <ActionMenuButton
-                            icon="list"
-                            label={`客戶準備清單${checklistCount ? ` (${checklistCount})` : ''}`}
-                            onClick={() => toggleChecklist(idx)}
-                          />
-                          {!readOnly && !isEditing && (
-                            <ActionMenuButton
-                              icon="edit"
-                              label={hasDesc ? '編輯說明' : '新增說明'}
-                              onClick={() => startEditFromMenu(idx)}
-                            />
-                          )}
-                          {!readOnly && (
-                            <ActionMenuButton
-                              icon="delete"
-                              label="刪除此項目"
-                              danger
-                              onClick={() => {
-                                setActionMenuIdx(null)
-                                removeService(idx)
-                              }}
-                            />
-                          )}
-                        </div>
+                    <ActionMenu
+                      id={svc.service_id}
+                      openId={actionMenuId}
+                      onOpen={setActionMenuId}
+                      onClose={() => setActionMenuId(null)}
+                    >
+                      {!readOnly && !isEditing && (
+                        <ActionMenuItem
+                          icon="edit"
+                          label={hasDesc ? '編輯說明' : '新增說明'}
+                          onClick={() => { setActionMenuId(null); startEditFromMenu(idx) }}
+                        />
                       )}
-                    </div>
+                      {!readOnly && (
+                        <ActionMenuItem
+                          icon="delete"
+                          label="刪除"
+                          danger
+                          onClick={() => { setActionMenuId(null); removeService(idx) }}
+                        />
+                      )}
+                    </ActionMenu>
                   </div>
                 )}
                 {isRemoved && <div style={{ marginLeft: 'auto' }} />}
@@ -362,7 +332,7 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                           onClick={cancelEdit}
                         >
                           取消
-                        </Button>            
+                        </Button>
                         <Button
                           variant="accent"
                           size="sm"
@@ -404,8 +374,9 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                 <div className="desc-stub" onClick={() => toggleCollapse(idx)}>
                   <span
                     className="desc-stub__text"
-                    dangerouslySetInnerHTML={{ __html:
-                      (svc.description || '').replace(/<[^>]*>/g, ' ').trim().slice(0, 80) + '…'
+                    dangerouslySetInnerHTML={{
+                      __html:
+                        (svc.description || '').replace(/<[^>]*>/g, ' ').trim().slice(0, 80) + '…'
                     }}
                   />
                 </div>
@@ -496,9 +467,9 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
 // ── DiffBadge — pill shape (唯讀標籤) ─────────────────────────────────────────
 function DiffBadge({ type }) {
   const classMap = {
-    added:    'diff-badge diff-badge--added',
+    added: 'diff-badge diff-badge--added',
     modified: 'diff-badge diff-badge--modified',
-    removed:  'diff-badge diff-badge--removed',
+    removed: 'diff-badge diff-badge--removed',
   }
   const labelMap = {
     added: '▲ 新增', modified: '✎ 更改', removed: '✕ 刪除',
@@ -508,7 +479,7 @@ function DiffBadge({ type }) {
   return <span className={cls}>{labelMap[type]}</span>
 }
 
-function ActionMenuButton({ icon, label, onClick, danger = false }) {
+function DepActionMenuButton({ icon, label, onClick, danger = false }) {
   return (
     <button
       type="button"

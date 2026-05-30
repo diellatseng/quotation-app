@@ -17,9 +17,8 @@
 }
 
 .action-menu__dropdown {
-  position: absolute;
-  top: calc(100% + 4px);
-  right: 0;
+  position: fixed;
+  z-index: 9999;
   z-index: 20;
   min-width: 140px;
   padding: var(--space-2);
