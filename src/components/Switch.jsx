@@ -19,7 +19,7 @@
  * />
  */
 
-import '../styles/Switch.css'
+import '../styles/components/Switch.css'
 
 export default function Switch({
   checked = false,

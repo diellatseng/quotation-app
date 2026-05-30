@@ -11,7 +11,9 @@ import StatusBadge from '../components/StatusBadge'
 import Switch from '../components/Switch'
 import Button from '../components/Button'
 import FilterPill from '../components/FilterPill'
+import ActionMenu, { ActionMenuItem, useActionMenuClose } from '../components/ActionMenu'
 import packageJson from '../../package.json';
+import '../styles/components/ActionMenu.css'
 
 const STATUS_FILTERS = ['全部', '草稿', '已報價', '已確認', '已結案']
 const fmt = (n) => n ? `NT$ ${Number(n).toLocaleString('zh-TW')}` : '—'
@@ -25,6 +27,8 @@ export default function DashboardPage() {
   const [showNegotiating] = useState(false)
   const [quotationId, setQuotationId] = useState(null)
   const [showExitDialog, setShowExitDialog] = useState(false)
+  const [actionMenuId, setActionMenuId] = useState(null)
+  useActionMenuClose(actionMenuId, () => setActionMenuId(null))
   const { user, signOut } = useAuth()
   const { baseFontSize, setFontSize, contrast, toggleContrast } = useTheme()
   const { success, error } = useNotification()
@@ -297,26 +301,39 @@ export default function DashboardPage() {
                           <Button
                             variant="normal"
                             size="sm"
-                            onClick={() => q.status === '草稿' ? navigate(`/quotation/new?edit=${q.id}`) : navigate(`/quotation/${q.id}`)}
+                            onClick={() => navigate(`/quotation/${q.id}`)}
                           >
-                            {q.status === '草稿' ? '編輯' : '檢視'}
+                            檢視
                           </Button>
-                          {q.status !== '已結案' && (
+                          {q.status === '草稿' && (
                             <Button
                               variant="normal"
                               size="sm"
-                              onClick={() => archive(q.id)}
+                              onClick={() => navigate(`/quotation/new?edit=${q.id}`)}
                             >
-                              結案
+                              編輯
                             </Button>
                           )}
-                          <Button
-                            variant="danger"
-                            size="sm"
-                            onClick={() => handleDelete(q.id)}
+                          <ActionMenu
+                            id={q.id}
+                            openId={actionMenuId}
+                            onOpen={setActionMenuId}
+                            onClose={() => setActionMenuId(null)}
                           >
-                            刪除
-                          </Button>
+                            {q.status !== '已結案' && (
+                              <ActionMenuItem
+                                icon="done_outline"
+                                label="結案"
+                                onClick={() => { setActionMenuId(null); archive(q.id) }}
+                              />
+                            )}
+                            <ActionMenuItem
+                              icon="delete"
+                              label="刪除"
+                              danger
+                              onClick={() => { setActionMenuId(null); handleDelete(q.id) }}
+                            />
+                          </ActionMenu>
                         </div>
                       </td>
                     </tr>
@@ -330,3 +347,4 @@ export default function DashboardPage() {
     </div>
   )
 }
+
