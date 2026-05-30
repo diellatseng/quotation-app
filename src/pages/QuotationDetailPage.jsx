@@ -237,14 +237,13 @@ export default function QuotationDetailPage() {
           <button
             className="btn btn-sm"
             onClick={() => exportPDF(activeRef, {
-              filename: `${
-                tab === 'services'  ? '服務說明' :
+              filename: `${tab === 'services' ? '服務說明' :
                 tab === 'checklist' ? '準備清單' : '報價單'
-              }-${qt?.quote_number || ''}`,
+                }-${qt?.quote_number || ''}`,
               onSuccess: async () => {
-                if (tab === 'quotation' && qt.status === '草稿') {
-                  if (window.confirm('是否將狀態更新為「已報價」？')) setStatus('已報價')
-                }
+                // if (tab === 'quotation' && qt.status === '草稿') {
+                //   if (window.confirm('是否將狀態更新為「已報價」？')) setStatus('已報價')
+                // }
               },
             })}
             disabled={exporting}
