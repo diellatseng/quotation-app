@@ -350,25 +350,6 @@
   flex: 1;
 }
 
-/* ── Appendix shared ──────────────────────────────────────────────────────── */
-.a4-appendix-header {
-  margin-top: 8px;
-}
-
-/* Right-aligned title (no company block on appendix pages) */
-.a4-appendix-title {
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: 0.15em;
-  color: #1a1916;
-}
-
-.a4-appendix-meta {
-  font-size: 12px;
-  color: #666;
-  margin-bottom: 16px;
-}
-
 /* Service group block inside an appendix */
 .a4-appendix-svc {
   margin-bottom: 20px;
@@ -400,6 +381,13 @@
   word-break: break-word;
 }
 
+
+/* ── Empty state note (no descriptions / no checklist items) ─────────────── */
+.a4-empty-note {
+  font-size: 12px;
+  color: #888;
+  padding: 12px 0;
+}
 /* ── Diff badge spacing inside service name cell ─────────────────────────── */
 /* Extends .diff-badge from globals.css — adds left margin for inline context */
 .a4-diff-badge {

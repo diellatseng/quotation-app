@@ -7,11 +7,10 @@ import { useNotification } from '../../context/NotificationContext.jsx'
 import { todayCe } from '../../lib/rocDate'
 import WizardShell from '../../components/WizardShell'
 import Dialog from '../../components/Dialog'
-import Step1Client  from './Step1Client'
+import Step1Client from './Step1Client'
 import Step2Project from './Step2Project'
 import Step3Services from './Step3Services'
 import Step4Confirm from './Step4Confirm'
-import Step5Preview from './Step5Preview'
 
 const initState = () => ({
   // Step 1
@@ -46,11 +45,11 @@ const initState = () => ({
 
 export default function WizardPage() {
   const [searchParams] = useSearchParams()
-  const editId    = searchParams.get('edit')
+  const editId = searchParams.get('edit')
   const negAmount = searchParams.get('negAmount')
-  const negNotes  = searchParams.get('negNotes') ? decodeURIComponent(searchParams.get('negNotes')) : ''
-  
-  const initStep  = parseInt(searchParams.get('step') || '1', 10)
+  const negNotes = searchParams.get('negNotes') ? decodeURIComponent(searchParams.get('negNotes')) : ''
+
+  const initStep = parseInt(searchParams.get('step') || '1', 10)
 
   const [parentServices, setParentServices] = useState([]) // v(n-1) services for diff
   const [negContext, setNegContext] = useState(           // carried from negotiation
@@ -60,16 +59,16 @@ export default function WizardPage() {
   const [loading, setLoading] = useState(false)
   const [quotationId, setQuotationId] = useState(null)
   const [showExitDialog, setShowExitDialog] = useState(false)
-  const { user }          = useAuth()
+  const { user } = useAuth()
   const { success, error, warning } = useNotification()
-  const navigate          = useNavigate()
+  const navigate = useNavigate()
 
 
 
   const update = useCallback((fields) => setData(d => ({ ...d, ...fields })), [])
 
-  const [step, setStep]   = useState(initStep)
-  const [data, setData]   = useState(initState)
+  const [step, setStep] = useState(initStep)
+  const [data, setData] = useState(initState)
 
   // Load existing quotation if editing
   useEffect(() => {
@@ -171,17 +170,17 @@ export default function WizardPage() {
       const { data: proj, error: projErr } = await supabase
         .from('projects')
         .insert([{
-          name:              data.project_name || `Project-${Date.now()}`,
-          client_id:         data.client?.id || null,
+          name: data.project_name || `Project-${Date.now()}`,
+          client_id: data.client?.id || null,
           contact_person_id: data.selectedContactId || null,
-          building_permit:   data.building_permit,
-          land_section:      data.land_section,
-          project_scale:     data.project_scale,
-          project_owner:     data.project_owner,
-          total_amount:      Number(data.fee_amount) || 0,
-          tax_included:      data.tax_included,
-          status:            '已報價',
-          created_by:        user.id,
+          building_permit: data.building_permit,
+          land_section: data.land_section,
+          project_scale: data.project_scale,
+          project_owner: data.project_owner,
+          total_amount: Number(data.fee_amount) || 0,
+          tax_included: data.tax_included,
+          status: '已報價',
+          created_by: user.id,
         }])
         .select()
         .single()
@@ -198,22 +197,22 @@ export default function WizardPage() {
       const { data: q, error: err } = await supabase
         .from('quotations')
         .insert([{
-          quote_number:         data.quote_number,
-          status:               '草稿',
-          created_by:           user.id,
-          quote_date:           data.quote_date,
-          project_id:           projectId,
-          client_id:            data.client?.id || null,
-          contact_person_id:    data.selectedContactId || null,
-          project_template_id:  data.project_template_id || null,
-          building_permit:      data.building_permit,
-          land_section:         data.land_section,
-          project_scale:        data.project_scale,
-          project_owner:        data.project_owner,
-          project_name:         data.project_name,
-          fee_amount:           Number(data.fee_amount) || 0,
-          tax_included:         data.tax_included,
-          notes:                data.notes,
+          quote_number: data.quote_number,
+          status: '草稿',
+          created_by: user.id,
+          quote_date: data.quote_date,
+          project_id: projectId,
+          client_id: data.client?.id || null,
+          contact_person_id: data.selectedContactId || null,
+          project_template_id: data.project_template_id || null,
+          building_permit: data.building_permit,
+          land_section: data.land_section,
+          project_scale: data.project_scale,
+          project_owner: data.project_owner,
+          project_name: data.project_name,
+          fee_amount: Number(data.fee_amount) || 0,
+          tax_included: data.tax_included,
+          notes: data.notes,
         }])
         .select()
         .single()
@@ -229,19 +228,19 @@ export default function WizardPage() {
     } else {
       // Update existing
       const { error: err } = await supabase.from('quotations').update({
-        quote_number:         data.quote_number,
-        quote_date:           data.quote_date,
-        client_id:            data.client?.id || null,
-        contact_person_id:    data.selectedContactId || null,
-        project_template_id:  data.project_template_id || null,
-        building_permit:      data.building_permit,
-        land_section:         data.land_section,
-        project_scale:        data.project_scale,
-        project_owner:        data.project_owner,
-        project_name:         data.project_name,
-        fee_amount:           Number(data.fee_amount) || 0,
-        tax_included:         data.tax_included,
-        notes:                data.notes,
+        quote_number: data.quote_number,
+        quote_date: data.quote_date,
+        client_id: data.client?.id || null,
+        contact_person_id: data.selectedContactId || null,
+        project_template_id: data.project_template_id || null,
+        building_permit: data.building_permit,
+        land_section: data.land_section,
+        project_scale: data.project_scale,
+        project_owner: data.project_owner,
+        project_name: data.project_name,
+        fee_amount: Number(data.fee_amount) || 0,
+        tax_included: data.tax_included,
+        notes: data.notes,
       }).eq('id', qid)
       if (!err) {
         success('草稿已儲存')
@@ -258,14 +257,14 @@ export default function WizardPage() {
       await supabase.from('quotation_services').insert(
         data.services.map((s, i) => ({
           quotation_id: qid,
-          service_id:   s.service_id || null,
+          service_id: s.service_id || null,
           service_name: s.service_name,
-          category:     s.category || null,
-          description:  s.description || null,
+          category: s.category || null,
+          description: s.description || null,
           checklist_items: s.checklist_items || [],
-          sort_order:   i,
-          is_added:     s.is_added || false,
-          diff_status:  s.diff_status || null,
+          sort_order: i,
+          is_added: s.is_added || false,
+          diff_status: s.diff_status || null,
         }))
       )
     }
@@ -288,11 +287,11 @@ export default function WizardPage() {
       await supabase.from('payment_stages').insert(
         data.payment_stages.map((st, i) => ({
           quotation_id: qid,
-          project_id:   stageProjectId,
-          stage_name:   st.stage_name,
-          percentage:   Number(st.percentage),
-          amount:       Number(st.percentage) / 100 * grand,
-          sort_order:   i,
+          project_id: stageProjectId,
+          stage_name: st.stage_name,
+          percentage: Number(st.percentage),
+          amount: Number(st.percentage) / 100 * grand,
+          sort_order: i,
         }))
       )
     }
@@ -358,22 +357,21 @@ export default function WizardPage() {
         onCancel={handleExitCancel}
       />
       <WizardShell
-      currentStep={step}
-      onNext={step === 5 ? handleFinish : handleNext}
-      onBack={handleBack}
-      onSaveDraft={step === 5 ? null : saveDraft}
-      onBackToDashboard={handleBackToDashboard}
-      onStepClick={handleStepClick}
-      saving={saving}
-      canNext={canGoNext()}
-      nextLabel={step === 5 ? '完成並儲存' : undefined}
-    >
-      {step === 1 && <Step1Client  {...stepProps} />}
-      {step === 2 && <Step2Project {...stepProps} />}
-      {step === 3 && <Step3Services {...stepProps} />}
-      {step === 4 && <Step4Confirm {...stepProps} />}
-      {step === 5 && <Step5Preview {...stepProps} onFinish={handleFinish} saving={saving} />}
-    </WizardShell>
+        currentStep={step}
+        onNext={step === 4 ? handleFinish : handleNext}
+        onBack={handleBack}
+        onSaveDraft={step === 4 ? null : saveDraft}
+        onBackToDashboard={handleBackToDashboard}
+        onStepClick={handleStepClick}
+        saving={saving}
+        canNext={canGoNext()}
+        nextLabel={step === 4 ? '完成並儲存' : undefined}
+      >
+        {step === 1 && <Step1Client  {...stepProps} />}
+        {step === 2 && <Step2Project {...stepProps} />}
+        {step === 3 && <Step3Services {...stepProps} />}
+        {step === 4 && <Step4Confirm {...stepProps} onFinish={handleFinish} saving={saving} />}
+      </WizardShell>
     </>
   )
 }

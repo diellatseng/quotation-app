@@ -6,40 +6,69 @@ const PDF_SERVER_URL = process.env.REACT_APP_PDF_SERVER_URL || 'http://localhost
  * useExportPDF — Shared PDF export logic for quotation pages
  * Sends the current preview HTML to a Puppeteer backend server,
  * which renders it in headless Chrome and returns a PDF byte stream.
- * This guarantees the exported PDF is pixel-identical to the browser preview,
- * including rich text styles, list formatting, fonts, and pagination.
  *
- * @param {Object} options
- * @param {string} options.filename  - PDF filename (without .pdf extension)
- * @param {Function} [options.onSuccess] - Optional callback after successful export
- * @returns {Object} { exporting, exportPDF }
+ * Fetches A4Preview.css at runtime from the public URL so that class-based
+ * styles are inlined into the HTML sent to Puppeteer. This is necessary
+ * because outerHTML only captures element attributes (including inline style=)
+ * but not external stylesheet rules.
  *
  * Usage:
- *   const { exporting, exportPDF } = useExportPDF({
+ *   const { exporting, exportPDF } = useExportPDF()
+ *   <button onClick={() => exportPDF(activeRef, {
  *     filename: '報價單-' + qt.quote_number,
- *     onSuccess: async () => { await setStatus('已報價') }
- *   })
- *   <button onClick={() => exportPDF(previewRef)}>Export</button>
- *
- * Environment variable required:
- *   REACT_APP_PDF_SERVER_URL=https://your-railway-app.railway.app
+ *     onSuccess: async () => { ... }
+ *   })}>匯出 PDF</button>
  */
-export function useExportPDF({ filename = '報價單', onSuccess } = {}) {
+export function useExportPDF() {
   const [exporting, setExporting] = useState(false)
 
-  const exportPDF = async (previewRef) => {
+  const exportPDF = async (previewRef, { filename = '報價單', onSuccess } = {}) => {
     setExporting(true)
     try {
-      const pageEls = previewRef.current?.querySelectorAll('[data-page]')
+      // Clone the container so we can mutate it without affecting the live DOM.
+      // Remove .a4-page-break dividers before serialising — they are preview-only
+      // and their presence causes Puppeteer to render a blank page between pages
+      // (the break-after on [data-page] fires, then Puppeteer sees more content).
+      const container = previewRef.current?.cloneNode(true)
+      if (!container) return
+      container.querySelectorAll('.a4-page-break').forEach(el => el.remove())
+
+      const pageEls = container.querySelectorAll('[data-page]')
       if (!pageEls?.length) return
 
-      // Collect the outer HTML of every A4 page rendered by A4Preview.
-      // Puppeteer will receive this as a complete, self-contained document —
-      // all styles are already inlined by React so no external CSS is needed.
-      const pagesHtml = Array.from(pageEls)
-        .map((el, idx) => idx === pageEls.length - 1 ? el.outerHTML : el.outerHTML + '<div style="page-break-after: always; break-after: page;"></div>')
-        .join('\n')
+      const pagesHtml = Array.from(pageEls).map(el => el.outerHTML).join('\n')
 
+      // ── 2. Collect ALL stylesheet rules that apply to the preview ─────────
+      // We walk every CSSStyleSheet the browser has loaded and pull out any
+      // rule that mentions an a4- class (or other classes used in A4Preview).
+      // This works regardless of whether the CSS came from a file import,
+      // a <style> tag, or any other source — no ?raw import needed.
+      let inlinedCss = ''
+      try {
+        for (const sheet of Array.from(document.styleSheets)) {
+          try {
+            const rules = Array.from(sheet.cssRules || [])
+            for (const rule of rules) {
+              const text = rule.cssText || ''
+              // Include any rule that touches A4Preview classes or generic
+              // layout primitives that the preview relies on
+              if (
+                text.includes('a4-') ||
+                text.includes('desc-block') ||
+                text.includes('diff-badge')
+              ) {
+                inlinedCss += text + '\n'
+              }
+            }
+          } catch {
+            // Cross-origin sheets (e.g. Google Fonts) throw SecurityError — skip
+          }
+        }
+      } catch (e) {
+        console.warn('[useExportPDF] Could not extract stylesheets:', e)
+      }
+
+      // ── 3. Build the self-contained HTML document for Puppeteer ──────────
       const html = `<!DOCTYPE html>
 <html>
 <head>
@@ -48,37 +77,31 @@ export function useExportPDF({ filename = '報價單', onSuccess } = {}) {
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
+    /* ── Reset ── */
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { 
-      width: 100%;
-      height: 100%;
-    }
-    body { 
-      background: white; 
-      -webkit-print-color-adjust: exact; 
+    html, body { width: 100%; height: 100%; }
+    body {
+      background: white;
+      -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
       font-family: "Noto Sans TC", "Microsoft JhengHei", "Microsoft YaHei", sans-serif;
     }
-    /* List styles to ensure proper formatting in PDF */
-    ul, ol { 
-      margin: 0.2em 0;
-      padding-left: 1.4em;
-    }
-    ul { list-style-type: disc; }
-    ol { list-style-type: decimal; }
-    ul ul { list-style-type: circle; }
-    ul ul ul { list-style-type: square; }
-    ol ol { list-style-type: lower-alpha; }
-    li { margin: 0.1em 0; }
-    
-    /* Hide the dashed page-break dividers that A4Preview renders between pages */
-    [data-page] + div { display: none; }
-    /* Force page break after each A4 page */
-    [data-page] { 
+    /* ── Extracted A4Preview styles ── */
+    ${inlinedCss}
+    /* ── PDF pagination ── */
+    /* .a4-page-break elements are removed from the DOM before serialisation,
+       so this rule is a safety net only. */
+    .a4-page-break { display: none !important; }
+    [data-page] {
       display: block;
       break-after: page;
       page-break-after: always;
       break-inside: avoid;
+    }
+    /* No trailing break after the final page */
+    [data-page]:last-of-type {
+      break-after: avoid;
+      page-break-after: avoid;
     }
   </style>
 </head>
@@ -87,6 +110,7 @@ ${pagesHtml}
 </body>
 </html>`
 
+      // ── 4. Send to Puppeteer server ───────────────────────────────────────
       const res = await fetch(`${PDF_SERVER_URL}/api/export-pdf`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

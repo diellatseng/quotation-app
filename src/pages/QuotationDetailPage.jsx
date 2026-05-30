@@ -26,7 +26,9 @@ export default function QuotationDetailPage() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const { success, error, info } = useNotification()
-  const previewRef = useRef()
+  const quotationRef = useRef()  // quotation
+  const servicesRef = useRef()  // services appendix
+  const checklistRef = useRef()  // checklist appendix
 
   const [qt, setQt] = useState(null)
   const [services, setServices] = useState([])
@@ -34,20 +36,15 @@ export default function QuotationDetailPage() {
   const [negLogs, setNegLogs] = useState([])
   const [versions, setVersions] = useState([])
   const [loading, setLoading] = useState(true)
-  const [tab, setTab] = useState('preview')  // 'preview' | 'services' | 'negotiation'
+  const [tab, setTab] = useState('quotation')  // 'quotation' | 'services' | 'checklist'
   const [negDialog, setNegDialog] = useState(null)
   const [showVersions, setShowVersions] = useState(false) // { amount, notes }
   const [emailing, setEmailing] = useState(false)
 
-  const { exporting, exportPDF } = useExportPDF({
-    filename: `報價單-${qt?.quote_number || ''}`,
-    onSuccess: async () => {
-      // Only prompt after successful export
-      if (qt.status === '草稿') {
-        if (window.confirm('是否將狀態更新為「已報價」？')) setStatus('已報價')
-      }
-    }
-  })
+  const { exporting, exportPDF } = useExportPDF()
+
+  // Pick the correct ref for the active tab
+  const activeRef = tab === 'services' ? servicesRef : tab === 'checklist' ? checklistRef : quotationRef
 
   const load = async () => {
     setLoading(true)
@@ -104,7 +101,7 @@ export default function QuotationDetailPage() {
     try {
       const { default: html2canvas } = await import('html2canvas')
       const { jsPDF } = await import('jspdf')
-      const pageEls = previewRef.current.querySelectorAll('[data-page]')
+      const pageEls = quotationRef.current.querySelectorAll('[data-page]')
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
       const pdfW = pdf.internal.pageSize.getWidth()
       const pdfH = pdf.internal.pageSize.getHeight()
@@ -237,7 +234,21 @@ export default function QuotationDetailPage() {
 
         {/* Actions */}
         <div className="detail-header__actions">
-          <button className="btn btn-sm" onClick={() => exportPDF(previewRef)} disabled={exporting}>
+          <button
+            className="btn btn-sm"
+            onClick={() => exportPDF(activeRef, {
+              filename: `${
+                tab === 'services'  ? '服務說明' :
+                tab === 'checklist' ? '準備清單' : '報價單'
+              }-${qt?.quote_number || ''}`,
+              onSuccess: async () => {
+                if (tab === 'quotation' && qt.status === '草稿') {
+                  if (window.confirm('是否將狀態更新為「已報價」？')) setStatus('已報價')
+                }
+              },
+            })}
+            disabled={exporting}
+          >
             {exporting ? '匯出中…' : '匯出 PDF'}
           </button>
           {qt.status === '草稿' && (
@@ -297,8 +308,9 @@ export default function QuotationDetailPage() {
         {/* Tab nav */}
         <div className="tab-bar detail-tabs" role="tablist">
           {[
-            { key: 'preview', label: '預覽' },
-            { key: 'services', label: '服務內容' },
+            { key: 'quotation', label: '報價單' },
+            { key: 'services', label: '服務細項說明' },
+            { key: 'checklist', label: '準備資料清單' },
             // { key: 'negotiation', label: `議價記錄（${negLogs.length}）` },
           ].map(t => (
             <button
@@ -311,12 +323,15 @@ export default function QuotationDetailPage() {
           ))}
         </div>
 
-        {/* Tab content */}
-        {tab === 'preview' && (
+        {/* Tab content — all three panels stay mounted so their refs are always
+             populated. Inactive panels are hidden with display:none so the
+             export hook can always read [data-page] elements from the active ref. */}
+        <div style={{ display: tab === 'quotation' ? '' : 'none' }}>
           <div className="detail-preview-tray">
             <div className="detail-preview-paper">
               <A4Preview
-                ref={previewRef}
+                ref={quotationRef}
+                mode="quotation"
                 quotation={qt}
                 services={services}
                 stages={stages}
@@ -327,14 +342,41 @@ export default function QuotationDetailPage() {
               />
             </div>
           </div>
-        )}
+        </div>
 
-        {tab === 'services' && (
-          <div className="card">
-            <p className="section-title">服務內容（唯讀）</p>
-            <ServiceTable services={services} onChange={() => { }} readOnly={true} />
+        <div style={{ display: tab === 'services' ? '' : 'none' }}>
+          <div className="detail-preview-tray">
+            <div className="detail-preview-paper">
+              <A4Preview
+                ref={servicesRef}
+                mode="services"
+                quotation={qt}
+                services={services}
+                stages={stages}
+                client={qt.clients}
+                contactPerson={contactPerson}
+                companyInfo={COMPANY_INFO}
+              />
+            </div>
           </div>
-        )}
+        </div>
+
+        <div style={{ display: tab === 'checklist' ? '' : 'none' }}>
+          <div className="detail-preview-tray">
+            <div className="detail-preview-paper">
+              <A4Preview
+                ref={checklistRef}
+                mode="checklist"
+                quotation={qt}
+                services={services}
+                stages={stages}
+                client={qt.clients}
+                contactPerson={contactPerson}
+                companyInfo={COMPANY_INFO}
+              />
+            </div>
+          </div>
+        </div>
 
         {/* {tab === 'negotiation' && (
           <div className="card">

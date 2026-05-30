@@ -5,8 +5,7 @@ const STEPS = [
   { num: 1, label: '客戶資料' },
   { num: 2, label: '工程資料' },
   { num: 3, label: '服務內容' },
-  { num: 4, label: '報價與付款' },
-  { num: 5, label: '預覽' },
+  { num: 4, label: '報價與付款' }
 ]
 
 export default function WizardShell({
@@ -23,7 +22,7 @@ export default function WizardShell({
   children,
 }) {
   const isFirst = currentStep === 1
-  const isLast = currentStep === 5
+  const isLast = currentStep === 4
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: 'var(--color-bg)' }}>
