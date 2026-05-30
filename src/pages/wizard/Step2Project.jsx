@@ -45,8 +45,35 @@ export default function Step2Project({ data, update }) {
       <h2 className="page-heading">步驟 2：工程資料</h2>
       <p className="page-desc">選擇工程範本後，服務內容將自動載入（可在下一步調整）。</p>
 
+      {/* Project fields */}
+      <div className="card">
+        <p className="section-title">工程基本資料</p>
+        <div className="field-grid">
+          <div>
+            <label className="field-label" htmlFor="project_owner">起造人</label>
+            <input id="project_owner" {...field('project_owner')} placeholder="某某建設股份有限公司" />
+          </div>
+          <div>
+            <label className="field-label" htmlFor="building_permit">建照號碼</label>
+            <input id="building_permit" {...field('building_permit')} placeholder="(114)高市工建築字第00123號" />
+          </div>
+          <div>
+            <label className="field-label" htmlFor="land_section">地段</label>
+            <input id="land_section" {...field('land_section')} placeholder="高雄市鹽埕區某某段123地號等6筆" required />
+          </div>
+          <div>
+            <label className="field-label" htmlFor="project_scale">工程規模</label>
+            <input id="project_scale" {...field('project_scale')} placeholder="地上23層地下5層2棟300戶" />
+          </div>
+        </div>
+        <div style={{ marginTop: 'var(--space-4)' }}>
+          <label className="field-label" htmlFor="project_name">工程名稱</label>
+          <input id="project_name" {...field('project_name')} placeholder="工程名稱" />
+        </div>
+      </div>
+
       {/* Template picker */}
-      <div className="card" style={{ marginBottom: 'var(--space-6)' }}>
+      <div className="card" style={{ marginTop: 'var(--space-6)' }}>
         <p className="section-title">選擇工程範本</p>
         {templates.length === 0 ? (
           <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>
@@ -83,33 +110,6 @@ export default function Step2Project({ data, update }) {
             ))}
           </div>
         )}
-      </div>
-
-      {/* Project fields */}
-      <div className="card">
-        <p className="section-title">工程基本資料</p>
-        <div className="field-grid">
-          <div>
-            <label className="field-label" htmlFor="project_owner">起造人</label>
-            <input id="project_owner" {...field('project_owner')} placeholder="某某建設股份有限公司" />
-          </div>
-          <div>
-            <label className="field-label" htmlFor="building_permit">建照號碼</label>
-            <input id="building_permit" {...field('building_permit')} placeholder="(114)高市工建築字第00123號" />
-          </div>
-          <div>
-            <label className="field-label" htmlFor="land_section">地段</label>
-            <input id="land_section" {...field('land_section')} placeholder="高雄市鹽埕區某某段123地號等6筆" />
-          </div>
-          <div>
-            <label className="field-label" htmlFor="project_scale">工程規模</label>
-            <input id="project_scale" {...field('project_scale')} placeholder="地上23層地下5層2棟300戶" />
-          </div>
-        </div>
-        <div style={{ marginTop: 'var(--space-4)' }}>
-          <label className="field-label" htmlFor="project_name">工程名稱</label>
-          <input id="project_name" {...field('project_name')} placeholder="工程名稱" />
-        </div>
       </div>
     </div>
   )
