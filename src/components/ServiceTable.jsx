@@ -106,8 +106,8 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
 
   // ── Empty state ───────────────────────────────────────────────────────────
   if (!services.length) return (
-    <div className="empty-state">
-      <p className="empty-state__message">尚無服務項目。請從工程範本載入或手動新增。</p>
+    <div className="text-center py-12 px-6 text-muted-foreground">
+      <p className="text-base mb-4">尚無服務項目。請從工程範本載入或手動新增。</p>
       {!readOnly && (
         <Button
           variant="accent"
@@ -123,29 +123,27 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
   return (
     <div>
       {/* ── Toolbar ─────────────────────────────────────────────────────── */}
-      <div className="toolbar">
+      <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
         {!readOnly && (
-          <span className="drag-hint">
+          <span className="flex items-center gap-1 text-xs text-muted-foreground">
             <span>⠿</span>拖曳左側可調整順序
           </span>
         )}
         {hasAnyDesc && allCollapsed && (
-          <div className="toolbar__right">
+          <div className="flex items-center gap-2 ml-auto">
             <button type="button" onClick={expandAll}
-              className="btn-xxs"
-              title="展開所有說明"
-              style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              className="inline-flex items-center gap-1 h-7 px-3 text-xs font-medium rounded-sm border border-border bg-muted text-muted-foreground hover:bg-border hover:text-foreground cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed transition-all whitespace-nowrap"
+              title="展開所有說明">
               <Icon name="keyboard_arrow_left" title="展開所有說明" /> 全部展開
             </button>
 
           </div>
         )}
         {hasAnyDesc && !allCollapsed && (
-          <div className="toolbar__right">
+          <div className="flex items-center gap-2 ml-auto">
             <button type="button" onClick={collapseAll}
-              className="btn-xxs"
-              title="折疊所有說明"
-              style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              className="inline-flex items-center gap-1 h-7 px-3 text-xs font-medium rounded-sm border border-border bg-muted text-muted-foreground hover:bg-border hover:text-foreground cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed transition-all whitespace-nowrap"
+              title="折疊所有說明">
               <Icon name="keyboard_arrow_down" title="折疊所有說明" /> 全部折疊
             </button>
           </div>
@@ -153,7 +151,7 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
       </div>
 
       {/* ── Cards ───────────────────────────────────────────────────────── */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+      <div className="flex flex-col gap-3">
         {services.map((svc, idx) => {
           const isDragging = draggingIdx === idx
           const isOver = dragOverIdxState === idx && draggingIdx !== idx
@@ -165,20 +163,29 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
           const checklistCount = (svc.checklist_items || []).filter(i => i.item_text?.trim()).length
           const checklistOpen = expandedChecklist === idx
 
-          // Dynamic border/bg depend on runtime state — kept as inline (legitimate dynamic values)
-          const cardBorder = isOver ? '2px dashed var(--color-accent)'
-            : diff === 'added' ? '1.5px solid #86efac'
-              : diff === 'modified' ? '1.5px solid #fde047'
-                : diff === 'removed' ? '1.5px solid #fca5a5'
-                  : svc.is_added ? '1.5px solid var(--color-accent)'
-                    : '1px solid var(--color-border)'
+          // Dynamic border/bg depend on runtime state
+          const cardClasses = `
+            ${isOver ? 'border-2 border-dashed border-accent' : ''}
+            ${diff === 'added' ? 'border-2 border-green-500' : ''}
+            ${diff === 'modified' ? 'border-2 border-yellow-400' : ''}
+            ${diff === 'removed' ? 'border-2 border-red-400' : ''}
+            ${!isOver && !diff && svc.is_added ? 'border-2 border-accent' : ''}
+            ${!isOver && !diff && !svc.is_added ? 'border border-border' : ''}
+            rounded-md
+            overflow-hidden
+            ${isDragging ? 'opacity-40' : isRemoved ? 'opacity-70' : 'opacity-100'}
+            transition-opacity
+            ${isDragging ? 'cursor-grabbing' : 'cursor-default'}
+          `
 
-          const cardBg = isDragging ? 'var(--color-bg-subtle)'
-            : diff === 'added' ? '#f0fdf4'
-              : diff === 'modified' ? '#fefce8'
-                : diff === 'removed' ? '#fef2f2'
-                  : svc.is_added ? 'var(--color-accent-subtle)'
-                    : 'var(--color-bg-surface)'
+          const cardBgClasses = `
+            ${isDragging ? 'bg-muted' : ''}
+            ${diff === 'added' ? 'bg-green-50' : ''}
+            ${diff === 'modified' ? 'bg-yellow-50' : ''}
+            ${diff === 'removed' ? 'bg-red-50' : ''}
+            ${svc.is_added && !diff ? 'bg-accent-subtle' : ''}
+            ${!isDragging && !diff && !svc.is_added ? 'bg-card' : ''}
+          `
 
           return (
             <div
@@ -188,43 +195,25 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
               onDragEnter={() => handleDragEnter(idx)}
               onDragOver={e => e.preventDefault()}
               onDragEnd={handleDragEnd}
-              style={{
-                border: cardBorder,
-                borderRadius: 'var(--radius-md)',
-                background: cardBg,
-                overflow: actionMenuId === svc.service_id ? 'visible' : 'hidden',
-                opacity: isDragging ? 0.4 : isRemoved ? 0.7 : 1,
-                transition: 'opacity 0.15s, border-color 0.15s',
-                cursor: isDragging ? 'grabbing' : 'default',
-              }}
+              className={cardClasses + ' ' + cardBgClasses}
             >
               {/* ── Header row ─────────────────────────────────────────── */}
-              <div style={{
-                display: 'flex', alignItems: 'center',
-                gap: 'var(--space-2)', padding: 'var(--space-2) var(--space-3)',
-                minHeight: 52,
-              }}>
+              <div className="flex items-center gap-2 px-3 py-2 min-h-[52px]">
 
                 {/* Drag handle */}
                 {!readOnly && (
-                  <div title="拖曳調整順序" style={{
-                    cursor: 'grab', flexShrink: 0, userSelect: 'none',
-                    display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 3, padding: '4px 3px',
-                  }}>
+                  <div title="拖曳調整順序" className="cursor-grab flex-shrink-0 user-select-none grid grid-cols-2 gap-1">
                     {[0, 1, 2, 3, 4, 5].map(i => (
-                      <span key={i} style={{ display: 'block', width: 3, height: 3, borderRadius: '50%', background: 'var(--color-text-muted)' }} />
+                      <span key={i} className="w-1 h-1 rounded-full bg-muted-foreground" />
                     ))}
                   </div>
                 )}
 
-                {/* Number badge — dynamic colours are legitimate inline */}
-                <div style={{
-                  width: 28, height: 28, borderRadius: 'var(--radius-full)',
-                  background: isRemoved ? '#fca5a5' : svc.is_added ? 'var(--color-accent)' : 'var(--color-bg-subtle)',
-                  color: isRemoved ? '#991b1b' : svc.is_added ? '#fff' : 'var(--color-text-muted)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 'var(--text-xs)', fontWeight: 700, flexShrink: 0,
-                }}>
+                {/* Number badge — dynamic colours */}
+                <div className={`
+                  w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0
+                  ${isRemoved ? 'bg-red-400 text-red-900' : svc.is_added ? 'bg-accent text-white' : 'bg-muted text-muted-foreground'}
+                `}>
                   {isRemoved ? '✕' : idx + 1}
                 </div>
 
@@ -232,17 +221,12 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
 
                 {/* Service name */}
                 {readOnly || isRemoved ? (
-                  <span style={{
-                    flex: 2, fontWeight: 600, fontSize: 'var(--text-base)',
-                    textDecoration: isRemoved ? 'line-through' : 'none',
-                    color: isRemoved ? 'var(--color-text-muted)' : 'var(--color-text)',
-                  }}>
+                  <span className={`flex-grow-[2] font-semibold text-base min-w-0 ${isRemoved ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
                     {svc.service_name}
                   </span>
                 ) : (
                   <input
-                    className="field-input field-input--sm"
-                    style={{ flex: 2, minWidth: 0, fontWeight: 600 }}
+                    className="flex-grow-[2] min-w-0 px-3 py-1.5 border border-border rounded-md bg-background text-foreground text-sm font-semibold focus:outline-none focus:border-primary"
                     value={svc.service_name}
                     onChange={e => updateService(idx, 'service_name', e.target.value)}
                     placeholder="服務項目名稱"
@@ -253,12 +237,11 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                 {/* Category */}
                 {readOnly ? (
                   svc.category && (
-                    <span className="category-pill">{svc.category}</span>
+                    <span className="inline-flex items-center flex-shrink-0 px-3 py-0.5 rounded-full text-xs bg-muted text-muted-foreground border border-border whitespace-nowrap">{svc.category}</span>
                   )
                 ) : (
                   <input
-                    className="field-input field-input--sm"
-                    style={{ width: 110, minWidth: 0 }}
+                    className="w-28 px-3 py-1.5 border border-border rounded-md bg-background text-foreground text-sm focus:outline-none focus:border-primary min-w-0"
                     value={svc.category || ''}
                     onChange={e => updateService(idx, 'category', e.target.value)}
                     placeholder="類別"
@@ -267,12 +250,12 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                 )}
 
                 {svc.is_added && !diff && (
-                  <span className="new-badge">新增</span>
+                  <span className="inline-flex items-center flex-shrink-0 px-2 py-0.5 rounded-full text-xs font-bold bg-accent-subtle text-accent border border-accent whitespace-nowrap">新增</span>
                 )}
 
                 {/* Right action cluster */}
                 {!isRemoved && (
-                  <div style={{ display: 'flex', gap: 5, marginLeft: 'auto', flexShrink: 0, alignItems: 'center' }}>
+                  <div className="flex gap-1 ml-auto flex-shrink-0 items-center">
 
                     {/* Collapse/expand chevron */}
                     <IconButton
@@ -311,24 +294,22 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                     </ActionMenu>
                   </div>
                 )}
-                {isRemoved && <div style={{ marginLeft: 'auto' }} />}
+                {isRemoved && <div className="ml-auto" />}
               </div>
 
               {/* ── Description section (expanded) ───────────────────────── */}
               {!isRemoved && !collapsed && (
-                <div style={{ borderTop: '1px solid var(--color-border)', padding: 'var(--space-3)' }}>
-                  <div style={{
-                    display: 'flex', justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: (isEditing || hasDesc) ? 'var(--space-2)' : 0,
-                  }}>
-                    <span className="subsection-label">說明</span>
+                <div className="border-t border-border px-3 py-3">
+                  <div className={`
+                    flex justify-between items-center
+                    ${(isEditing || hasDesc) ? 'mb-2' : ''}
+                  `}>
+                    <span className="text-xs font-bold tracking-widest uppercase text-muted-foreground">說明</span>
 
                     {!readOnly && isEditing && (
-                      <div style={{ display: 'flex', gap: 6 }}>
+                      <div className="flex gap-1.5">
                         <Button
                           size="sm"
-                          style={{ display: 'flex', gap: 6 }}
                           onClick={cancelEdit}
                         >
                           取消
@@ -387,35 +368,29 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                 <div
                   id="ExpandedChecklist"
                   tabIndex={-1}
-                  style={{
-                    borderTop: '1px solid var(--color-border)',
-                    padding: 'var(--space-4)', background: 'var(--color-bg-subtle)',
-                    scrollMarginTop: 'var(--space-6)',
-                    outline: 'none',
-                  }}
+                  className="border-t border-border px-4 py-4 bg-muted focus:outline-none scroll-mt-6"
                 >
-                  <p className="subsection-label" style={{ marginBottom: 'var(--space-3)' }}>
+                  <p className="text-xs font-bold tracking-widest uppercase text-muted-foreground mb-3">
                     客戶準備清單
                   </p>
 
                   {(svc.checklist_items || []).length === 0 && (
-                    <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-3)' }}>
+                    <p className="text-sm text-muted-foreground mb-3">
                       尚無清單項目
                     </p>
                   )}
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+                  <div className="flex flex-col gap-2">
                     {(svc.checklist_items || []).map((item, iIdx) => (
-                      <div key={item.id || iIdx} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-                        <span style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)', width: 24, textAlign: 'right', flexShrink: 0 }}>
+                      <div key={item.id || iIdx} className="flex items-center gap-2">
+                        <span className="text-muted-foreground text-sm w-6 text-right flex-shrink-0">
                           {iIdx + 1}.
                         </span>
                         {readOnly ? (
-                          <span style={{ flex: 1, fontSize: 'var(--text-sm)' }}>{item.item_text}</span>
+                          <span className="flex-1 text-sm">{item.item_text}</span>
                         ) : (
                           <input
-                            className="field-input field-input--sm"
-                            style={{ flex: 1 }}
+                            className="flex-1 px-3 py-1.5 border border-border rounded-md bg-background text-foreground text-sm focus:outline-none focus:border-primary"
                             value={item.item_text}
                             onChange={e => updateChecklistItem(idx, iIdx, e.target.value)}
                             placeholder="準備項目說明"
@@ -425,8 +400,7 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                         {!readOnly && (
                           <button type="button" onClick={() => removeChecklistItem(idx, iIdx)}
                             aria-label="刪除此清單項目"
-                            className="btn-xxs btn-xxs--danger"
-                            style={{ padding: '0 var(--space-2)', flexShrink: 0 }}>
+                            className="inline-flex items-center gap-1 h-7 px-2 text-xs font-medium rounded-sm border border-red-300 bg-red-50 text-red-600 hover:bg-red-100 hover:border-red-400 cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed transition-all flex-shrink-0 whitespace-nowrap">
                             ✕
                           </button>
                         )}
@@ -438,7 +412,7 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                     <Button
                       variant="ghost"
                       size="sm"
-                      style={{ marginTop: 'var(--space-3)' }}
+                      className="mt-3"
                       onClick={() => addChecklistItem(idx)}
                     >
                       + 新增清單項目
@@ -454,7 +428,7 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
       {!readOnly && (
         <Button
           variant="normal"
-          style={{ marginTop: 'var(--space-4)', width: '100%' }}
+          className="mt-4 w-full"
           onClick={addService}
         >
           + 新增服務項目
@@ -464,7 +438,6 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
   )
 }
 
-// ── DiffBadge — pill shape (唯讀標籤) ─────────────────────────────────────────
 function DiffBadge({ type }) {
   const classMap = {
     added: 'diff-badge diff-badge--added',
@@ -477,32 +450,4 @@ function DiffBadge({ type }) {
   const cls = classMap[type]
   if (!cls) return null
   return <span className={cls}>{labelMap[type]}</span>
-}
-
-function DepActionMenuButton({ icon, label, onClick, danger = false }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 'var(--space-2)',
-        width: '100%',
-        padding: 'var(--space-2) var(--space-3)',
-        border: 'none',
-        borderRadius: 'var(--radius-sm)',
-        background: 'transparent',
-        color: danger ? 'var(--color-danger)' : 'var(--color-text)',
-        cursor: 'pointer',
-        fontSize: 'var(--text-sm)',
-        fontWeight: 600,
-        textAlign: 'left',
-        whiteSpace: 'nowrap',
-      }}
-    >
-      <Icon name={icon} title={label} />
-      {label}
-    </button>
-  )
 }

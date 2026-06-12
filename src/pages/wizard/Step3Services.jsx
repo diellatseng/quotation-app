@@ -2,7 +2,6 @@
 import { useEffect } from 'react'
 import ServiceTable from '../../components/ServiceTable'
 
-// Compute diff_status for each service in `current` vs `parent`
 function computeDiff(current, parent) {
   if (!parent || parent.length === 0) return current
 
@@ -12,12 +11,11 @@ function computeDiff(current, parent) {
     const p = parentMap.get(svc.service_name)
     if (!p) return { ...svc, diff_status: 'added' }
     const changed =
-      (svc.category    || '') !== (p.category    || '') ||
+      (svc.category || '') !== (p.category || '') ||
       (svc.description || '') !== (p.description || '')
     return { ...svc, diff_status: changed ? 'modified' : null }
   })
 
-  // Append removed services (in parent but not in current)
   const currentNames = new Set(current.map(s => s.service_name))
   parent.forEach(p => {
     if (!currentNames.has(p.service_name)) {
@@ -37,78 +35,83 @@ function computeDiff(current, parent) {
   return result
 }
 
-export default function Step3Services({ data, update, parentServices, negContext }) {
-  const isVersionEdit = parentServices && parentServices.length > 0
+export default function Step3Services({ data, update, parentServices = null, negContext = null }) {
+  const isVersionEdit = parentServices !== null
 
   useEffect(() => {
-    if (!isVersionEdit) return
-    const withDiff = computeDiff(
-      data.services.filter(s => !s._removed),
-      parentServices
-    )
-    const same = withDiff.length === data.services.length &&
-      withDiff.every((s, i) => s.diff_status === data.services[i]?.diff_status)
-    if (!same) update({ services: withDiff })
-  }, [parentServices]) // eslint-disable-line
+    if (isVersionEdit) {
+      const merged = computeDiff(data.services, parentServices)
+      const hasDiff = merged.some(s => s.diff_status !== null)
+      if (hasDiff || merged.length !== data.services.length) {
+        update({ services: merged })
+      }
+    }
+  }, [isVersionEdit, parentServices])
 
-  const handleChange = (services) => {
-    if (!isVersionEdit) { update({ services }); return }
-    update({ services: computeDiff(services.filter(s => !s._removed), parentServices) })
+  const handleChange = (newServices) => {
+    if (isVersionEdit) {
+      const merged = computeDiff(newServices, parentServices)
+      update({ services: merged })
+    } else {
+      update({ services: newServices })
+    }
   }
 
-  const addedCount    = data.services.filter(s => s.diff_status === 'added').length
+  const addedCount = data.services.filter(s => s.diff_status === 'added').length
   const modifiedCount = data.services.filter(s => s.diff_status === 'modified').length
-  const removedCount  = data.services.filter(s => s.diff_status === 'removed').length
+  const removedCount = data.services.filter(s => s.diff_status === 'removed').length
+  const showDiffBanner = isVersionEdit && (addedCount > 0 || modifiedCount > 0 || removedCount > 0)
 
   return (
-    <div>
-      <h2 className="page-heading">步驟 3：服務內容</h2>
-      <p className="page-desc">
-        {isVersionEdit
-          ? '這是議價版本的服務內容。系統已自動標示與上一版的差異，您可以自由新增、修改或刪除項目。'
-          : data.project_template_id
-            ? '已從工程範本載入服務內容，您可以自由新增、刪除或調整順序。'
-            : '請手動新增服務項目。每項服務可設定客戶準備清單。'}
-      </p>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-xl font-bold text-foreground tracking-tight mb-1">步驟 3：服務內容</h2>
+        <p className="text-sm text-muted-foreground">配置、調整各項服務及查核清單細節項目。</p>
+      </div>
 
-      {/* Version diff summary banner */}
-      {isVersionEdit && (addedCount + modifiedCount + removedCount > 0) && (
-        <div className="info-banner info-banner--diff">
-          <span className="info-banner__label">版本差異：</span>
-          {addedCount    > 0 && <span className="diff-badge diff-badge--added">▲ 新增 {addedCount}</span>}
-          {modifiedCount > 0 && <span className="diff-badge diff-badge--modified">✎ 更改 {modifiedCount}</span>}
-          {removedCount  > 0 && <span className="diff-badge diff-badge--removed">✕ 刪除 {removedCount}</span>}
+      {showDiffBanner && (
+        <div className="p-4 rounded-xl text-sm border bg-muted/40 border-border flex flex-wrap items-center gap-2">
+          <span className="font-medium text-foreground">版本差異比較：</span>
+          {addedCount > 0 && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+              ▲ 新增 {addedCount}
+            </span>
+          )}
+          {modifiedCount > 0 && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-600 border border-amber-500/20">
+              ✎ 更改 {modifiedCount}
+            </span>
+          )}
+          {removedCount > 0 && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-600 border border-rose-500/20">
+              ✕ 刪除 {removedCount}
+            </span>
+          )}
         </div>
       )}
 
-      {/* Negotiation context banner */}
       {negContext && (
-        <div className="info-banner info-banner--accent">
-          <span className="info-banner__label">💬 議價</span>
-          <span className="info-banner__body">
-            議價金額：<strong>NT$ {Number(negContext.amount).toLocaleString('zh-TW')}</strong>
-            {negContext.notes && <> ／ {negContext.notes}</>}
+        <div className="p-4 rounded-xl text-sm border bg-primary/[0.02] border-primary/20 flex items-center gap-2">
+          <span className="text-base">💬</span>
+          <span className="text-foreground">
+            議價歷史記錄金額：<strong className="font-bold text-primary">NT$ {Number(negContext.amount).toLocaleString('zh-TW')}</strong>
+            {negContext.notes && <span className="text-muted-foreground"> ／ {negContext.notes}</span>}
           </span>
         </div>
       )}
 
-      <div className="card">
-        <p className="section-title">
-          服務項目
-          <span className="section-title__count">
-            {data.services.filter(s => !s._removed).length} 項
+      <div className="bg-card text-card-foreground border border-border rounded-xl p-6 shadow-sm">
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-base font-semibold text-foreground">服務項目列表</p>
+          <span className="text-xs font-medium bg-muted text-muted-foreground px-2.5 py-0.5 rounded-full border border-border">
+            已加入 {data.services.filter(s => !s._removed).length} 項
           </span>
-        </p>
+        </div>
         <ServiceTable
           services={data.services}
           onChange={handleChange}
           isVersionEdit={isVersionEdit}
         />
-      </div>
-
-      <div className="info-banner info-banner--subtle" style={{ marginTop: 'var(--space-4)' }}>
-        <strong>提示：</strong>點擊每列右側的 ☑ 按鈕可展開並編輯該服務的「客戶準備清單」。
-        清單內容將列於報價單附件頁。
       </div>
     </div>
   )

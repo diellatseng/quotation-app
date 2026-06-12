@@ -22,11 +22,11 @@ const PRESETS = [
     ],
   },
   {
-    label: '四階段',
+    label: '四階段分配',
     stages: [
       { stage_name: '開工完成', percentage: 20 },
-      { stage_name: '結構體X樓完成', percentage: 20 },
-      { stage_name: '結構體頂樓完成', percentage: 20 },
+      { stage_name: '結構體完成', percentage: 20 },
+      { stage_name: '裝修完成', percentage: 20 },
       { stage_name: '取得使用執照', percentage: 40 },
     ],
   },
@@ -34,271 +34,176 @@ const PRESETS = [
 
 export default function Step4Confirm({ data, update, negContext }) {
   const [useRoc, setUseRoc] = useState(true)
-  const fee = Number(data.fee_amount) || 0
-  const tax = data.tax_included ? fee * 0.05 : 0
-  const grand = fee + tax
 
-  const stages = data.payment_stages || []
-  const totalPct = stages.reduce((s, st) => s + Number(st.percentage || 0), 0)
-  const isValid = Math.abs(totalPct - 100) < 0.01
+  const handleApplyPreset = (preset) => {
+    const updated = preset.stages.map(s => ({
+      id: crypto.randomUUID(),
+      stage_name: s.stage_name,
+      percentage: s.percentage,
+    }))
+    update({ payment_stages: updated })
+  }
 
-  const updateStage = (idx, field, val) => {
-    const next = [...stages]
-    next[idx] = { ...next[idx], [field]: val }
+  const handleStageChange = (id, fields) => {
+    const next = data.payment_stages.map(s => (s.id === id ? { ...s, ...fields } : s))
     update({ payment_stages: next })
   }
 
-  const addStage = () => update({
-    payment_stages: [...stages, { id: crypto.randomUUID(), stage_name: '', percentage: 0 }]
-  })
+  const handleAddStage = () => {
+    update({
+      payment_stages: [
+        ...data.payment_stages,
+        { id: crypto.randomUUID(), stage_name: '', percentage: 0 },
+      ],
+    })
+  }
 
-  const removeStage = (idx) => update({
-    payment_stages: stages.filter((_, i) => i !== idx)
-  })
+  const handleRemoveStage = (id) => {
+    update({ payment_stages: data.payment_stages.filter(s => s.id !== id) })
+  }
+
+  const totalPercentage = data.payment_stages.reduce((sum, s) => sum + Number(s.percentage || 0), 0)
+  const isBalanced = totalPercentage === 100
+
+  const totalAmount = Number(data.fee_amount || 0)
+  const taxAmount = data.tax_included ? Math.round(totalAmount * 0.05) : 0
+  const grandTotal = totalAmount + taxAmount
 
   return (
-    <div>
-      <h2 style={s.heading}>步驟 4：報價確認與付款</h2>
-      <p style={s.desc}>設定付款方式、填寫報價資訊與金額。</p>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-xl font-bold text-foreground tracking-tight mb-1">步驟 4：報價與付款</h2>
+        <p className="text-sm text-muted-foreground">填寫報價費用總額，並設定各階段付款收款條件比率。</p>
+      </div>
 
-      {/* Service fee */}
-      <div className="card" style={{ marginBottom: 'var(--space-5)' }}>
-        <p className="section-title">服務費用</p>
-
-        <div style={{ marginBottom: 'var(--space-4)' }}>
-          <label htmlFor="fee_amount" className="field-label">報價金額（未稅）*</label>
-          {negContext && (
-            <div style={{
-              fontSize: 'var(--text-xs)', color: 'var(--color-accent)',
-              marginBottom: 'var(--space-2)',
-              padding: '4px 10px',
-              background: 'var(--color-accent-subtle)',
-              border: '1px solid var(--color-accent)',
-              borderRadius: 'var(--radius-sm)',
-              display: 'inline-flex', gap: 6, alignItems: 'center',
-            }}>
-              <span>💬</span>
-              <span>議價金額已帶入（NT$ {Number(negContext.amount).toLocaleString('zh-TW')}）{negContext.notes ? `— ${negContext.notes}` : ''}</span>
+      <div className="bg-card text-card-foreground border border-border rounded-xl p-6 shadow-sm">
+        <p className="text-base font-semibold text-foreground mb-4">報價費用設定</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-foreground">服務費用總額 (未稅) *</label>
+            <div className="relative">
+              <span className="absolute left-3 top-2.5 text-sm text-muted-foreground font-medium">NT$</span>
+              <input
+                type="number"
+                className="w-full h-10 pl-11 pr-3 text-sm bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
+                value={data.fee_amount || ''}
+                onChange={e => update({ fee_amount: e.target.value })}
+                placeholder="0"
+                required
+              />
             </div>
-          )}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-            <span style={{ fontSize: 'var(--text-md)', fontWeight: 600, color: 'var(--color-text-muted)', flexShrink: 0 }}>NT$</span>
-            <input
-              id="fee_amount"
-              type="number"
-              inputMode="decimal"
-              min="0"
-              className="field-input"
-              value={data.fee_amount}
-              onChange={e => {
-                const value = e.target.value.replace(/[^\d.]/g, '');
-                update({ fee_amount: value });
-              }}
-              onPaste={e => {
-                e.preventDefault();
-                const pastedText = e.clipboardData.getData('text');
-                const cleanedValue = pastedText.replace(/[^\d.]/g, '');
-                update({ fee_amount: cleanedValue });
-              }}
-              placeholder="1,570,000"
-              required
-              aria-required="true"
+          </div>
+
+          <div className="flex items-center justify-between h-10 px-4 bg-muted/40 border border-border rounded-lg">
+            <span className="text-sm font-medium text-foreground">外加 5% 營業稅金</span>
+            <Switch
+              id="tax_included"
+              checked={data.tax_included}
+              onChange={val => update({ tax_included: val })}
+              size="sm"
             />
           </div>
         </div>
 
-        <label style={{
-          display: 'flex', alignItems: 'center', gap: 'var(--space-3)',
-          cursor: 'pointer', minHeight: 'var(--tap-min)',
-          padding: 'var(--space-3) var(--space-4)',
-          border: `1.5px solid ${data.tax_included ? 'var(--color-accent)' : 'var(--color-border)'}`,
-          borderRadius: 'var(--radius-md)',
-          background: data.tax_included ? 'var(--color-accent-subtle)' : 'var(--color-bg-input)',
-        }}>
-          <input
-            type="checkbox"
-            checked={data.tax_included}
-            onChange={e => update({ tax_included: e.target.checked })}
-            style={{ width: 22, height: 22 }}
-            aria-label="含稅（加計5%營業稅）"
-          />
-          <div>
-            <div style={{ fontWeight: 600 }}>含稅（加計 5% 營業稅）</div>
-            {data.tax_included && fee > 0 && (
-              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
-                稅額：{fmt(tax)}
-              </div>
-            )}
-          </div>
-        </label>
-
-        {/* Amount summary */}
-        {fee > 0 && (
-          <div style={{
-            marginTop: 'var(--space-4)',
-            padding: 'var(--space-4)',
-            background: 'var(--color-bg-subtle)',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--color-border)',
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-2)' }}>
-              <span style={{ color: 'var(--color-text-secondary)' }}>服務費用（未稅）</span>
-              <span style={{ fontWeight: 600 }}>{fmt(fee)}</span>
-            </div>
-            {data.tax_included && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-2)' }}>
-                <span style={{ color: 'var(--color-text-secondary)' }}>營業稅（5%）</span>
-                <span>{fmt(tax)}</span>
-              </div>
-            )}
-            <div style={{
-              display: 'flex', justifyContent: 'space-between',
-              paddingTop: 'var(--space-2)', borderTop: '1px solid var(--color-border)',
-              fontSize: 'var(--text-md)', fontWeight: 700,
-            }}>
-              <span>合計</span>
-              <span style={{ color: 'var(--color-accent)' }}>{fmt(grand)}</span>
-            </div>
-          </div>
-        )}
+        <div className="mt-5 pt-4 border-t border-border flex justify-between items-center text-sm font-semibold text-foreground">
+          <span className="text-muted-foreground">總計應收金額 ({data.tax_included ? '含稅' : '未稅'})</span>
+          <span className="text-lg font-bold text-primary">{fmt(grandTotal)}</span>
+        </div>
       </div>
 
-      {/* Payment stages */}
-      <div className="card" style={{ marginBottom: 'var(--space-5)' }}>
-        <p className="section-title">付款階段</p>
-        <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-4)' }}>
-          設定付款里程碑。各階段百分比合計需等於 100%。
-        </p>
-
-        {/* Total indicator */}
-        <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: 'var(--space-3) var(--space-4)',
-          background: isValid ? 'var(--color-success-bg)' : totalPct > 0 ? 'var(--color-warning-bg)' : 'var(--color-bg-subtle)',
-          borderRadius: 'var(--radius-md)',
-          border: `1px solid ${isValid ? 'var(--color-success)' : totalPct > 0 ? 'var(--color-warning)' : 'var(--color-border)'}`,
-          marginBottom: 'var(--space-5)',
-        }}>
-          <span style={{
-            fontSize: 'var(--text-sm)', fontWeight: 600,
-            color: isValid ? 'var(--color-success)' : 'var(--color-warning)'
-          }}>
-            {isValid ? '✓ 百分比合計 = 100%' : `百分比合計：${totalPct}%（需達 100%）`}
-          </span>
-          <span style={{
-            fontSize: 'var(--text-lg)', fontWeight: 700,
-            color: isValid ? 'var(--color-success)' : 'var(--color-warning)'
-          }}>
-            {totalPct}%
-          </span>
+      <div className="bg-card text-card-foreground border border-border rounded-xl p-6 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+          <div>
+            <p className="text-base font-semibold text-foreground">付款階段條件</p>
+            <p className="text-xs text-muted-foreground mt-0.5">付款階段百分比總和必須等於 100%</p>
+          </div>
+          <button
+            type="button"
+            onClick={handleAddStage}
+            className="self-start px-3 py-1.5 text-xs font-semibold bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors shadow-sm"
+          >
+            ＋ 新增階段
+          </button>
         </div>
 
-        {/* Stages */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-          {stages.map((st, idx) => (
-            <div key={st.id || idx} style={{
-              display: 'flex', alignItems: 'center', gap: 'var(--space-3)',
-              padding: 'var(--space-3) var(--space-4)',
-              background: 'var(--color-bg-subtle)',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--color-border)',
-              flexWrap: 'wrap',
-            }}>
-              <div style={{
-                width: 28, height: 28, borderRadius: 'var(--radius-full)',
-                background: 'var(--color-text)', color: 'var(--color-text-inverse)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 'var(--text-xs)', fontWeight: 700, flexShrink: 0,
-              }}>{idx + 1}</div>
-
-              <input
-                className="field-input"
-                style={{ flex: 2, minWidth: 160 }}
-                value={st.stage_name}
-                onChange={e => updateStage(idx, 'stage_name', e.target.value)}
-                placeholder="付款階段名稱（例：開工完成）"
-                aria-label={`第${idx + 1}階段名稱`}
-              />
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexShrink: 0 }}>
-                <input
-                  type="number"
-                  className="field-input"
-                  style={{ width: 90, textAlign: 'right' }}
-                  min="0" max="100" step="0.1"
-                  value={st.percentage}
-                  onChange={e => updateStage(idx, 'percentage', e.target.value)}
-                  aria-label={`第${idx + 1}階段百分比`}
-                />
-                <span style={{ fontSize: 'var(--text-base)', fontWeight: 700, color: 'var(--color-text-secondary)' }}>%</span>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => removeStage(idx)}
-                aria-label={`刪除第${idx + 1}付款階段`}
-                style={{
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  color: 'var(--color-danger)', fontSize: 'var(--text-md)', padding: 'var(--space-2)',
-                  minHeight: 'var(--tap-min)', minWidth: 'var(--tap-min)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}
-              >✕</button>
-            </div>
+        <div className="flex flex-wrap gap-1.5 mb-4">
+          {PRESETS.map((p, idx) => (
+            <button
+              key={idx}
+              type="button"
+              onClick={() => handleApplyPreset(p)}
+              className="px-3 py-1.5 text-xs font-medium border border-border bg-background text-foreground rounded-full hover:bg-muted transition-colors"
+            >
+              {p.label}
+            </button>
           ))}
         </div>
 
-        <button type="button" className="btn btn-secondary"
-          style={{ marginTop: 'var(--space-4)', width: '100%' }}
-          onClick={addStage}>
-          + 新增付款階段
-        </button>
+        <div className="space-y-2 max-w-2xl">
+          {data.payment_stages.map((stage, sIdx) => {
+            const stageShare = Math.round(grandTotal * (Number(stage.percentage || 0) / 100))
+            return (
+              <div key={stage.id} className="flex flex-wrap items-center gap-3 p-3 bg-muted/20 border border-border rounded-xl">
+                <span className="text-xs font-bold text-muted-foreground w-5 text-center">{sIdx + 1}</span>
+                <input
+                  type="text"
+                  placeholder="請輸入階段名稱（例：開工前）"
+                  className="flex-1 min-w-[160px] h-9 px-3 text-sm bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+                  value={stage.stage_name}
+                  onChange={e => handleStageChange(stage.id, { stage_name: e.target.value })}
+                  required
+                />
+                <div className="flex items-center gap-2 w-28 shrink-0">
+                  <input
+                    type="number"
+                    placeholder="0"
+                    className="w-full h-9 px-2 text-right text-sm bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary font-medium"
+                    value={stage.percentage || ''}
+                    onChange={e => handleStageChange(stage.id, { percentage: e.target.value })}
+                    max="100"
+                    required
+                  />
+                  <span className="text-sm text-muted-foreground font-medium">%</span>
+                </div>
+                <div className="text-xs font-semibold text-muted-foreground w-28 text-right shrink-0">
+                  {fmt(stageShare)}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleRemoveStage(stage.id)}
+                  disabled={data.payment_stages.length <= 1}
+                  className="text-muted-foreground hover:text-rose-600 disabled:opacity-30 disabled:hover:text-muted-foreground p-1 transition-colors ml-auto sm:ml-0"
+                  title="刪除此階段"
+                >
+                  ✕
+                </button>
+              </div>
+            )
+          })}
+        </div>
 
-        {/* Quick presets */}
-        <div style={{ marginTop: 'var(--space-6)' }}>
-          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-3)' }}>
-            快速套用常見付款方式：
-          </p>
-          <div style={{ display: 'flex', gap: 'var(--space-3)', flexWrap: 'wrap' }}>
-            {PRESETS.map(p => (
-              <button
-                key={p.label}
-                type="button"
-                className="btn btn-ghost btn-sm"
-                onClick={() => update({ payment_stages: p.stages.map(st => ({ ...st, id: crypto.randomUUID() })) })}
-              >
-                {p.label}
-              </button>
-            ))}
-          </div>
+        <div className={`mt-4 p-3 rounded-lg text-xs font-medium flex items-center justify-between border max-w-2xl ${isBalanced
+            ? 'bg-emerald-500/5 text-emerald-600 border-emerald-500/10'
+            : 'bg-amber-500/5 text-amber-600 border-amber-500/10'
+          }`}>
+          <span>目前設定百分比總和：</span>
+          <span className="text-sm font-bold">{totalPercentage} % / 100 %</span>
         </div>
       </div>
 
-      {/* Quotation info */}
-      <div className="card" style={{ marginBottom: 'var(--space-5)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-5)' }}>
-          <p className="section-title">報價資訊</p>
-          <Switch
-            checked={!useRoc}
-            onChange={(isCE) => setUseRoc(!isCE)}
-            labelOff="民國"
-            labelOn="西元"
-            id="dateFormatSwitch"
-            ariaLabel="切換日期格式"
-            size="sm"
-          />
-        </div>
-        <div style={s.grid}>
-          <div>
-            <label htmlFor="quote_number" className="field-label">報價編號 *</label>
+      <div className="bg-card text-card-foreground border border-border rounded-xl p-6 shadow-sm">
+        <p className="text-base font-semibold text-foreground mb-4">單據基礎參數資訊</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+          <div className="space-y-1.5">
+            <label htmlFor="quote_number" className="text-xs font-semibold text-foreground">報價編號 *</label>
             <input
               id="quote_number"
-              className="field-input"
+              type="text"
+              className="w-full h-10 px-3 text-sm bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
               value={data.quote_number}
               onChange={e => update({ quote_number: e.target.value })}
               placeholder="QT-2025-00001"
               required
-              aria-required="true"
             />
           </div>
           <div>
@@ -311,29 +216,28 @@ export default function Step4Confirm({ data, update, negContext }) {
               required
             />
           </div>
+          <div className="flex items-center gap-3 h-10 px-4 bg-muted/40 border border-border rounded-lg">
+            <span className="text-sm font-medium text-foreground">使用民國曆顯示</span>
+            <Switch
+              id="date_format"
+              checked={useRoc}
+              onChange={setUseRoc}
+              size="sm"
+            />
+          </div>
         </div>
       </div>
 
-
-      {/* Notes */}
-      <div className="card">
-        <p className="section-title">備註</p>
+      <div className="bg-card text-card-foreground border border-border rounded-xl p-6 shadow-sm">
+        <p className="text-base font-semibold text-foreground mb-3">報價單備註事項</p>
         <textarea
-          className="field-input"
+          className="w-full p-3 text-sm bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-y"
           value={data.notes || ''}
           onChange={e => update({ notes: e.target.value })}
-          placeholder="備註事項，例如：有效期限、特殊條件、注意事項等…"
+          placeholder="此處內容將顯示於印刷報價單底部（例如：本報價有效期限、付款流程細則說明、其他特定條款等…）"
           rows={4}
-          style={{ resize: 'vertical' }}
-          aria-label="備註"
         />
       </div>
     </div>
   )
-}
-
-const s = {
-  heading: { fontSize: 'var(--text-xl)', fontWeight: 700, marginBottom: 'var(--space-2)' },
-  desc: { fontSize: 'var(--text-base)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-6)' },
-  grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--space-5)' },
 }

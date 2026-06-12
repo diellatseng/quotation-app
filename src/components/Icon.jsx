@@ -1,17 +1,14 @@
+// src/components/Icon.jsx
+import React from 'react'
+
 /**
  * Icon — Material Symbols wrapper component
- * Renders Google Material Symbols with consistent styling
- * Reference: https://developers.google.com/fonts/docs/material_symbols
- *
- * @param {string} name - Material Symbol name (e.g., 'expand_more', 'expand_less')
- * @param {object} style - Inline styles to override defaults
- * @param {string} title - Tooltip text / aria-label
- * @returns {JSX.Element}
+ * Renders Google Material Symbols with consistent styling using Tailwind utilities
  */
-export default function Icon({ name, style = {}, title = '' }) {
+export default function Icon({ name, style = {}, title = '', className = '' }) {
   return (
     <span
-      className="material-symbols-outlined"
+      className={`material-symbols-outlined select-none align-middle ${className}`}
       style={style}
       title={title}
       role="img"

@@ -6,13 +6,13 @@ import { useNotification } from '../context/NotificationContext'
 
 const fmt = (n) => `NT$ ${Number(n || 0).toLocaleString('zh-TW')}`
 
-export default function NegotiationPanel({ quotationId, currentAmount, logs, onLogged }) {
-  const [open, setOpen]       = useState(false)
+export default function NegotiationPanel({ quotationId, currentAmount, logs = [], onLogged }) {
+  const [open, setOpen] = useState(false)
   const [newAmount, setNewAmount] = useState('')
-  const [notes, setNotes]     = useState('')
-  const [saving, setSaving]   = useState(false)
-  const { user }              = useAuth()
-  const { success, error }    = useNotification()
+  const [notes, setNotes] = useState('')
+  const [saving, setSaving] = useState(false)
+  const { user } = useAuth()
+  const { success, error } = useNotification()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -35,7 +35,7 @@ export default function NegotiationPanel({ quotationId, currentAmount, logs, onL
 
     success('議價記錄已儲存')
     const savedAmount = Number(newAmount)
-    const savedNotes  = notes
+    const savedNotes = notes
     setNewAmount('')
     setNotes('')
     setOpen(false)

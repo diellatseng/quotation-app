@@ -1,35 +1,9 @@
 // src/components/ActionMenu.jsx
-//
-// A "⋯ More actions" trigger + dropdown menu, reusable across views.
-//
-// Usage:
-//   import ActionMenu, { ActionMenuItem } from './ActionMenu'
-//
-//   const [openId, setOpenId] = useState(null)
-//
-//   <ActionMenu
-//     id={row.id}
-//     openId={openId}
-//     onOpen={(id) => setOpenId(id)}
-//     onClose={() => setOpenId(null)}
-//   >
-//     <ActionMenuItem icon="task_alt" label="結案" onClick={() => archive(row.id)} />
-//     <ActionMenuItem icon="delete"   label="刪除" danger onClick={() => del(row.id)} />
-//   </ActionMenu>
-//
-// The parent owns `openId` so it can close any open menu when another opens,
-// or close on outside-click via the exported `useActionMenuClose` hook.
-
 import { useEffect, useState, useRef } from 'react'
-import { createPortal } from 'react-dom';
+import { createPortal } from 'react-dom'
 import IconButton from './IconButton'
 
 // ── Hook: close menu on any outside click ────────────────────────────────────
-// Call this once in the parent component that owns `openId`.
-//
-//   const [openId, setOpenId] = useState(null)
-//   useActionMenuClose(openId, () => setOpenId(null))
-//
 export function useActionMenuClose(openId, onClose) {
   useEffect(() => {
     if (!openId) return
@@ -39,20 +13,23 @@ export function useActionMenuClose(openId, onClose) {
   }, [openId, onClose])
 }
 
-// ── ActionMenu ────────────────────────────────────────────────────────────────
 export default function ActionMenu({ id, openId, onOpen, onClose, children }) {
-  const isOpen = openId === id
   const triggerRef = useRef(null)
-  const [coords, setCoords] = useState({ top: 0, right: 0 })
 
-  // Calculate coordinates relative to the viewport when opened
+  // 1. 🌟 Initialize as null to prevent rendering at default 0,0 positions
+  const [coords, setCoords] = useState(null)
+  const isOpen = openId === id
+
   useEffect(() => {
     if (isOpen && triggerRef.current) {
       const rect = triggerRef.current.getBoundingClientRect()
       setCoords({
-        top: rect.bottom + 4, // 4px spacing below the button
+        top: rect.bottom + 4,                 // 4px spacing below the button
         right: window.innerWidth - rect.right // Matches right alignment perfectly
       })
+    } else if (!isOpen) {
+      // 2. 🌟 Clear coordinates on close to keep calculations fresh for the next toggle
+      setCoords(null)
     }
   }, [isOpen])
 
@@ -68,7 +45,8 @@ export default function ActionMenu({ id, openId, onOpen, onClose, children }) {
           isOpen ? onClose() : onOpen(id)
         }}
       />
-      {isOpen && createPortal(
+      {/* 3. 🌟 Defensive check: Only render when open AND coordinates are fully computed */}
+      {isOpen && coords && createPortal(
         <div
           className="action-menu__dropdown"
           style={{

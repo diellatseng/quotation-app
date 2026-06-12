@@ -7,13 +7,13 @@ import Button from '../components/Button'
 import packageJson from '../../package.json'
 
 export default function LoginPage() {
-  const [email, setEmail]       = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
-  const [loading, setLoading]   = useState(false)
+  const [loading, setLoading] = useState(false)
   const { user, loading: authLoading, signIn } = useAuth()
-  const { error }               = useNotification()
-  const navigate                = useNavigate()
+  const { error } = useNotification()
+  const navigate = useNavigate()
 
   // 初始化時：從 localStorage 載入記住的 email
   useEffect(() => {
@@ -55,35 +55,36 @@ export default function LoginPage() {
   // 如果正在檢查認證狀態，顯示載入中
   if (authLoading) {
     return (
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        minHeight: '100vh', color: 'var(--color-text-muted)',
-      }}>
+      <div className="flex min-h-screen items-center justify-center bg-background text-muted-foreground">
         檢查登入狀態…
       </div>
     )
   }
 
   return (
-    <div className="login-bg">
-      <div className="login-card" role="main">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12 sm:px-6 lg:px-8">
+      <div className="w-full max-w-md space-y-6 rounded-xl border border-border bg-card p-8 shadow-sm text-card-foreground" role="main">
 
         {/* Brand */}
-        <div className="login-brand">
-          <div className="login-logo" aria-hidden="true">報</div>
+        <div className="flex items-center gap-4">
+          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary text-xl font-bold text-primary-foreground" aria-hidden="true">
+            報
+          </div>
           <div>
-            <h1 className="login-title">報價管理系統</h1>
-            <p className="login-subtitle">Quotation Management</p>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">報價管理系統</h1>
+            <p className="text-sm text-muted-foreground">Quotation Management</p>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} noValidate>
-          <div style={{ marginBottom: 'var(--space-5)' }}>
-            <label htmlFor="email" className="field-label">電子郵件</label>
+        <form onSubmit={handleSubmit} noValidate className="space-y-4">
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium mb-1.5 text-foreground">
+              電子郵件
+            </label>
             <input
               id="email"
               type="email"
-              className="field-input"
+              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
               value={email}
               onChange={e => setEmail(e.target.value)}
               placeholder="your@email.com"
@@ -93,12 +94,14 @@ export default function LoginPage() {
             />
           </div>
 
-          <div style={{ marginBottom: 'var(--space-6)' }}>
-            <label htmlFor="password" className="field-label">密碼</label>
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium mb-1.5 text-foreground">
+              密碼
+            </label>
             <input
               id="password"
               type="password"
-              className="field-input"
+              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
               value={password}
               onChange={e => setPassword(e.target.value)}
               placeholder="••••••••"
@@ -108,15 +111,15 @@ export default function LoginPage() {
             />
           </div>
 
-          <div style={{ marginBottom: 'var(--space-5)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <div className="flex items-center gap-2 py-1">
             <input
               id="rememberMe"
               type="checkbox"
               checked={rememberMe}
               onChange={e => setRememberMe(e.target.checked)}
-              style={{ cursor: 'pointer' }}
+              className="h-4 w-4 rounded border-border cursor-pointer accent-primary"
             />
-            <label htmlFor="rememberMe" style={{ cursor: 'pointer', fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>
+            <label htmlFor="rememberMe" className="text-sm text-muted-foreground select-none cursor-pointer">
               記住我的帳號
             </label>
           </div>
@@ -125,14 +128,17 @@ export default function LoginPage() {
             type="submit"
             variant="primary"
             disabled={loading}
-            style={{ width: '100%', fontSize: 'var(--text-md)' }}
+            style={{ width: '100%' }} /* Custom button width fallback */
+            className="w-full text-base py-2"
           >
             {loading ? '登入中…' : '登入'}
           </Button>
         </form>
 
-        <p className="login-hint">帳號由管理員建立，如需帳號請聯繫管理員。</p>
-        <p className="login-hint">v{packageJson.version}</p>
+        <div className="space-y-1 pt-2 text-center">
+          <p className="text-xs text-muted-foreground">帳號由管理員建立，如需帳號請聯繫管理員。</p>
+          <p className="text-xs text-muted-foreground/70">v{packageJson.version}</p>
+        </div>
       </div>
     </div>
   )

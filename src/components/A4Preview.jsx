@@ -18,7 +18,16 @@ const USABLE_H_CONT = A4_H - PAGE_HEADER_H - MARGIN_BOTTOM - PAGE_FOOTER_H - MAR
 
 // ─── Main component ───────────────────────────────────────────────────────────
 const A4Preview = forwardRef(function A4Preview(
-  { quotation, services, stages, client, contactPerson, companyInfo, negLogs = [], mode = 'quotation' },
+  {
+    quotation,
+    services = [],
+    stages = [],
+    client,
+    contactPerson,
+    companyInfo,
+    negLogs = [],
+    mode = 'quotation'
+  },
   ref,
 ) {
   const total = quotation.fee_amount || 0

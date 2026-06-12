@@ -8,10 +8,10 @@ export default function ServicesAdmin() {
   const [services, setServices] = useState([])
   const [selected, setSelected] = useState(null)
   const [checklistItems, setChecklistItems] = useState([])
-  const [form, setForm]         = useState({ name: '', category: '', description: '' })
+  const [form, setForm] = useState({ name: '', category: '', description: '' })
   const [showForm, setShowForm] = useState(false)
-  const [loading, setLoading]   = useState(false)
-  const { success, error }      = useNotification()
+  const [loading, setLoading] = useState(false)
+  const { success, error } = useNotification()
 
   const load = async () => {
     const { data } = await supabase.from('services').select('*').order('category').order('name')
@@ -82,29 +82,26 @@ export default function ServicesAdmin() {
         </button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: showForm ? '1fr 1.4fr' : '1fr', gap: 'var(--space-5)' }}>
+      <div className={`grid gap-5 ${showForm ? 'grid-cols-2' : 'grid-cols-1'}`} style={{ gridTemplateColumns: showForm ? '1fr 1.4fr' : '1fr' }}>
         {/* List */}
-        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div className="card p-0 overflow-hidden">
           {Object.entries(grouped).map(([cat, svcs]) => (
             <div key={cat}>
-              <div style={{ padding: 'var(--space-2) var(--space-4)', background: 'var(--color-bg-subtle)', fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--color-text-muted)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+              <div className="px-4 py-2 bg-muted text-xs font-bold text-muted-foreground uppercase tracking-wide">
                 {cat}
               </div>
               {svcs.map(svc => (
-                <div key={svc.id} onClick={() => select(svc)} style={{
-                  padding: 'var(--space-3) var(--space-4)',
-                  borderBottom: '1px solid var(--color-border)',
-                  cursor: 'pointer',
-                  background: selected?.id === svc.id ? 'var(--color-accent-subtle)' : 'transparent',
-                  borderLeft: selected?.id === svc.id ? '3px solid var(--color-accent)' : '3px solid transparent',
-                }}>
-                  <div style={{ fontWeight: 500 }}>{svc.name}</div>
+                <div key={svc.id} onClick={() => select(svc)} className={`p-3 px-4 border-b border-border cursor-pointer transition-colors ${selected?.id === svc.id
+                  ? 'bg-primary/10 border-l-4 border-l-primary'
+                  : 'border-l-4 border-l-transparent hover:bg-muted/50'
+                  }`}>
+                  <div className="font-medium">{svc.name}</div>
                 </div>
               ))}
             </div>
           ))}
           {services.length === 0 && (
-            <p style={{ padding: 'var(--space-6)', color: 'var(--color-text-muted)', textAlign: 'center' }}>尚無服務項目</p>
+            <p className="p-6 text-muted-foreground text-center">尚無服務項目</p>
           )}
         </div>
 

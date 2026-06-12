@@ -13,6 +13,63 @@ const COLOR_PRESETS = ['#1a1916', '#c0392b', '#1a5fad', '#27ae60', '#e67e22', '#
  *   maxHeight  {number}   Max height of editable area in px (default: 260)
  *   placeholder {string}  Hint shown when empty (default: none)
  */
+/**
+ * Add Tailwind list classes to ul, ol, and li elements in HTML.
+ * This ensures lists render correctly when the HTML is displayed elsewhere
+ * (ServiceTable, A4Preview, PDF export) since Tailwind utilities only apply
+ * to elements with the class names.
+ */
+function addTailwindListClasses(html) {
+  if (!html) return html
+
+  const parser = new DOMParser()
+  const doc = parser.parseFromString(html, 'text/html')
+
+  // Add classes to all ul elements
+  doc.querySelectorAll('ul').forEach((ul) => {
+    const level = getListNestingLevel(ul, 'ul')
+    if (level === 0) {
+      ul.className = 'list-disc list-outside pl-6'
+    } else if (level === 1) {
+      ul.className = 'list-[circle] list-outside pl-6'
+    } else if (level >= 2) {
+      ul.className = 'list-square list-outside pl-6'
+    }
+  })
+
+  // Add classes to all ol elements
+  doc.querySelectorAll('ol').forEach((ol) => {
+    const level = getListNestingLevel(ol, 'ol')
+    if (level === 0) {
+      ol.className = 'list-decimal list-outside pl-6'
+    } else if (level >= 1) {
+      ol.className = 'list-[lower-alpha] list-outside pl-6'
+    }
+  })
+
+  // Add classes to all li elements
+  doc.querySelectorAll('li').forEach((li) => {
+    li.className = 'list-item'
+  })
+
+  return doc.body.innerHTML
+}
+
+/**
+ * Get the nesting level of a list element (0 = top-level, 1 = nested, etc.)
+ */
+function getListNestingLevel(el, type) {
+  let level = 0
+  let parent = el.parentElement
+  while (parent) {
+    if (parent.tagName === type.toUpperCase()) {
+      level++
+    }
+    parent = parent.parentElement
+  }
+  return level
+}
+
 export default function RichEditor({ value, onChange, minHeight = 100, maxHeight = 260, placeholder }) {
   const editorRef = useRef(null)
 
@@ -28,10 +85,14 @@ export default function RichEditor({ value, onChange, minHeight = 100, maxHeight
   const exec = useCallback((cmd, val = null) => {
     editorRef.current?.focus()
     document.execCommand(cmd, false, val)
-    onChange(editorRef.current?.innerHTML || '')
+    const html = editorRef.current?.innerHTML || ''
+    onChange(addTailwindListClasses(html))
   }, [onChange])
 
-  const handleInput = () => onChange(editorRef.current?.innerHTML || '')
+  const handleInput = () => {
+    const html = editorRef.current?.innerHTML || ''
+    onChange(addTailwindListClasses(html))
+  }
 
   // Tab = indent inside list, Shift+Tab = outdent
   const handleKeyDown = (e) => {
@@ -46,7 +107,7 @@ export default function RichEditor({ value, onChange, minHeight = 100, maxHeight
   }
 
   return (
-    <div style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
+    <div className="border border-zinc-200 rounded-lg overflow-hidden bg-white">
       {/* ── Toolbar ── */}
       <div style={{
         display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center',
@@ -58,12 +119,12 @@ export default function RichEditor({ value, onChange, minHeight = 100, maxHeight
         <ToolBtn title="斜體" onClick={() => exec('italic')}><em>I</em></ToolBtn>
         <ToolBtn title="底線" onClick={() => exec('underline')}><u>U</u></ToolBtn>
         <Sep />
-        <ToolBtn title="靠左"  onClick={() => exec('justifyLeft')}>⬅</ToolBtn>
-        <ToolBtn title="置中"  onClick={() => exec('justifyCenter')}>☰</ToolBtn>
-        <ToolBtn title="靠右"  onClick={() => exec('justifyRight')}>➡</ToolBtn>
+        <ToolBtn title="靠左" onClick={() => exec('justifyLeft')}>⬅</ToolBtn>
+        <ToolBtn title="置中" onClick={() => exec('justifyCenter')}>☰</ToolBtn>
+        <ToolBtn title="靠右" onClick={() => exec('justifyRight')}>➡</ToolBtn>
         <Sep />
         <ToolBtn title="項目符號清單" onClick={() => exec('insertUnorderedList')}>• 清單</ToolBtn>
-        <ToolBtn title="數字清單"     onClick={() => exec('insertOrderedList')}>1. 清單</ToolBtn>
+        <ToolBtn title="數字清單" onClick={() => exec('insertOrderedList')}>1. 清單</ToolBtn>
         <ToolBtn title="增加縮排" onClick={() => exec('indent')}>⇥</ToolBtn>
         <ToolBtn title="減少縮排" onClick={() => exec('outdent')}>⇤</ToolBtn>
         <Sep />
@@ -76,8 +137,8 @@ export default function RichEditor({ value, onChange, minHeight = 100, maxHeight
           style={{ fontSize: 11, padding: '2px 4px', border: '1px solid var(--color-border)', borderRadius: 4, cursor: 'pointer', background: 'var(--color-bg)' }}
         >
           <option value="" disabled>大小</option>
-          {[1,2,3,4,5,6].map((n, i) => (
-            <option key={n} value={n}>{['8','10','12','14','18','24'][i]}px</option>
+          {[1, 2, 3, 4, 5, 6].map((n, i) => (
+            <option key={n} value={n}>{['8', '10', '12', '14', '18', '24'][i]}px</option>
           ))}
         </select>
         <Sep />
@@ -118,21 +179,8 @@ export default function RichEditor({ value, onChange, minHeight = 100, maxHeight
         onInput={handleInput}
         onBlur={handleInput}
         onKeyDown={handleKeyDown}
-        style={{
-          minHeight,
-          maxHeight,
-          overflowY: 'auto',
-          padding: '10px 12px',
-          fontSize: 13,
-          lineHeight: 1.7,
-          outline: 'none',
-          color: 'var(--color-text)',
-          background: '#fff',
-          cursor: 'text',
-          wordBreak: 'break-word',
-          // Ensure ul/ol have proper indentation (CSS resets often strip this)
-          '--list-indent': '1.5em',
-        }}
+        className="p-4 outline-none overflow-y-auto cursor-text"
+        style={{ minHeight: `${minHeight}px`, maxHeight: `${maxHeight}px` }}
       />
 
       {/* Scoped list styles injected via a style tag */}
@@ -150,12 +198,7 @@ export default function RichEditor({ value, onChange, minHeight = 100, maxHeight
         [contenteditable] li { margin: 0.1em 0; }
       `}</style>
 
-      <div style={{
-        fontSize: 10, color: 'var(--color-text-muted)',
-        padding: '3px 8px',
-        background: 'var(--color-bg-subtle)',
-        borderTop: '1px solid var(--color-border)',
-      }}>
+      <div className="text-[10px] text-zinc-500 px-2 py-1 bg-zinc-50 border-t border-zinc-200">
         提示：選取文字後套用格式；清單中按 Tab / Shift+Tab 調整縮排
       </div>
     </div>

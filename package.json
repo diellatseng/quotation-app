@@ -5,12 +5,16 @@
   "homepage": "https://diellatseng.github.io/quotation-app/",
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",
+    "@tailwindcss/cli": "^4.3.0",
+    "@tailwindcss/typography": "^0.5.19",
+    "@tailwindcss/vite": "^4.3.0",
     "emailjs-com": "^3.2.0",
     "html2canvas": "^1.4.1",
     "jspdf": "^2.5.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^6.26.0"
+    "react-router-dom": "^6.26.0",
+    "tailwindcss": "^4.3.0"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -21,6 +25,7 @@
     "lint:fix": "eslint src/ --fix",
     "format": "prettier --write \"src/**/*.{js,jsx,json,css,md}\"",
     "format:check": "prettier --check \"src/**/*.{js,jsx,json,css,md}\"",
+    "dev:css": "tailwindcss -i ./src/styles/globals.css -o ./src/dist.css --watch",
     "deploy": "npm version patch && npm run build && gh-pages -d build"
   },
   "devDependencies": {

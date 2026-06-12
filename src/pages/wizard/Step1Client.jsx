@@ -2,7 +2,18 @@
 import ClientPicker from '../../components/ClientPicker'
 
 export default function Step1Client({ data, update, loading = false }) {
-  const handleClientChange = ({ client, contacts }) => {
+  const handleClientChange = (value) => {
+    if (value === null) {
+      // Clear selection
+      update({
+        client: null,
+        contacts: [],
+        selectedContactId: null,
+      })
+      return
+    }
+
+    const { client, contacts } = value
     const primary = contacts.find(c => c.is_primary) || contacts[0] || null
     update({
       client,
@@ -12,90 +23,80 @@ export default function Step1Client({ data, update, loading = false }) {
   }
 
   return (
-    <div>
-      <h2 style={s.heading}>步驟 1：客戶資料</h2>
-      <p style={s.desc}>請選擇現有客戶，或建立新客戶資料。</p>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-xl font-bold text-foreground tracking-tight mb-1">步驟 1：客戶資料</h2>
+        <p className="text-sm text-muted-foreground">請選擇現有客戶，或建立新客戶資料。</p>
+      </div>
 
-      <div className="card" style={{ marginBottom: 'var(--space-6)', position: 'relative' }}>
-        <p className="section-title">選擇客戶</p>
+      <div className="bg-card text-card-foreground border border-border rounded-xl p-6 shadow-sm relative">
+        <p className="text-base font-semibold text-foreground mb-4">選擇客戶</p>
         {loading && !data.client ? (
-          <div style={{ textAlign: 'center', padding: 'var(--space-4)' }}>
-            <div style={{ fontSize: 'var(--text-lg)', marginBottom: 'var(--space-2)' }}>載入中…</div>
-            <div style={{ width: 32, height: 32, border: '3px solid var(--color-border)', borderTop: '3px solid var(--color-accent)', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto' }}></div>
+          <div className="text-center py-8 space-y-3">
+            <div className="text-sm font-medium text-muted-foreground animate-pulse">載入中…</div>
+            <div className="w-8 h-8 border-2 border-muted border-t-primary rounded-full animate-spin mx-auto"></div>
           </div>
         ) : (
           <ClientPicker
-            value={data.client}
+            value={data.client?.id}
             onChange={handleClientChange}
-            disabled={loading}
           />
         )}
       </div>
 
-      {/* Selected client summary */}
-      {(data.client || loading) && (
-        <div className="card" style={{ borderColor: data.client ? 'var(--color-accent)' : 'var(--color-border)', borderWidth: data.client ? 2 : 1, position: 'relative' }}>
-          <p className="section-title">已選擇客戶</p>
-          {loading && !data.client ? (
-            <div style={{ textAlign: 'center', padding: 'var(--space-4)' }}>
-              <div style={{ fontSize: 'var(--text-lg)', marginBottom: 'var(--space-2)' }}>載入中…</div>
-              <div style={{ width: 32, height: 32, border: '3px solid var(--color-border)', borderTop: '3px solid var(--color-accent)', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto' }}></div>
-            </div>
-          ) : (
-            <>
-              <div style={s.infoGrid}>
+      {data.client && (
+        <div className="bg-card text-card-foreground border border-border rounded-xl p-6 shadow-sm space-y-6">
+          <div>
+            <p className="text-base font-semibold text-foreground mb-4">客戶詳細資料</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
                 <InfoRow label="公司名稱" value={data.client.company_name} />
-                {data.client.address && <InfoRow label="地址" value={data.client.address} />}
-                {data.client.phone && <InfoRow label="電話" value={data.client.phone} />}
-                {data.client.email && <InfoRow label="Email" value={data.client.email} />}
+                <InfoRow label="統一編號" value={data.client.tax_id || '—'} />
+                <InfoRow label="電話" value={data.client.phone || '—'} />
               </div>
+              <div className="space-y-2">
+                <InfoRow label="地址" value={data.client.address || '—'} />
+                <InfoRow label="電子郵件" value={data.client.email || '—'} />
+              </div>
+            </div>
+          </div>
 
-              {data.contacts.length > 0 && (
-                <>
-                  <p className="section-title" style={{ marginTop: 'var(--space-5)' }}>選擇聯絡人</p>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-                    {data.contacts.map(c => (
-                      <label key={c.id} style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 'var(--space-3)',
-                        padding: 'var(--space-3) var(--space-4)',
-                        border: `1.5px solid ${data.selectedContactId === c.id ? 'var(--color-accent)' : 'var(--color-border)'}`,
-                        borderRadius: 'var(--radius-md)',
-                        cursor: 'pointer',
-                        background: data.selectedContactId === c.id ? 'var(--color-accent-subtle)' : 'var(--color-bg-input)',
-                        minHeight: 'var(--tap-min)',
-                      }}>
-                        <input
-                          type="radio"
-                          name="contact"
-                          value={c.id}
-                          checked={data.selectedContactId === c.id}
-                          onChange={() => update({ selectedContactId: c.id })}
-                          style={{ width: 20, height: 20 }}
-                        />
-                        <div>
-                          <div style={{ fontWeight: 600 }}>{c.name}</div>
-                          <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
-                            {[c.mobile, c.office_phone, c.email].filter(Boolean).join(' ／ ')}
-                          </div>
-                        </div>
-                        {c.is_primary && (
-                          <span style={{
-                            marginLeft: 'auto',
-                            fontSize: 'var(--text-xs)', fontWeight: 700,
-                            color: 'var(--color-accent)',
-                            background: 'var(--color-accent-subtle)',
-                            padding: '2px 8px',
-                            borderRadius: 'var(--radius-full)',
-                          }}>主要</span>
-                        )}
-                      </label>
-                    ))}
-                  </div>
-                </>
-              )}
-            </>
+          {data.contacts && data.contacts.length > 0 && (
+            <div className="border-t border-border pt-5">
+              <p className="text-base font-semibold text-foreground mb-3">聯絡人選擇</p>
+              <div className="flex flex-col gap-2.5">
+                {data.contacts.map(c => (
+                  <label
+                    key={c.id}
+                    className={`flex items-center gap-3 p-4 border rounded-xl cursor-pointer transition-all hover:bg-muted/40 select-none ${data.selectedContactId === c.id
+                      ? 'border-primary bg-primary/[0.02] ring-1 ring-primary'
+                      : 'border-border bg-background'
+                      }`}
+                  >
+                    <input
+                      type="radio"
+                      name="selectedContact"
+                      className="w-4 h-4 text-primary focus:ring-primary border-border"
+                      checked={data.selectedContactId === c.id}
+                      onChange={() => update({ selectedContactId: c.id })}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-foreground text-sm">
+                        {c.name} {c.title && <span className="text-muted-foreground font-normal text-xs">({c.title})</span>}
+                      </div>
+                      <div className="text-xs text-muted-foreground truncate mt-0.5">
+                        {[c.mobile, c.email].filter(Boolean).join(' ／ ')}
+                      </div>
+                    </div>
+                    {c.is_primary && (
+                      <span className="shrink-0 text-[10px] font-bold text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full tracking-wider">
+                        主要
+                      </span>
+                    )}
+                  </label>
+                ))}
+              </div>
+            </div>
           )}
         </div>
       )}
@@ -105,15 +106,9 @@ export default function Step1Client({ data, update, loading = false }) {
 
 function InfoRow({ label, value }) {
   return (
-    <div style={{ display: 'flex', gap: 'var(--space-3)', marginBottom: 'var(--space-2)' }}>
-      <span style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', width: 72, flexShrink: 0 }}>{label}</span>
-      <span style={{ fontSize: 'var(--text-sm)', flex: 1 }}>{value}</span>
+    <div className="flex gap-3 text-sm leading-relaxed">
+      <span className="text-muted-foreground w-20 shrink-0">{label}</span>
+      <span className="text-foreground font-medium break-all">{value}</span>
     </div>
   )
-}
-
-const s = {
-  heading: { fontSize: 'var(--text-xl)', fontWeight: 700, marginBottom: 'var(--space-2)', color: 'var(--color-text)' },
-  desc: { fontSize: 'var(--text-base)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-6)' },
-  infoGrid: { display: 'flex', flexDirection: 'column', gap: 'var(--space-1)' },
 }
