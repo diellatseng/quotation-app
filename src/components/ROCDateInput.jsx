@@ -1,8 +1,8 @@
 // src/components/ROCDateInput.jsx
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { 
   ceToRocInput, rocInputToCe, ceInputToCe,
-  formatRocInputDisplay, formatCeInputDisplay
+  formatRocInputDisplay, formatCeInputDisplay, formatCeDisplay
 } from '../lib/rocDate'
 
 /**
@@ -22,8 +22,15 @@ export default function ROCDateInput({ value, onChange, useRoc = true, id, label
   const [inputValue, setInputValue] = useState(null) // null = not editing, shows prop value
   const [error, setError] = useState('')
 
+  // Parent toggles 民國/西元 — drop any formatted local string so displayValue
+  // is re-derived from the CE value in the new mode.
+  useEffect(() => {
+    setInputValue(null)
+    setError('')
+  }, [useRoc])
+
   // Show inputValue while typing, otherwise show converted prop value
-  const displayValue = inputValue !== null ? inputValue : (useRoc ? ceToRocInput(value) : (value ? `${value.replace(/-/g, '年')}日` : ''))
+  const displayValue = inputValue !== null ? inputValue : (useRoc ? ceToRocInput(value) : formatCeDisplay(value))
 
   const handleChange = (e) => {
     const raw = e.target.value
