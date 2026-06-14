@@ -1,18 +1,18 @@
 // src/components/ServiceTable.jsx
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import RichEditor from './RichEditor'
 import Icon from './Icon'
 import IconButton from './IconButton'
 import Button from '../components/Button'
-import ActionMenu, { ActionMenuItem, useActionMenuClose } from '../components/ActionMenu'
 
 export default function ServiceTable({ services, onChange, readOnly = false }) {
-  const [expandedChecklist, setExpandedChecklist] = useState(null)
+  const [checklistIdx, setChecklistIdx] = useState(null)
   const [editingDesc, setEditingDesc] = useState(null)
   const [draftDesc, setDraftDesc] = useState('')
   const [collapsedDescs, setCollapsedDescs] = useState({})
-  const [actionMenuId, setActionMenuId] = useState(null)
-  useActionMenuClose(actionMenuId, () => setActionMenuId(null))
+  const [confirmDeleteIdx, setConfirmDeleteIdx] = useState(null)
+  const confirmTimer = useRef(null)
 
   // ── Drag state ────────────────────────────────────────────────────────────
   const dragIdx = useRef(null)
@@ -20,7 +20,7 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
   const [draggingIdx, setDraggingIdx] = useState(null)
   const [dragOverIdxState, setDragOverIdxState] = useState(null)
 
-  const handleDragStart = (idx) => { dragIdx.current = idx; setDraggingIdx(idx) }
+  const handleDragStart = (idx) => { dragIdx.current = idx; setDraggingIdx(idx); setConfirmDeleteIdx(null) }
   const handleDragEnter = (idx) => {
     if (idx === dragIdx.current) return
     dragOverIdx.current = idx; setDragOverIdxState(idx)
@@ -33,7 +33,7 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
       next.splice(to, 0, item)
       onChange(next)
       if (editingDesc === from) setEditingDesc(to)
-      if (expandedChecklist === from) setExpandedChecklist(to)
+      if (checklistIdx === from) setChecklistIdx(to)
     }
     dragIdx.current = null; dragOverIdx.current = null
     setDraggingIdx(null); setDragOverIdxState(null)
@@ -46,9 +46,21 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
   const removeService = (idx) => {
     onChange(services.filter((_, i) => i !== idx))
     if (editingDesc === idx) setEditingDesc(null)
-    if (expandedChecklist === idx) setExpandedChecklist(null)
+    if (checklistIdx === idx) setChecklistIdx(null)
     const next = { ...collapsedDescs }; delete next[idx]; setCollapsedDescs(next)
   }
+  // Two-step delete: first click arms confirmation (auto-resets after 3s), second confirms.
+  const requestDelete = (idx) => {
+    clearTimeout(confirmTimer.current)
+    if (confirmDeleteIdx === idx) {
+      setConfirmDeleteIdx(null)
+      removeService(idx)
+      return
+    }
+    setConfirmDeleteIdx(idx)
+    confirmTimer.current = setTimeout(() => setConfirmDeleteIdx(null), 3000)
+  }
+  useEffect(() => () => clearTimeout(confirmTimer.current), [])
   const addService = () => onChange([...services, {
     id: crypto.randomUUID(), service_name: '', category: '',
     description: '', checklist_items: [], is_added: true,
@@ -91,18 +103,16 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
   const removeChecklistItem = (si, ii) =>
     updateService(si, 'checklist_items',
       (services[si].checklist_items || []).filter((_, i) => i !== ii))
-  const toggleChecklist = (idx) => {
-    const shouldOpen = expandedChecklist !== idx
-    setExpandedChecklist(shouldOpen ? idx : null)
-    if (!shouldOpen) return
+  const openChecklist = (idx) => setChecklistIdx(idx)
+  const closeChecklist = () => setChecklistIdx(null)
 
-    window.history.replaceState(null, '', '#ExpandedChecklist')
-    setTimeout(() => {
-      const panel = document.getElementById('ExpandedChecklist')
-      panel?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      panel?.focus({ preventScroll: true })
-    }, 0)
-  }
+  // Close the checklist modal with Escape
+  useEffect(() => {
+    if (checklistIdx == null) return
+    const onKey = (e) => { if (e.key === 'Escape') closeChecklist() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [checklistIdx])
 
   // ── Empty state ───────────────────────────────────────────────────────────
   if (!services.length) return (
@@ -123,30 +133,23 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
   return (
     <div>
       {/* ── Toolbar ─────────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
+      <div className="flex items-center justify-between gap-2 mb-3 flex-wrap min-h-[28px]">
         {!readOnly && (
           <span className="flex items-center gap-1 text-xs text-muted-foreground">
             <span>⠿</span>拖曳左側可調整順序
           </span>
         )}
-        {hasAnyDesc && allCollapsed && (
-          <div className="flex items-center gap-2 ml-auto">
-            <button type="button" onClick={expandAll}
-              className="inline-flex items-center gap-1 h-7 px-3 text-xs font-medium rounded-sm border border-border bg-muted text-muted-foreground hover:bg-border hover:text-foreground cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed transition-all whitespace-nowrap"
-              title="展開所有說明">
-              <Icon name="keyboard_arrow_left" title="展開所有說明" /> 全部展開
-            </button>
-
-          </div>
-        )}
-        {hasAnyDesc && !allCollapsed && (
-          <div className="flex items-center gap-2 ml-auto">
-            <button type="button" onClick={collapseAll}
-              className="inline-flex items-center gap-1 h-7 px-3 text-xs font-medium rounded-sm border border-border bg-muted text-muted-foreground hover:bg-border hover:text-foreground cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed transition-all whitespace-nowrap"
-              title="折疊所有說明">
-              <Icon name="keyboard_arrow_down" title="折疊所有說明" /> 全部折疊
-            </button>
-          </div>
+        {hasAnyDesc && (
+          <button
+            type="button"
+            onClick={allCollapsed ? expandAll : collapseAll}
+            title={allCollapsed ? '展開所有說明' : '折疊所有說明'}
+            aria-label={allCollapsed ? '展開所有說明' : '折疊所有說明'}
+            className="ml-auto inline-flex items-center gap-1 h-7 px-2.5 text-xs font-medium rounded-md text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer transition-colors whitespace-nowrap"
+          >
+            <Icon name={allCollapsed ? 'unfold_more' : 'unfold_less'} title="" />
+            {allCollapsed ? '全部展開' : '全部折疊'}
+          </button>
         )}
       </div>
 
@@ -161,7 +164,6 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
           const diff = svc.diff_status
           const isRemoved = diff === 'removed'
           const checklistCount = (svc.checklist_items || []).filter(i => i.item_text?.trim()).length
-          const checklistOpen = expandedChecklist === idx
 
           // Dynamic border/bg depend on runtime state
           const cardClasses = `
@@ -207,6 +209,17 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                       <span key={i} className="w-1 h-1 rounded-full bg-muted-foreground" />
                     ))}
                   </div>
+                )}
+
+                {/* Disclosure chevron (leading) */}
+                {!isRemoved && (
+                  <IconButton
+                    icon={collapsed ? 'keyboard_arrow_right' : 'keyboard_arrow_down'}
+                    tooltip={collapsed ? '展開說明' : '摺疊說明'}
+                    onClick={() => toggleCollapse(idx)}
+                    variant="ghost"
+                    size="sm"
+                  />
                 )}
 
                 {/* Number badge — dynamic colours */}
@@ -257,41 +270,58 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                 {!isRemoved && (
                   <div className="flex gap-1 ml-auto flex-shrink-0 items-center">
 
-                    {/* Collapse/expand chevron */}
-                    <IconButton
-                      icon={collapsed ? 'keyboard_arrow_left' : 'keyboard_arrow_down'}
-                      tooltip={collapsed ? '展開說明' : '摺疊說明'}
-                      onClick={() => {
-                        setActionMenuId(null)
-                        toggleCollapse(idx)
-                      }}
-                      variant="ghost"
-                      size="sm"
-                    />
+                    {/* Checklist indicator + one-click opener */}
+                    {(!readOnly || checklistCount > 0) && (
+                      <button
+                        type="button"
+                        onClick={() => openChecklist(idx)}
+                        title={checklistCount > 0 ? `客戶準備清單（${checklistCount} 項）` : '新增客戶準備清單'}
+                        aria-label={checklistCount > 0 ? `客戶準備清單，${checklistCount} 項` : '新增客戶準備清單'}
+                        className={`inline-flex items-center gap-1 h-7 px-2 rounded-md text-xs font-semibold border cursor-pointer transition-colors ${checklistCount > 0
+                          ? 'bg-primary/10 text-primary border-primary/20 hover:bg-primary/15'
+                          : 'bg-transparent text-muted-foreground border-transparent hover:bg-muted hover:text-foreground'
+                          }`}
+                      >
+                        <Icon name="checklist" title="" />
+                        {checklistCount > 0 && <span>{checklistCount}</span>}
+                      </button>
+                    )}
 
-                    {/* More actions */}
-                    <ActionMenu
-                      id={svc.service_id}
-                      openId={actionMenuId}
-                      onOpen={setActionMenuId}
-                      onClose={() => setActionMenuId(null)}
-                    >
-                      {!readOnly && !isEditing && (
-                        <ActionMenuItem
-                          icon="edit"
-                          label={hasDesc ? '編輯說明' : '新增說明'}
-                          onClick={() => { setActionMenuId(null); startEditFromMenu(idx) }}
-                        />
-                      )}
-                      {!readOnly && (
-                        <ActionMenuItem
+                    {/* Edit description */}
+                    {!readOnly && !isEditing && (
+                      <IconButton
+                        icon="edit"
+                        tooltip={hasDesc ? '編輯說明' : '新增說明'}
+                        onClick={() => startEditFromMenu(idx)}
+                        variant="ghost"
+                        size="sm"
+                      />
+                    )}
+
+                    {/* Delete service — two-step inline confirm */}
+                    {!readOnly && (
+                      confirmDeleteIdx === idx ? (
+                        <button
+                          type="button"
+                          onClick={() => requestDelete(idx)}
+                          title="再次點擊以確認刪除"
+                          aria-label="確認刪除服務項目"
+                          className="inline-flex items-center gap-1 h-8 px-2.5 rounded-md text-xs font-semibold border border-red-300 bg-red-50 text-red-600 hover:bg-red-100 cursor-pointer transition-colors whitespace-nowrap animate-in fade-in zoom-in-95 duration-150"
+                        >
+                          <Icon name="delete" title="" />
+                          確定刪除？
+                        </button>
+                      ) : (
+                        <IconButton
                           icon="delete"
-                          label="刪除"
-                          danger
-                          onClick={() => { setActionMenuId(null); removeService(idx) }}
+                          tooltip="刪除服務項目"
+                          onClick={() => requestDelete(idx)}
+                          variant="ghost"
+                          size="sm"
+                          className="!text-muted-foreground hover:!bg-red-50 hover:!text-red-600"
                         />
-                      )}
-                    </ActionMenu>
+                      )
+                    )}
                   </div>
                 )}
                 {isRemoved && <div className="ml-auto" />}
@@ -363,63 +393,6 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                 </div>
               )}
 
-              {/* ── Checklist panel ──────────────────────────────────────── */}
-              {!isRemoved && checklistOpen && (
-                <div
-                  id="ExpandedChecklist"
-                  tabIndex={-1}
-                  className="border-t border-border px-4 py-4 bg-muted focus:outline-none scroll-mt-6"
-                >
-                  <p className="text-xs font-bold tracking-widest uppercase text-muted-foreground mb-3">
-                    客戶準備清單
-                  </p>
-
-                  {(svc.checklist_items || []).length === 0 && (
-                    <p className="text-sm text-muted-foreground mb-3">
-                      尚無清單項目
-                    </p>
-                  )}
-
-                  <div className="flex flex-col gap-2">
-                    {(svc.checklist_items || []).map((item, iIdx) => (
-                      <div key={item.id || iIdx} className="flex items-center gap-2">
-                        <span className="text-muted-foreground text-sm w-6 text-right flex-shrink-0">
-                          {iIdx + 1}.
-                        </span>
-                        {readOnly ? (
-                          <span className="flex-1 text-sm">{item.item_text}</span>
-                        ) : (
-                          <input
-                            className="flex-1 px-3 py-1.5 border border-border rounded-md bg-background text-foreground text-sm focus:outline-none focus:border-primary"
-                            value={item.item_text}
-                            onChange={e => updateChecklistItem(idx, iIdx, e.target.value)}
-                            placeholder="準備項目說明"
-                            aria-label={`清單項目 ${iIdx + 1}`}
-                          />
-                        )}
-                        {!readOnly && (
-                          <button type="button" onClick={() => removeChecklistItem(idx, iIdx)}
-                            aria-label="刪除此清單項目"
-                            className="inline-flex items-center gap-1 h-7 px-2 text-xs font-medium rounded-sm border border-red-300 bg-red-50 text-red-600 hover:bg-red-100 hover:border-red-400 cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed transition-all flex-shrink-0 whitespace-nowrap">
-                            ✕
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-
-                  {!readOnly && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="mt-3"
-                      onClick={() => addChecklistItem(idx)}
-                    >
-                      + 新增清單項目
-                    </Button>
-                  )}
-                </div>
-              )}
             </div>
           )
         })}
@@ -433,6 +406,87 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
         >
           + 新增服務項目
         </Button>
+      )}
+
+      {/* ── Checklist modal ─────────────────────────────────────────────── */}
+      {checklistIdx != null && services[checklistIdx] && createPortal(
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-4 animate-in fade-in duration-150"
+          onClick={closeChecklist}
+          role="dialog"
+          aria-modal="true"
+          aria-label="客戶準備清單"
+        >
+          <div
+            className="w-full max-w-lg max-h-[80vh] flex flex-col bg-card text-card-foreground rounded-xl border border-border shadow-xl animate-in zoom-in-95 duration-200"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-start justify-between gap-3 px-5 py-4 border-b border-border">
+              <div className="min-w-0">
+                <h3 className="text-base font-semibold text-foreground">客戶準備清單</h3>
+                <p className="text-xs text-muted-foreground truncate mt-0.5">
+                  {services[checklistIdx].service_name || '未命名服務'}
+                </p>
+              </div>
+              <IconButton icon="close" tooltip="關閉" variant="ghost" size="sm" onClick={closeChecklist} />
+            </div>
+
+            {/* Body */}
+            <div className="flex-1 overflow-auto px-5 py-4">
+              {(services[checklistIdx].checklist_items || []).length === 0 && (
+                <p className="text-sm text-muted-foreground mb-3">尚無清單項目</p>
+              )}
+
+              <div className="flex flex-col gap-2">
+                {(services[checklistIdx].checklist_items || []).map((item, iIdx) => (
+                  <div key={item.id || iIdx} className="flex items-center gap-2">
+                    <span className="text-muted-foreground text-sm w-6 text-right flex-shrink-0">
+                      {iIdx + 1}.
+                    </span>
+                    {readOnly ? (
+                      <span className="flex-1 text-sm text-foreground">{item.item_text}</span>
+                    ) : (
+                      <input
+                        className="flex-1 px-3 py-1.5 border border-border rounded-md bg-background text-foreground text-sm focus:outline-none focus:border-primary"
+                        value={item.item_text}
+                        onChange={e => updateChecklistItem(checklistIdx, iIdx, e.target.value)}
+                        placeholder="準備項目說明"
+                        aria-label={`清單項目 ${iIdx + 1}`}
+                      />
+                    )}
+                    {!readOnly && (
+                      <button type="button" onClick={() => removeChecklistItem(checklistIdx, iIdx)}
+                        aria-label="刪除此清單項目"
+                        className="inline-flex items-center justify-center h-7 w-7 text-xs font-medium rounded-sm border border-red-300 bg-red-50 text-red-600 hover:bg-red-100 hover:border-red-400 cursor-pointer transition-all flex-shrink-0">
+                        ✕
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {!readOnly && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="mt-3"
+                  onClick={() => addChecklistItem(checklistIdx)}
+                >
+                  + 新增清單項目
+                </Button>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="flex justify-end gap-2 px-5 py-3 border-t border-border">
+              <Button variant="accent" size="sm" onClick={closeChecklist}>
+                完成
+              </Button>
+            </div>
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   )
