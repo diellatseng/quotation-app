@@ -122,6 +122,49 @@
     --sidebar-accent-foreground: oklch(0.205 0 0);
     --sidebar-border: oklch(0.922 0 0);
     --sidebar-ring: oklch(0.708 0 0);
+
+    /* Quotation status badges */
+    --status-draft: oklch(0.97 0 0);
+    --status-draft-text: oklch(0.45 0 0);
+    --status-draft-border: oklch(0.85 0 0);
+    --status-quoted: oklch(0.97 0.02 240);
+    --status-quoted-text: oklch(0.45 0.12 250);
+    --status-quoted-border: oklch(0.85 0.05 240);
+    --status-confirmed: oklch(0.97 0.02 155);
+    --status-confirmed-text: oklch(0.45 0.12 155);
+    --status-confirmed-border: oklch(0.85 0.05 155);
+    --status-closed: oklch(0.35 0 0);
+    --status-closed-text: oklch(0.98 0 0);
+    --status-closed-border: oklch(0.35 0 0);
+    --status-warning: oklch(0.97 0.03 85);
+    --status-warning-text: oklch(0.45 0.12 70);
+    --status-warning-border: oklch(0.85 0.08 85);
+
+    /* Version diff (services compare) */
+    --diff-added: oklch(0.97 0.03 145);
+    --diff-added-border: oklch(0.65 0.15 145);
+    --diff-added-text: oklch(0.35 0.1 145);
+    --diff-added-badge: oklch(0.93 0.05 145);
+    --diff-modified: oklch(0.98 0.03 95);
+    --diff-modified-border: oklch(0.75 0.14 95);
+    --diff-modified-text: oklch(0.4 0.1 85);
+    --diff-modified-badge: oklch(0.95 0.06 95);
+    --diff-removed: oklch(0.97 0.02 25);
+    --diff-removed-border: oklch(0.65 0.18 25);
+    --diff-removed-text: oklch(0.35 0.12 25);
+    --diff-removed-badge: oklch(0.72 0.16 25);
+    --diff-removed-badge-text: oklch(0.25 0.08 25);
+
+    /* Destructive actions (delete confirm, remove row) */
+    --destructive-muted: oklch(0.97 0.02 25);
+    --destructive-muted-text: oklch(0.5 0.2 25);
+    --destructive-muted-border: oklch(0.85 0.08 25);
+    --destructive-muted-hover: oklch(0.94 0.04 25);
+
+    /* Newly added service highlight */
+    --highlight: oklch(0.96 0.03 264);
+    --highlight-text: oklch(0.45 0.15 264);
+    --highlight-border: oklch(0.55 0.18 264);
 }
 
 /* ── 3. High-Contrast Accessibility Variant ──
@@ -148,6 +191,45 @@
 
     --destructive: #8b0000;
     --destructive-foreground: #ffffff;
+
+    --status-draft: #f0f0f0;
+    --status-draft-text: #333333;
+    --status-draft-border: #000000;
+    --status-quoted: #e8f0ff;
+    --status-quoted-text: #003080;
+    --status-quoted-border: #000000;
+    --status-confirmed: #e8f5e9;
+    --status-confirmed-text: #004d00;
+    --status-confirmed-border: #000000;
+    --status-closed: #000000;
+    --status-closed-text: #ffffff;
+    --status-closed-border: #000000;
+    --status-warning: #fff8e6;
+    --status-warning-text: #664400;
+    --status-warning-border: #000000;
+
+    --diff-added: #e8f5e9;
+    --diff-added-border: #006600;
+    --diff-added-text: #004d00;
+    --diff-added-badge: #c8e6c9;
+    --diff-modified: #fffde7;
+    --diff-modified-border: #996600;
+    --diff-modified-text: #664400;
+    --diff-modified-badge: #fff9c4;
+    --diff-removed: #fdecea;
+    --diff-removed-border: #8b0000;
+    --diff-removed-text: #5c0000;
+    --diff-removed-badge: #c62828;
+    --diff-removed-badge-text: #ffffff;
+
+    --destructive-muted: #fdecea;
+    --destructive-muted-text: #8b0000;
+    --destructive-muted-border: #8b0000;
+    --destructive-muted-hover: #f5c6c0;
+
+    --highlight: #e8f0ff;
+    --highlight-text: #0040aa;
+    --highlight-border: #0040aa;
 }
 
 @theme inline {
@@ -184,6 +266,41 @@
   --color-card: var(--card);
   --color-foreground: var(--foreground);
   --color-background: var(--background);
+  --color-status-draft: var(--status-draft);
+  --color-status-draft-text: var(--status-draft-text);
+  --color-status-draft-border: var(--status-draft-border);
+  --color-status-quoted: var(--status-quoted);
+  --color-status-quoted-text: var(--status-quoted-text);
+  --color-status-quoted-border: var(--status-quoted-border);
+  --color-status-confirmed: var(--status-confirmed);
+  --color-status-confirmed-text: var(--status-confirmed-text);
+  --color-status-confirmed-border: var(--status-confirmed-border);
+  --color-status-closed: var(--status-closed);
+  --color-status-closed-text: var(--status-closed-text);
+  --color-status-closed-border: var(--status-closed-border);
+  --color-status-warning: var(--status-warning);
+  --color-status-warning-text: var(--status-warning-text);
+  --color-status-warning-border: var(--status-warning-border);
+  --color-diff-added: var(--diff-added);
+  --color-diff-added-border: var(--diff-added-border);
+  --color-diff-added-text: var(--diff-added-text);
+  --color-diff-added-badge: var(--diff-added-badge);
+  --color-diff-modified: var(--diff-modified);
+  --color-diff-modified-border: var(--diff-modified-border);
+  --color-diff-modified-text: var(--diff-modified-text);
+  --color-diff-modified-badge: var(--diff-modified-badge);
+  --color-diff-removed: var(--diff-removed);
+  --color-diff-removed-border: var(--diff-removed-border);
+  --color-diff-removed-text: var(--diff-removed-text);
+  --color-diff-removed-badge: var(--diff-removed-badge);
+  --color-diff-removed-badge-text: var(--diff-removed-badge-text);
+  --color-destructive-muted: var(--destructive-muted);
+  --color-destructive-muted-text: var(--destructive-muted-text);
+  --color-destructive-muted-border: var(--destructive-muted-border);
+  --color-destructive-muted-hover: var(--destructive-muted-hover);
+  --color-highlight: var(--highlight);
+  --color-highlight-text: var(--highlight-text);
+  --color-highlight-border: var(--highlight-border);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);

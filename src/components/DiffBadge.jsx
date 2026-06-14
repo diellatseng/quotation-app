@@ -4,17 +4,17 @@ const CONFIG = {
   added: {
     icon: 'arrow_upward',
     label: '新增',
-    className: 'bg-green-100 text-green-800 border-green-300',
+    className: 'bg-diff-added-badge text-diff-added-text border-diff-added-border',
   },
   modified: {
     icon: 'edit',
     label: '更改',
-    className: 'bg-yellow-100 text-yellow-800 border-yellow-300',
+    className: 'bg-diff-modified-badge text-diff-modified-text border-diff-modified-border',
   },
   removed: {
     icon: 'close',
     label: '刪除',
-    className: 'bg-red-100 text-red-800 border-red-300',
+    className: 'bg-diff-removed-badge text-diff-removed-badge-text border-diff-removed-border',
   },
 }
 

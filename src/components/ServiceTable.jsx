@@ -171,10 +171,10 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
           // Dynamic border/bg depend on runtime state
           const cardClasses = `
             ${isOver ? 'border-2 border-dashed border-accent' : ''}
-            ${diff === 'added' ? 'border-2 border-green-500' : ''}
-            ${diff === 'modified' ? 'border-2 border-yellow-400' : ''}
-            ${diff === 'removed' ? 'border-2 border-red-400' : ''}
-            ${!isOver && !diff && svc.is_added ? 'border-2 border-accent' : ''}
+            ${diff === 'added' ? 'border-2 border-diff-added-border' : ''}
+            ${diff === 'modified' ? 'border-2 border-diff-modified-border' : ''}
+            ${diff === 'removed' ? 'border-2 border-diff-removed-border' : ''}
+            ${!isOver && !diff && svc.is_added ? 'border-2 border-highlight-border' : ''}
             ${!isOver && !diff && !svc.is_added ? 'border border-border' : ''}
             rounded-md
             overflow-hidden
@@ -185,10 +185,10 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
 
           const cardBgClasses = `
             ${isDragging ? 'bg-muted' : ''}
-            ${diff === 'added' ? 'bg-green-50' : ''}
-            ${diff === 'modified' ? 'bg-yellow-50' : ''}
-            ${diff === 'removed' ? 'bg-red-50' : ''}
-            ${svc.is_added && !diff ? 'bg-accent-subtle' : ''}
+            ${diff === 'added' ? 'bg-diff-added' : ''}
+            ${diff === 'modified' ? 'bg-diff-modified' : ''}
+            ${diff === 'removed' ? 'bg-diff-removed' : ''}
+            ${svc.is_added && !diff ? 'bg-highlight' : ''}
             ${!isDragging && !diff && !svc.is_added ? 'bg-card' : ''}
           `
 
@@ -228,7 +228,7 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                 {/* Number badge — dynamic colours */}
                 <div className={`
                   w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0
-                  ${isRemoved ? 'bg-red-400 text-red-900' : svc.is_added ? 'bg-accent text-white' : 'bg-muted text-muted-foreground'}
+                  ${isRemoved ? 'bg-diff-removed-badge text-diff-removed-badge-text' : svc.is_added ? 'bg-highlight-border text-primary-foreground' : 'bg-muted text-muted-foreground'}
                 `}>
                   {isRemoved ? (
                     <Icon name="close" className="text-sm leading-none" title="" />
@@ -270,7 +270,7 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                 )}
 
                 {svc.is_added && !diff && (
-                  <span className="inline-flex items-center flex-shrink-0 px-2 py-0.5 rounded-full text-xs font-bold bg-accent-subtle text-accent border border-accent whitespace-nowrap">新增</span>
+                  <span className="inline-flex items-center flex-shrink-0 px-2 py-0.5 rounded-full text-xs font-bold bg-highlight text-highlight-text border border-highlight-border whitespace-nowrap">新增</span>
                 )}
 
                 {/* Right action cluster */}
@@ -313,7 +313,7 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                           onClick={() => requestDelete(idx)}
                           title="再次點擊以確認刪除"
                           aria-label="確認刪除服務項目"
-                          className="inline-flex items-center gap-1 h-8 px-2.5 rounded-md text-xs font-semibold border border-red-300 bg-red-50 text-red-600 hover:bg-red-100 cursor-pointer transition-colors whitespace-nowrap animate-in fade-in zoom-in-95 duration-150"
+                          className="inline-flex items-center gap-1 h-8 px-2.5 rounded-md text-xs font-semibold border border-destructive-muted-border bg-destructive-muted text-destructive-muted-text hover:bg-destructive-muted-hover cursor-pointer transition-colors whitespace-nowrap animate-in fade-in zoom-in-95 duration-150"
                         >
                           <Icon name="delete" title="" />
                           確定刪除？
@@ -325,7 +325,7 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                           onClick={() => requestDelete(idx)}
                           variant="ghost"
                           size="sm"
-                          className="!text-muted-foreground hover:!bg-red-50 hover:!text-red-600"
+                          className="!text-muted-foreground hover:!bg-destructive-muted hover:!text-destructive-muted-text"
                         />
                       )
                     )}
@@ -469,7 +469,7 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                         onClick={() => removeChecklistItem(checklistIdx, iIdx)}
                         variant="ghost"
                         size="sm"
-                        className="!text-red-600 hover:!bg-red-50 flex-shrink-0"
+                        className="!text-destructive-muted-text hover:!bg-destructive-muted flex-shrink-0"
                       />
                     )}
                   </div>

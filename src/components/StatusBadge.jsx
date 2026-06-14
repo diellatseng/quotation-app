@@ -1,20 +1,21 @@
 // src/components/StatusBadge.jsx
+
 const STATUS_MAP = {
   '草稿': {
     label: '草稿',
-    classes: 'bg-zinc-100 text-zinc-700 border-zinc-300'
+    classes: 'bg-status-draft text-status-draft-text border-status-draft-border',
   },
   '已報價': {
     label: '已報價',
-    classes: 'bg-blue-50 text-blue-700 border-blue-300'
+    classes: 'bg-status-quoted text-status-quoted-text border-status-quoted-border',
   },
   '已確認': {
     label: '已確認',
-    classes: 'bg-emerald-50 text-emerald-700 border-emerald-300'
+    classes: 'bg-status-confirmed text-status-confirmed-text border-status-confirmed-border',
   },
   '已結案': {
     label: '已結案',
-    classes: 'bg-zinc-700 text-zinc-50 border-zinc-700'
+    classes: 'bg-status-closed text-status-closed-text border-status-closed-border',
   },
 }
 
@@ -31,7 +32,7 @@ export default function StatusBadge({ status, isNegotiating = false, size = 'md'
         {entry.label}
       </span>
       {isNegotiating && (
-        <span className={`inline-block border ${sizeClasses} bg-amber-50 text-amber-800 border-amber-300`}>
+        <span className={`inline-block border ${sizeClasses} bg-status-warning text-status-warning-text border-status-warning-border`}>
           議價中
         </span>
       )}
