@@ -1,7 +1,7 @@
 // src/App.js
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './hooks/useAuth'
-import { ThemeProvider } from './context/ThemeContext'
+import { AppearanceProvider } from './context/AppearanceContext'
 import { NotificationProvider } from './context/NotificationContext'
 import NotificationCenter from './components/NotificationCenter'
 
@@ -17,10 +17,7 @@ import ServicesAdmin         from './pages/admin/ServicesAdmin'
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
   if (loading) return (
-    <div style={{
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      minHeight: '100vh', fontSize: 'var(--text-md)', color: 'var(--color-text-muted)',
-    }}>
+    <div className="flex items-center justify-center min-h-screen text-base text-muted-foreground">
       載入中…
     </div>
   )
@@ -50,14 +47,14 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <ThemeProvider>
+    <AppearanceProvider>
       <NotificationProvider>
         <AuthProvider>
-          <BrowserRouter basename={process.env.PUBLIC_URL || '/'}>
+          <BrowserRouter basename={import.meta.env.BASE_URL}>
             <AppRoutes />
           </BrowserRouter>
         </AuthProvider>
       </NotificationProvider>
-    </ThemeProvider>
+    </AppearanceProvider>
   )
 }

@@ -1,22 +1,28 @@
 {
   "name": "quotation-app",
-  "version": "0.0.11",
+  "version": "0.0.13",
   "private": true,
   "homepage": "https://diellatseng.github.io/quotation-app/",
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",
+    "@tailwindcss/typography": "^0.5.19",
+    "@tailwindcss/vite": "^4.3.0",
     "emailjs-com": "^3.2.0",
     "html2canvas": "^1.4.1",
     "jspdf": "^2.5.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^6.26.0"
+    "react-router-dom": "^6.26.0",
+    "tailwindcss": "^4.3.0"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "test:coverage": "react-scripts test --coverage --watchAll=false",
+    "start": "vite",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
     "format": "prettier --write \"src/**/*.{js,jsx,json,css,md}\"",
@@ -27,10 +33,15 @@
     "@testing-library/jest-dom": "^6.1.5",
     "@testing-library/react": "^14.0.0",
     "@testing-library/user-event": "^14.5.1",
+    "@vitejs/plugin-react": "^6.0.2",
+    "@vitest/coverage-v8": "^4.1.8",
     "eslint": "^8.57.1",
     "gh-pages": "^6.3.0",
+    "jsdom": "^29.1.1",
     "prettier": "^3.1.1",
-    "react-scripts": "5.0.1"
+    "react-scripts": "5.0.1",
+    "vite": "^8.0.16",
+    "vitest": "^4.1.8"
   },
   "browserslist": {
     "production": [
@@ -42,21 +53,5 @@
       "last 1 chrome version",
       "last 1 firefox version"
     ]
-  },
-  "jest": {
-    "collectCoverageFrom": [
-      "src/**/*.{js,jsx}",
-      "!src/index.js",
-      "!src/setupTests.js",
-      "!src/**/*.test.{js,jsx}"
-    ],
-    "coverageThreshold": {
-      "global": {
-        "branches": 10,
-        "functions": 10,
-        "lines": 10,
-        "statements": 10
-      }
-    }
   }
 }

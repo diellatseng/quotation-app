@@ -3,16 +3,22 @@ import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useNotification } from '../context/NotificationContext'
+import Button from './Button'
+import Icon from './Icon'
+import IconButton from './IconButton'
 
 const fmt = (n) => `NT$ ${Number(n || 0).toLocaleString('zh-TW')}`
 
-export default function NegotiationPanel({ quotationId, currentAmount, logs, onLogged }) {
-  const [open, setOpen]       = useState(false)
+const LABEL_CLS = 'block text-xs font-semibold text-foreground mb-1.5'
+const INPUT_CLS = 'w-full px-3 py-2 text-sm bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all'
+
+export default function NegotiationPanel({ quotationId, currentAmount, logs = [], onLogged }) {
+  const [open, setOpen] = useState(false)
   const [newAmount, setNewAmount] = useState('')
-  const [notes, setNotes]     = useState('')
-  const [saving, setSaving]   = useState(false)
-  const { user }              = useAuth()
-  const { success, error }    = useNotification()
+  const [notes, setNotes] = useState('')
+  const [saving, setSaving] = useState(false)
+  const { user } = useAuth()
+  const { success, error } = useNotification()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -35,7 +41,7 @@ export default function NegotiationPanel({ quotationId, currentAmount, logs, onL
 
     success('議價記錄已儲存')
     const savedAmount = Number(newAmount)
-    const savedNotes  = notes
+    const savedNotes = notes
     setNewAmount('')
     setNotes('')
     setOpen(false)
@@ -47,37 +53,27 @@ export default function NegotiationPanel({ quotationId, currentAmount, logs, onL
     <div>
       {/* Timeline */}
       {logs.length > 0 && (
-        <div style={{ marginBottom: 'var(--space-5)' }}>
-          <p className="section-title">議價歷程</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+        <div className="mb-5">
+          <p className="text-base font-semibold text-foreground mb-3">議價歷程</p>
+          <div className="flex flex-col gap-3">
             {logs.map((log, idx) => (
-              <div key={log.id} style={{
-                display: 'flex',
-                gap: 'var(--space-4)',
-                paddingLeft: 'var(--space-4)',
-                borderLeft: '2px solid var(--color-border)',
-                position: 'relative',
-              }}>
-                <div style={{
-                  position: 'absolute', left: -7, top: 4,
-                  width: 12, height: 12, borderRadius: '50%',
-                  background: idx === 0 ? 'var(--color-accent)' : 'var(--color-border)',
-                  border: '2px solid var(--color-bg-surface)',
-                }} />
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-1)' }}>
+              <div key={log.id} className="flex gap-4 pl-4 border-l-2 border-border relative">
+                <div className={`absolute -left-[7px] top-1 w-3 h-3 rounded-full border-2 border-card ${idx === 0 ? 'bg-accent' : 'bg-border'}`} />
+                <div className="flex-1">
+                  <div className="text-xs text-muted-foreground mb-1">
                     {new Date(log.logged_at).toLocaleString('zh-TW')}
                   </div>
-                  <div style={{ display: 'flex', gap: 'var(--space-4)', flexWrap: 'wrap', marginBottom: 'var(--space-1)' }}>
-                    <span style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>
+                  <div className="flex gap-4 flex-wrap mb-1">
+                    <span className="text-sm text-muted-foreground">
                       原報價：<s>{fmt(log.old_amount)}</s>
                     </span>
-                    <span style={{ fontSize: 'var(--text-sm)', fontWeight: 700, color: 'var(--color-text)' }}>
-                      → 議價後：{fmt(log.new_amount)}
+                    <span className="text-sm font-bold text-foreground inline-flex items-center gap-1">
+                      <Icon name="arrow_forward" className="text-sm leading-none" title="" />
+                      議價後：{fmt(log.new_amount)}
                     </span>
                   </div>
                   {log.notes && (
-                    <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', fontStyle: 'italic' }}>
+                    <p className="text-sm text-muted-foreground italic">
                       {log.notes}
                     </p>
                   )}
@@ -89,39 +85,37 @@ export default function NegotiationPanel({ quotationId, currentAmount, logs, onL
       )}
 
       {/* Add entry */}
-      <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 'var(--space-4)', marginTop: 'var(--space-2)' }}>
-        <button
-          type="button"
-          className="btn btn-secondary btn-sm"
-          onClick={() => setOpen(v => !v)}
-          aria-expanded={open}
-        >
-          {open ? '取消' : '+ 新增議價記錄'}
-        </button>
+      <div className="border-t border-border pt-4 mt-2">
+        {open ? (
+          <Button type="button" variant="ghost" size="sm" onClick={() => setOpen(false)}>
+            取消
+          </Button>
+        ) : (
+          <IconButton
+            type="button"
+            variant="normal"
+            size="sm"
+            icon="add"
+            label="新增議價記錄"
+            onClick={() => setOpen(true)}
+            aria-expanded={false}
+          />
+        )}
       </div>
 
       {open && (
-        <form onSubmit={handleSubmit} style={{
-          marginTop: 'var(--space-4)',
-          padding: 'var(--space-5)',
-          background: 'var(--color-bg-subtle)',
-          borderRadius: 'var(--radius-md)',
-          border: '1px solid var(--color-border)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 'var(--space-4)',
-        }}>
+        <form onSubmit={handleSubmit} className="mt-4 p-5 bg-muted rounded-md border border-border flex flex-col gap-4">
           <div>
-            <label className="field-label">目前報價</label>
-            <p style={{ fontSize: 'var(--text-md)', fontWeight: 700 }}>{fmt(currentAmount)}</p>
+            <label className={LABEL_CLS}>目前報價</label>
+            <p className="text-lg font-bold text-foreground">{fmt(currentAmount)}</p>
           </div>
           <div>
-            <label className="field-label" htmlFor="neg-new-amount">議價後金額（未稅）*</label>
+            <label className={LABEL_CLS} htmlFor="neg-new-amount">議價後金額（未稅）*</label>
             <input
               id="neg-new-amount"
               type="number"
               min="0"
-              className="field-input"
+              className={INPUT_CLS}
               value={newAmount}
               onChange={e => setNewAmount(e.target.value)}
               placeholder="輸入新金額"
@@ -129,22 +123,21 @@ export default function NegotiationPanel({ quotationId, currentAmount, logs, onL
             />
           </div>
           <div>
-            <label className="field-label" htmlFor="neg-notes">議價備註</label>
+            <label className={LABEL_CLS} htmlFor="neg-notes">議價備註</label>
             <textarea
               id="neg-notes"
-              className="field-input"
+              className={`${INPUT_CLS} resize-y`}
               value={notes}
               onChange={e => setNotes(e.target.value)}
               placeholder="例如：業主要求減10%，同意調整"
               rows={3}
-              style={{ resize: 'vertical' }}
             />
           </div>
-          <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
-            <button type="submit" className="btn btn-primary" disabled={saving}>
+          <div className="flex gap-3">
+            <Button type="submit" variant="primary" disabled={saving}>
               {saving ? '儲存中…' : '確認議價'}
-            </button>
-            <button type="button" className="btn btn-ghost" onClick={() => setOpen(false)}>取消</button>
+            </Button>
+            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>取消</Button>
           </div>
         </form>
       )}

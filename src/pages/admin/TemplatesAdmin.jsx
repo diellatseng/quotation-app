@@ -2,6 +2,11 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useNotification } from '../../context/NotificationContext.jsx'
+import Button from '../../components/Button'
+import IconButton from '../../components/IconButton'
+
+const LABEL_CLS = 'block text-xs font-semibold text-foreground mb-1.5'
+const INPUT_CLS = 'w-full h-10 px-3 text-sm bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all'
 
 export default function TemplatesAdmin() {
   const [templates, setTemplates] = useState([])
@@ -73,28 +78,28 @@ export default function TemplatesAdmin() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-6)' }}>
-        <h2 style={{ fontSize: 'var(--text-xl)', fontWeight: 700 }}>工程範本</h2>
-        <button className="btn btn-primary" onClick={() => { setSelected(null); setForm({ name: '', description: '', category: '' }); setLinkedServices([]); setShowForm(true) }}>
-          + 新增範本
-        </button>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-xl font-bold">工程範本</h2>
+        <IconButton
+          variant="primary"
+          icon="add"
+          label="新增範本"
+          onClick={() => { setSelected(null); setForm({ name: '', description: '', category: '' }); setLinkedServices([]); setShowForm(true) }}
+        />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: showForm ? '1fr 1.6fr' : '1fr', gap: 'var(--space-5)' }}>
+      <div className={`grid gap-5 ${showForm ? 'grid-cols-[1fr_1.6fr]' : 'grid-cols-1'}`}>
         {/* Template list */}
-        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div className="bg-card text-card-foreground border border-border rounded-xl shadow-sm overflow-hidden">
           {templates.length === 0 ? (
-            <p style={{ padding: 'var(--space-6)', color: 'var(--color-text-muted)', textAlign: 'center' }}>尚無工程範本</p>
+            <p className="p-6 text-muted-foreground text-center">尚無工程範本</p>
           ) : templates.map(t => (
-            <div key={t.id} onClick={() => select(t)} style={{
-              padding: 'var(--space-4)',
-              borderBottom: '1px solid var(--color-border)',
-              cursor: 'pointer',
-              background: selected?.id === t.id ? 'var(--color-accent-subtle)' : 'transparent',
-              borderLeft: selected?.id === t.id ? '3px solid var(--color-accent)' : '3px solid transparent',
-            }}>
-              <div style={{ fontWeight: 600 }}>{t.name}</div>
-              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+            <div key={t.id} onClick={() => select(t)} className={`p-4 border-b border-border cursor-pointer transition-colors ${selected?.id === t.id
+              ? 'bg-primary/10 border-l-4 border-l-primary'
+              : 'border-l-4 border-l-transparent hover:bg-muted/50'
+              }`}>
+              <div className="font-semibold">{t.name}</div>
+              <div className="text-xs text-muted-foreground">
                 {t.category} ／ {(t.template_services || []).length} 項服務
               </div>
             </div>
@@ -103,50 +108,44 @@ export default function TemplatesAdmin() {
 
         {/* Edit form */}
         {showForm && (
-          <div className="card">
-            <p className="section-title">{selected ? '編輯範本' : '新增範本'}</p>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)', marginBottom: 'var(--space-4)' }}>
-              <div style={{ gridColumn: '1/-1' }}>
-                <label className="field-label">範本名稱 *</label>
-                <input className="field-input" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="例如：住宅大樓跑照" />
+          <div className="bg-card text-card-foreground border border-border rounded-xl p-6 shadow-sm">
+            <p className="text-base font-semibold text-foreground mb-4">{selected ? '編輯範本' : '新增範本'}</p>
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="col-span-2">
+                <label className={LABEL_CLS}>範本名稱 *</label>
+                <input className={INPUT_CLS} value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="例如：住宅大樓跑照" />
               </div>
               <div>
-                <label className="field-label">類別</label>
-                <input className="field-input" value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} placeholder="例如：住宅、商業" />
+                <label className={LABEL_CLS}>類別</label>
+                <input className={INPUT_CLS} value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} placeholder="例如：住宅、商業" />
               </div>
               <div>
-                <label className="field-label">說明</label>
-                <input className="field-input" value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
+                <label className={LABEL_CLS}>說明</label>
+                <input className={INPUT_CLS} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
               </div>
             </div>
 
             {/* Service linking */}
-            <p className="section-title">連結服務項目</p>
-            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-3)' }}>
+            <p className="text-base font-semibold text-foreground mb-1">連結服務項目</p>
+            <p className="text-sm text-muted-foreground mb-3">
               已選擇 {linkedServices.length} 項服務
             </p>
-            <div style={{ maxHeight: 360, overflowY: 'auto', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)' }}>
+            <div className="max-h-[360px] overflow-y-auto border border-border rounded-md">
               {Object.entries(grouped).map(([cat, svcs]) => (
                 <div key={cat}>
-                  <div style={{ padding: 'var(--space-2) var(--space-4)', background: 'var(--color-bg-subtle)', fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                  <div className="px-4 py-2 bg-muted text-xs font-bold text-muted-foreground uppercase tracking-wide">
                     {cat}
                   </div>
                   {svcs.map(svc => (
-                    <label key={svc.id} style={{
-                      display: 'flex', alignItems: 'center', gap: 'var(--space-3)',
-                      padding: 'var(--space-3) var(--space-4)',
-                      borderBottom: '1px solid var(--color-border)',
-                      cursor: 'pointer',
-                      background: linkedServices.includes(svc.id) ? 'var(--color-accent-subtle)' : 'transparent',
-                      minHeight: 44,
-                    }}>
+                    <label key={svc.id} className={`flex items-center gap-3 px-4 py-3 border-b border-border cursor-pointer min-h-[44px] ${linkedServices.includes(svc.id) ? 'bg-primary/10' : 'hover:bg-muted/50'
+                      }`}>
                       <input
                         type="checkbox"
                         checked={linkedServices.includes(svc.id)}
                         onChange={() => toggleService(svc.id)}
-                        style={{ width: 20, height: 20 }}
+                        className="w-5 h-5"
                       />
-                      <span style={{ fontSize: 'var(--text-sm)', fontWeight: linkedServices.includes(svc.id) ? 600 : 400 }}>
+                      <span className={`text-sm ${linkedServices.includes(svc.id) ? 'font-semibold' : 'font-normal'}`}>
                         {svc.name}
                       </span>
                     </label>
@@ -154,16 +153,16 @@ export default function TemplatesAdmin() {
                 </div>
               ))}
               {allServices.length === 0 && (
-                <p style={{ padding: 'var(--space-4)', color: 'var(--color-text-muted)', textAlign: 'center', fontSize: 'var(--text-sm)' }}>
+                <p className="p-4 text-muted-foreground text-center text-sm">
                   請先在「服務資料庫」新增服務項目
                 </p>
               )}
             </div>
 
-            <div style={{ display: 'flex', gap: 'var(--space-3)', marginTop: 'var(--space-5)' }}>
-              <button className="btn btn-primary" onClick={save} disabled={loading}>{loading ? '儲存中…' : '儲存範本'}</button>
-              {selected && <button className="btn btn-danger" onClick={deleteTmpl}>刪除</button>}
-              <button className="btn btn-ghost" onClick={() => { setShowForm(false); setSelected(null) }}>取消</button>
+            <div className="flex gap-3 mt-5">
+              <Button variant="primary" onClick={save} disabled={loading}>{loading ? '儲存中…' : '儲存範本'}</Button>
+              {selected && <Button variant="danger" onClick={deleteTmpl}>刪除</Button>}
+              <Button variant="ghost" onClick={() => { setShowForm(false); setSelected(null) }}>取消</Button>
             </div>
           </div>
         )}

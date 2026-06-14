@@ -2,433 +2,256 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import { useAuth } from '../hooks/useAuth'
 import { useNotification } from '../context/NotificationContext'
 import { useExportPDF } from '../hooks/useExportPDF'
 import { formatRocDate } from '../lib/rocDate'
+import { FEATURE_NEGOTIATION, FEATURE_VERSIONING } from '../lib/featureFlags'
 import StatusBadge from '../components/StatusBadge'
-import NegotiationPanel from '../components/NegotiationPanel'
+// import NegotiationPanel from '../components/NegotiationPanel' // inactive: negotiation
 import ServiceTable from '../components/ServiceTable'
 import A4Preview from '../components/A4Preview'
-
-const fmt = (n) => `NT$ ${Number(n || 0).toLocaleString('zh-TW')}`
+import Button from '../components/Button'
+import IconButton from '../components/IconButton'
 
 const COMPANY_INFO = {
-  name: process.env.REACT_APP_COMPANY_NAME || '公司名稱',
-  address: process.env.REACT_APP_COMPANY_ADDRESS || '公司地址',
-  phone: process.env.REACT_APP_COMPANY_PHONE || '公司電話',
-  fax: process.env.REACT_APP_COMPANY_FAX || '',
-  email: process.env.REACT_APP_COMPANY_EMAIL || '',
+  name: import.meta.env.VITE_COMPANY_NAME || '公司名稱',
+  address: import.meta.env.VITE_COMPANY_ADDRESS || '公司地址',
+  phone: import.meta.env.VITE_COMPANY_PHONE || '公司電話',
+  fax: import.meta.env.VITE_COMPANY_FAX || '',
+  email: import.meta.env.VITE_COMPANY_EMAIL || '',
 }
 
 export default function QuotationDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { user } = useAuth()
   const { success, error, info } = useNotification()
-  const quotationRef = useRef()  // quotation
-  const servicesRef = useRef()  // services appendix
-  const checklistRef = useRef()  // checklist appendix
+  const quotationRef = useRef()
+  const servicesRef = useRef()
 
   const [qt, setQt] = useState(null)
   const [services, setServices] = useState([])
-  const [stages, setStages] = useState([])
-  const [negLogs, setNegLogs] = useState([])
-  const [versions, setVersions] = useState([])
   const [loading, setLoading] = useState(true)
-  const [tab, setTab] = useState('quotation')  // 'quotation' | 'services' | 'checklist'
-  const [negDialog, setNegDialog] = useState(null)
-  const [showVersions, setShowVersions] = useState(false) // { amount, notes }
-  const [emailing, setEmailing] = useState(false)
+  const [exporting, setExporting] = useState(false)
+  // const [negDialog, setNegDialog] = useState(null) // inactive: negotiation / versioning
+  const [activeTab, setActiveTab] = useState('quotation')
 
-  const { exporting, exportPDF } = useExportPDF()
+  const { exportPDF } = useExportPDF()
 
-  // Pick the correct ref for the active tab
-  const activeRef = tab === 'services' ? servicesRef : tab === 'checklist' ? checklistRef : quotationRef
-
-  const load = async () => {
+  const fetchData = async () => {
     setLoading(true)
-    const [{ data: q }, { data: sv }, { data: st }, { data: nl }] = await Promise.all([
-      supabase.from('quotations')
-        .select('*, clients(*), contact_persons(*)')
-        .eq('id', id).single(),
-      supabase.from('quotation_services').select('*').eq('quotation_id', id).order('sort_order'),
-      supabase.from('payment_stages').select('*').eq('quotation_id', id).order('sort_order'),
-      supabase.from('negotiation_log').select('*').eq('quotation_id', id).order('logged_at', { ascending: false }),
-    ])
-    if (!q) { error('找不到報價單'); navigate('/dashboard'); return }
-    setQt(q)
-    setServices(sv || [])
-    setStages(st || [])
-    setNegLogs(nl || [])
-
-    // Load version chain
-    if (q.parent_id || q.version > 1) {
-      const { data: chain } = await supabase
-        .from('quotations')
-        .select('id, quote_number, version, status, created_at, fee_amount')
-        .or(`id.eq.${q.parent_id || id},parent_id.eq.${q.parent_id || id},id.eq.${id}`)
-        .order('version')
-      setVersions(chain || [])
-    }
-    setLoading(false)
-  }
-
-  useEffect(() => { load() }, [id]) // eslint-disable-line
-
-  const setStatus = async (status) => {
-    await supabase.from('quotations').update({ status }).eq('id', qt.id)
-    setQt(q => ({ ...q, status }))
-    success(`狀態已更新為「${status}」`)
-  }
-
-  const sendEmail = async () => {
-    const recipientEmail = qt.contact_persons?.email || qt.clients?.email
-    if (!recipientEmail) { error('聯絡人或客戶無電子郵件，無法發送'); return }
-
-    const ejsKey = process.env.REACT_APP_EMAILJS_PUBLIC_KEY
-    const ejsSvc = process.env.REACT_APP_EMAILJS_SERVICE_ID
-    const ejsTmpl = process.env.REACT_APP_EMAILJS_TEMPLATE_ID
-
-    if (!ejsKey || !ejsSvc || !ejsTmpl) {
-      error('尚未設定 EmailJS 設定值，請參閱 README 完成設定')
-      return
-    }
-
-    setEmailing(true)
-    info('正在產生 PDF 並發送…')
-
     try {
-      const { default: html2canvas } = await import('html2canvas')
-      const { jsPDF } = await import('jspdf')
-      const pageEls = quotationRef.current.querySelectorAll('[data-page]')
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
-      const pdfW = pdf.internal.pageSize.getWidth()
-      const pdfH = pdf.internal.pageSize.getHeight()
-      for (let i = 0; i < pageEls.length; i++) {
-        if (i > 0) pdf.addPage()
-        const canvas = await html2canvas(pageEls[i], { scale: 2, useCORS: true, backgroundColor: '#ffffff' })
-        const imgH = (canvas.height * pdfW) / canvas.width
-        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, pdfW, Math.min(imgH, pdfH))
-      }
-      const pdfBase64 = pdf.output('datauristring')
+      const { data: qData, error: qErr } = await supabase
+        .from('quotations')
+        .select(`
+          *,
+          clients(*),
+          contact_persons(*)
+        `)
+        .eq('id', id)
+        .single()
 
-      const emailjs = await import('emailjs-com')
+      if (qErr) throw qErr
+      setQt(qData)
+      quotationRef.current = qData
 
-      await emailjs.send(ejsSvc, ejsTmpl, {
-        to_email: recipientEmail,
-        to_name: qt.contact_persons?.name || qt.clients?.company_name || '',
-        quote_number: qt.quote_number,
-        client_name: qt.clients?.company_name || '',
-        amount: fmt(grand),
-        quote_date: formatRocDate(qt.quote_date),
-        company_name: COMPANY_INFO.name,
-        pdf_content: pdfBase64,
-      }, ejsKey)
+      const { data: sData, error: sErr } = await supabase
+        .from('quotation_services')
+        .select('*')
+        .eq('quotation_id', id)
+        .order('sort_order', { ascending: true })
 
-      // Auto-set to 已報價
-      await setStatus('已報價')
-      success(`報價單已發送至 ${recipientEmail}`)
-    } catch (e) {
-      error('發送失敗：' + (e?.text || e?.message || '未知錯誤'))
-    }
-    setEmailing(false)
-  }
-
-  const createVersionAfterNegotiation = async ({ amount, notes: negNotes, editServices }) => {
-    setNegDialog(null)
-    // Build new version row
-    const { data: newQt, error: err } = await supabase.from('quotations').insert([{
-      quote_number: qt.quote_number,
-      version: qt.version + 1,
-      parent_id: qt.parent_id || qt.id,
-      status: '草稿',
-      project_id: qt.project_id,
-      client_id: qt.client_id,
-      contact_person_id: qt.contact_person_id,
-      project_template_id: qt.project_template_id,
-      building_permit: qt.building_permit,
-      land_section: qt.land_section,
-      project_scale: qt.project_scale,
-      project_owner: qt.project_owner,
-      project_name: qt.project_name,
-      fee_amount: amount,
-      tax_included: qt.tax_included,
-      quote_date: new Date().toISOString().split('T')[0],
-      notes: qt.notes,
-      is_negotiating: true,
-      created_by: user.id,
-    }]).select().single()
-    if (err || !newQt) { error('建立新版本失敗：' + (err?.message || '')); return }
-
-    // Copy services — all unchanged initially (diff will be computed in wizard if editServices)
-    const newServices = services.map((s, i) => ({
-      quotation_id: newQt.id,
-      service_id: s.service_id,
-      service_name: s.service_name,
-      category: s.category,
-      description: s.description || null,
-      checklist_items: s.checklist_items || [],
-      sort_order: i,
-      is_added: false,
-      diff_status: null,
-    }))
-    if (newServices.length) await supabase.from('quotation_services').insert(newServices)
-
-    // Copy payment stages (with project_id)
-    const newStages = stages.map((st, i) => ({
-      quotation_id: newQt.id,
-      project_id: qt.project_id,
-      stage_name: st.stage_name,
-      percentage: st.percentage,
-      amount: st.amount,
-      sort_order: i,
-    }))
-    if (newStages.length) await supabase.from('payment_stages').insert(newStages)
-
-    if (editServices) {
-      // Go to wizard step 3, carrying negotiation context
-      navigate(`/quotation/new?edit=${newQt.id}&step=3&negAmount=${amount}&negNotes=${encodeURIComponent(negNotes || '')}`)
-    } else {
-      success('新版本報價單已建立')
-      navigate(`/quotation/${newQt.id}`)
+      if (sErr) throw sErr
+      setServices(sData)
+      servicesRef.current = sData
+    } catch (err) {
+      error('載入失敗: ' + err.message)
+    } finally {
+      setLoading(false)
     }
   }
 
-  const handleNegLogged = (payload) => {
-    load()
-    setNegDialog(payload)
+  useEffect(() => {
+    fetchData()
+  }, [id]) // eslint-disable-line
+
+  const updateStatus = async (newStatus) => {
+    try {
+      const { error: err } = await supabase
+        .from('quotations')
+        .update({ status: newStatus })
+        .eq('id', id)
+
+      if (err) throw err
+      success(`狀態已更新為【${newStatus}】`)
+      fetchData()
+    } catch (err) {
+      error('更新失敗: ' + err.message)
+    }
   }
 
-  if (loading) return (
-    <div className="detail-loading">
-      載入中…
-    </div>
-  )
+  /* inactive: negotiation / versioning
+  const handleNegotiateSubmit = (amount, comment) => {
+    setNegDialog({ amount, comment })
+  }
 
-  const contactPerson = qt.contact_persons
-  const fee = qt.fee_amount || 0
-  const grand = fee + (qt.tax_included ? fee * 0.05 : 0)
+  const createVersionAfterNegotiation = async ({ amount, comment, editServices }) => {
+    ...
+  }
+  */
+
+  const handleExport = async () => {
+    if (!quotationRef.current) return
+    setExporting(true)
+    info('正在準備 PDF 匯出資料，請稍候…')
+    try {
+      await exportPDF(quotationRef.current, servicesRef.current, COMPANY_INFO)
+      success('PDF 匯出成功')
+    } catch (err) {
+      error('匯出失敗: ' + err.message)
+    } finally {
+      setExporting(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background text-sm text-muted-foreground">
+        載入中…
+      </div>
+    )
+  }
+
+  if (!qt) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-background text-center px-4">
+        <p className="text-sm font-medium text-muted-foreground">找不到該報價單</p>
+        <Button variant="normal" className="mt-4" onClick={() => navigate('/dashboard')}>
+          返回儀表板
+        </Button>
+      </div>
+    )
+  }
 
   return (
-    <div className="detail-page">
-      {/* Header */}
-      <header className="detail-header">
-        <div className="detail-header__left">
-          <button className="btn btn-ghost btn-sm" onClick={() => navigate('/dashboard')}>
-            ← 返回
-          </button>
-          <div>
-            <div className="detail-header__title-row">
-              <h1 className="detail-header__title">{qt.quote_number}</h1>
-              {qt.version > 1 && (
-                <span className="detail-header__version">
-                  v{qt.version}
-                </span>
-              )}
-              <StatusBadge status={qt.status} isNegotiating={qt.is_negotiating} size="sm" />
-            </div>
-            <p className="detail-header__subtitle">{qt.clients?.company_name} ／ {formatRocDate(qt.quote_date)}</p>
-          </div>
-        </div>
+    <div className="min-h-screen bg-background text-foreground pb-12 transition-colors duration-200">
 
-        {/* Actions */}
-        <div className="detail-header__actions">
-          <button
-            className="btn btn-sm"
-            onClick={() => exportPDF(activeRef, {
-              filename: `${
-                tab === 'services'  ? '服務說明' :
-                tab === 'checklist' ? '準備清單' : '報價單'
-              }-${qt?.quote_number || ''}`,
-              onSuccess: async () => {
-                if (tab === 'quotation' && qt.status === '草稿') {
-                  if (window.confirm('是否將狀態更新為「已報價」？')) setStatus('已報價')
-                }
-              },
-            })}
-            disabled={exporting}
-          >
-            {exporting ? '匯出中…' : '匯出 PDF'}
-          </button>
-          {qt.status === '草稿' && (
-            <button className="btn btn-sm" onClick={() => setStatus('已報價')}>
-              標記為已報價
-            </button>
-          )}
-          {qt.status === '已報價' && (
-            <button className="btn btn-sm" onClick={() => setStatus('已確認')}>
-              標記為已確認
-            </button>
-          )}
-          {qt.status === '已確認' && (
-            <button className="btn btn-sm" onClick={() => setStatus('已結案')}>
-              標記為已結案
-            </button>
-          )}
+      {/* ── Top Header Navigation Bar ── */}
+      <header className="sticky top-0 z-10 border-b border-border bg-card/80 backdrop-blur-md px-4 py-4 md:px-8 shadow-sm">
+        <div className="mx-auto max-w-7xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <IconButton
+              icon="arrow_back"
+              label="返回"
+              variant="normal"
+              size="sm"
+              onClick={() => navigate('/dashboard')}
+              aria-label="返回儀表板"
+            />
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-xl font-bold tracking-tight text-foreground">
+                  {qt.quote_number}
+                </h1>
+                {FEATURE_VERSIONING && (
+                  <span className="text-xs font-mono bg-muted text-muted-foreground border border-border rounded px-1.5 py-0.5">
+                    v{qt.version}
+                  </span>
+                )}
+                <StatusBadge
+                  status={qt.status}
+                  isNegotiating={FEATURE_NEGOTIATION && qt.is_negotiating}
+                  size="sm"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                客戶：{qt.clients?.company_name || '—'}
+              </p>
+            </div>
+          </div>
+
+          {/* Core System Actions Trigger */}
+          <div className="flex flex-wrap items-center gap-2">
+            <IconButton
+              icon="print"
+              label={exporting ? '匯出中…' : '匯出 PDF'}
+              variant="normal"
+              size="sm"
+              onClick={handleExport}
+              disabled={exporting}
+            />
+
+            {qt.status === '草稿' && (
+              <>
+                <IconButton
+                  icon="edit"
+                  label="編輯草稿"
+                  variant="normal"
+                  size="sm"
+                  onClick={() => navigate(`/quotation/new?edit=${qt.id}`)}
+                />
+                <Button variant="primary" size="sm" onClick={() => updateStatus('已報價')}>
+                  發送報價 (置為已報價)
+                </Button>
+              </>
+            )}
+
+            {qt.status === '已報價' && (
+              <Button variant="primary" size="sm" onClick={() => updateStatus('已確認')}>
+                客戶確認簽回
+              </Button>
+            )}
+          </div>
         </div>
       </header>
 
-      <main className="page-body">
-        {/* Version history */}
-        {versions.length > 1 && (
-          <div className="detail-versions">
-            <button className="btn btn-ghost btn-sm" onClick={() => setShowVersions(v => !v)}>
-              {showVersions ? '隱藏' : '查看'}版本歷程（共 {versions.length} 版）
-            </button>
-            {showVersions && (
-              <div className="detail-versions__list">
-                {versions.map(v => (
-                  <button key={v.id} className="btn btn-sm btn-secondary"
-                    data-current={v.id === id}
-                    onClick={() => navigate(`/quotation/${v.id}`)}>
-                    v{v.version} — {fmt(v.fee_amount)} — <StatusBadge status={v.status} size="sm" />
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Summary cards */}
-        <div className="detail-summary">
-          {[
-            { label: '合計金額', value: fmt(grand) },
-            { label: '服務項目', value: `${services.length} 項` },
-            { label: '付款階段', value: `${stages.length} 階段` },
-            // { label: '議價次數', value: `${negLogs.length} 次` },
-          ].map(c => (
-            <div key={c.label} className="stat-card detail-summary__card">
-              <p className="stat-card__label">{c.label}</p>
-              <p className="stat-card__value">{c.value}</p>
-            </div>
-          ))}
+      {/* ── Main Layout Workspace ── */}
+      <main className="mx-auto max-w-7xl px-4 py-6 md:px-8">
+        {/* Tab Navigation */}
+        <div className="flex gap-2 border-b border-border mb-6">
+          <button
+            onClick={() => setActiveTab('quotation')}
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'quotation'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+          >
+            報價單
+          </button>
+          <button
+            onClick={() => setActiveTab('services')}
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'services'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+          >
+            服務明細
+          </button>
+          <button
+            onClick={() => setActiveTab('checklist')}
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'checklist'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+          >
+            客戶準備清單
+          </button>
         </div>
 
-        {/* Tab nav */}
-        <div className="tab-bar detail-tabs" role="tablist">
-          {[
-            { key: 'quotation', label: '報價單' },
-            { key: 'services', label: '服務細項說明' },
-            { key: 'checklist', label: '準備資料清單' },
-            // { key: 'negotiation', label: `議價記錄（${negLogs.length}）` },
-          ].map(t => (
-            <button
-              key={t.key}
-              className="tab-item"
-              onClick={() => setTab(t.key)}
-              aria-selected={tab === t.key}
-              role="tab"
-            >{t.label}</button>
-          ))}
-        </div>
-
-        {/* Tab content — all three panels stay mounted so their refs are always
-             populated. Inactive panels are hidden with display:none so the
-             export hook can always read [data-page] elements from the active ref. */}
-        <div style={{ display: tab === 'quotation' ? '' : 'none' }}>
-          <div className="detail-preview-tray">
-            <div className="detail-preview-paper">
-              <A4Preview
-                ref={quotationRef}
-                mode="quotation"
-                quotation={qt}
-                services={services}
-                stages={stages}
-                client={qt.clients}
-                contactPerson={contactPerson}
-                companyInfo={COMPANY_INFO}
-                negLogs={negLogs}
-              />
-            </div>
-          </div>
-        </div>
-
-        <div style={{ display: tab === 'services' ? '' : 'none' }}>
-          <div className="detail-preview-tray">
-            <div className="detail-preview-paper">
-              <A4Preview
-                ref={servicesRef}
-                mode="services"
-                quotation={qt}
-                services={services}
-                stages={stages}
-                client={qt.clients}
-                contactPerson={contactPerson}
-                companyInfo={COMPANY_INFO}
-              />
-            </div>
-          </div>
-        </div>
-
-        <div style={{ display: tab === 'checklist' ? '' : 'none' }}>
-          <div className="detail-preview-tray">
-            <div className="detail-preview-paper">
-              <A4Preview
-                ref={checklistRef}
-                mode="checklist"
-                quotation={qt}
-                services={services}
-                stages={stages}
-                client={qt.clients}
-                contactPerson={contactPerson}
-                companyInfo={COMPANY_INFO}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* {tab === 'negotiation' && (
-          <div className="card">
-            <p className="section-title">議價記錄</p>
-            <NegotiationPanel
-              quotationId={qt.id}
-              currentAmount={qt.fee_amount}
-              logs={negLogs}
-              onLogged={handleNegLogged}
+        {/* A4 Preview Container - Full Width */}
+        <div className="bg-muted/30 rounded-xl border border-border p-4 md:p-6 flex justify-center overflow-auto shadow-inner">
+          <div className="bg-white shadow-md rounded-sm border border-zinc-200 origin-top transform scale-100 max-w-full">
+            <A4Preview
+              quotation={qt}
+              services={services}
+              companyInfo={COMPANY_INFO}
+              mode={activeTab}
             />
           </div>
-        )} */}
+        </div>
 
-        {/* Post-negotiation version dialog */}
-        {negDialog && (
-          <div className="detail-dialog">
-            <div className="detail-dialog__content">
-              <div className="detail-dialog__icon">📋</div>
-              <h2 className="detail-dialog__title">
-                建立第 {qt.version + 1} 版報價單
-              </h2>
-              <p className="detail-dialog__body">
-                議價已記錄。系統將自動建立新版本報價單（議價金額：NT$ {Number(negDialog.amount).toLocaleString('zh-TW')}）。
-              </p>
-              <p className="detail-dialog__question">
-                是否同時更改服務內容？
-              </p>
-              <div className="detail-dialog__actions">
-                <button
-                  className="btn btn-primary"
-                  onClick={() => createVersionAfterNegotiation({ ...negDialog, editServices: true })}
-                >
-                  ✎ 更改服務內容
-                </button>
-                <button
-                  className="btn btn-secondary"
-                  onClick={() => createVersionAfterNegotiation({ ...negDialog, editServices: false })}
-                >
-                  沿用原有服務內容
-                </button>
-              </div>
-              <div className="detail-dialog__footer">
-                <button
-                  className="btn btn-ghost btn-sm"
-                  onClick={() => setNegDialog(null)}
-                >
-                  稍後再說（不建立新版本）
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* inactive: negotiation / versioning — new-version dialog after 議價
+        {negDialog && ( ... )}
+        */}
       </main>
     </div>
   )

@@ -28,88 +28,129 @@ export default function Step2Project({ data, update }) {
         description: ts.services?.description || '',
         checklist_items: (ts.services?.service_checklist_items || [])
           .sort((a, b) => a.sort_order - b.sort_order)
-          .map(ci => ({ id: ci.id, item_text: ci.item_text })),
-        is_added: false,
+          .map(ci => ({ id: ci.id, item_text: ci.item_text }))
       }))
     update({ project_template_id: tmpl.id, services })
   }
 
-  const field = (key) => ({
-    className: 'field-input',
-    value: data[key] || '',
-    onChange: e => update({ [key]: e.target.value }),
-  })
-
   return (
-    <div>
-      <h2 className="page-heading">步驟 2：工程資料</h2>
-      <p className="page-desc">選擇工程範本後，服務內容將自動載入（可在下一步調整）。</p>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-xl font-bold text-foreground tracking-tight mb-1">步驟 2：工程資料</h2>
+        <p className="text-sm text-muted-foreground">請輸入本工程相關資訊，並選定預設服務項目範本。</p>
+      </div>
 
-      {/* Project fields */}
-      <div className="card">
-        <p className="section-title">工程基本資料</p>
-        <div className="field-grid">
-          <div>
-            <label className="field-label" htmlFor="project_owner">起造人</label>
-            <input id="project_owner" {...field('project_owner')} placeholder="某某建設股份有限公司" />
+      <div className="bg-card text-card-foreground border border-border rounded-xl p-6 shadow-sm">
+        <p className="text-base font-semibold text-foreground mb-4">工程基本資料</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-foreground">工程名稱 *</label>
+            <input
+              type="text"
+              className="w-full h-10 px-3 text-sm bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              value={data.project_name || ''}
+              onChange={e => update({ project_name: e.target.value })}
+              placeholder="例如：住宅新建工程"
+              required
+            />
           </div>
-          <div>
-            <label className="field-label" htmlFor="building_permit">建照號碼</label>
-            <input id="building_permit" {...field('building_permit')} placeholder="(114)高市工建築字第00123號" />
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-foreground">起造人 / 業主</label>
+            <input
+              type="text"
+              className="w-full h-10 px-3 text-sm bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              value={data.project_owner || ''}
+              onChange={e => update({ project_owner: e.target.value })}
+              placeholder="例如：王小明"
+            />
           </div>
-          <div>
-            <label className="field-label" htmlFor="land_section">地段</label>
-            <input id="land_section" {...field('land_section')} placeholder="高雄市鹽埕區某某段123地號等6筆" required />
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-foreground">建造執照字號</label>
+            <input
+              type="text"
+              className="w-full h-10 px-3 text-sm bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              value={data.building_permit || ''}
+              onChange={e => update({ building_permit: e.target.value })}
+              placeholder="例如：(112)高市工建築字第XXXXX號"
+            />
           </div>
-          <div>
-            <label className="field-label" htmlFor="project_scale">工程規模</label>
-            <input id="project_scale" {...field('project_scale')} placeholder="地上23層地下5層2棟300戶" />
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-foreground">地號資訊</label>
+            <input
+              type="text"
+              className="w-full h-10 px-3 text-sm bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              value={data.land_section || ''}
+              onChange={e => update({ land_section: e.target.value })}
+              placeholder="例如：XX區XX段XX地號"
+            />
           </div>
-        </div>
-        <div style={{ marginTop: 'var(--space-4)' }}>
-          <label className="field-label" htmlFor="project_name">工程名稱</label>
-          <input id="project_name" {...field('project_name')} placeholder="工程名稱" />
+          <div className="space-y-1.5 md:col-span-2">
+            <label className="text-xs font-semibold text-foreground">工程規模 / 備註說明</label>
+            <input
+              type="text"
+              className="w-full h-10 px-3 text-sm bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              value={data.project_scale || ''}
+              onChange={e => update({ project_scale: e.target.value })}
+              placeholder="例如：地上5層，地下1層，RC構造，總樓地板面積..."
+            />
+          </div>
         </div>
       </div>
 
-      {/* Template picker */}
-      <div className="card" style={{ marginTop: 'var(--space-6)' }}>
-        <p className="section-title">選擇工程範本</p>
-        {templates.length === 0 ? (
-          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>
-            尚無工程範本，請至管理頁面新增，或跳過此步驟手動填寫服務內容。
-          </p>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-            {/* None option */}
-            <label className={`tmpl-option${data.project_template_id === null ? ' tmpl-option--selected' : ''}`}>
-              <input type="radio" name="template" checked={data.project_template_id === null}
-                onChange={() => selectTemplate(null)} style={{ width: 20, height: 20 }} />
-              <div>
-                <div className="tmpl-option__name">不使用範本</div>
-                <div className="tmpl-option__meta">服務內容將手動新增</div>
-              </div>
-            </label>
-            {templates.map(tmpl => (
-              <label key={tmpl.id} className={`tmpl-option${data.project_template_id === tmpl.id ? ' tmpl-option--selected' : ''}`}>
-                <input type="radio" name="template" checked={data.project_template_id === tmpl.id}
-                  onChange={() => selectTemplate(tmpl)} style={{ width: 20, height: 20 }} />
-                <div style={{ flex: 1 }}>
-                  <div className="tmpl-option__name">{tmpl.name}</div>
-                  {tmpl.description && (
-                    <div className="tmpl-option__meta">{tmpl.description}</div>
-                  )}
-                  <div className="tmpl-option__count">
-                    {(tmpl.template_services || []).length} 項服務
-                  </div>
-                </div>
-                {tmpl.category && (
-                  <span className="category-pill">{tmpl.category}</span>
+      <div className="bg-card text-card-foreground border border-border rounded-xl p-6 shadow-sm">
+        <p className="text-base font-semibold text-foreground mb-4">選擇服務範本</p>
+        <div className="flex flex-col gap-3">
+          <label
+            className={`flex items-start gap-4 p-4 border rounded-xl cursor-pointer transition-all hover:bg-muted/40 select-none ${data.project_template_id === null
+                ? 'border-primary bg-primary/[0.02] ring-1 ring-primary'
+                : 'border-border bg-background'
+              }`}
+          >
+            <input
+              type="radio"
+              name="template"
+              className="w-4 h-4 text-primary focus:ring-primary border-border mt-0.5"
+              checked={data.project_template_id === null}
+              onChange={() => selectTemplate(null)}
+            />
+            <div>
+              <div className="text-sm font-semibold text-foreground">不使用範本</div>
+              <div className="text-xs text-muted-foreground mt-0.5">服務內容與查核項目將手動新增與編輯</div>
+            </div>
+          </label>
+
+          {templates.map(tmpl => (
+            <label
+              key={tmpl.id}
+              className={`flex items-start gap-4 p-4 border rounded-xl cursor-pointer transition-all hover:bg-muted/40 select-none ${data.project_template_id === tmpl.id
+                  ? 'border-primary bg-primary/[0.02] ring-1 ring-primary'
+                  : 'border-border bg-background'
+                }`}
+            >
+              <input
+                type="radio"
+                name="template"
+                className="w-4 h-4 text-primary focus:ring-primary border-border mt-0.5"
+                checked={data.project_template_id === tmpl.id}
+                onChange={() => selectTemplate(tmpl)}
+              />
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-semibold text-foreground">{tmpl.name}</div>
+                {tmpl.description && (
+                  <div className="text-xs text-muted-foreground mt-0.5 line-clamp-2 leading-relaxed">{tmpl.description}</div>
                 )}
-              </label>
-            ))}
-          </div>
-        )}
+                <div className="inline-flex items-center text-[10px] font-semibold text-primary bg-primary/5 px-2 py-0.5 rounded mt-2 border border-primary/10">
+                  {(tmpl.template_services || []).length} 項服務
+                </div>
+              </div>
+              {tmpl.category && (
+                <span className="shrink-0 text-xs font-medium px-2.5 py-0.5 bg-muted text-muted-foreground border border-border rounded-full">
+                  {tmpl.category}
+                </span>
+              )}
+            </label>
+          ))}
+        </div>
       </div>
     </div>
   )

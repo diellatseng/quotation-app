@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-const PDF_SERVER_URL = process.env.REACT_APP_PDF_SERVER_URL || 'http://localhost:3001'
+const PDF_SERVER_URL = import.meta.env.VITE_PDF_SERVER_URL || 'http://localhost:3001'
 
 /**
  * useExportPDF — Shared PDF export logic for quotation pages

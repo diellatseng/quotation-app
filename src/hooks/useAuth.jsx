@@ -101,7 +101,7 @@ export function AuthProvider({ children }) {
   // 提供存取 session credentials 的方法
   const getCredentials = () => {
     if (typeof window === 'undefined') return null
-    const sessionData = window.localStorage.getItem('sb-' + process.env.REACT_APP_SUPABASE_URL?.split('//')[1]?.split('.')[0])
+    const sessionData = window.localStorage.getItem('sb-' + import.meta.env.VITE_SUPABASE_URL?.split('//')[1]?.split('.')[0])
     return sessionData ? JSON.parse(sessionData) : null
   }
 

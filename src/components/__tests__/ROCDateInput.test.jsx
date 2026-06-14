@@ -1,34 +1,33 @@
 // src/components/__tests__/ROCDateInput.test.jsx
 //
 // Tests for <ROCDateInput />, a controlled date field that supports
-// both ROC (民國) and CE (西元) entry modes.
+// both ROC (民國) and CE (西元) display modes.
 //
-// Key behaviours under test:
-//  - Renders label and toggle button
-//  - Displays a CE value converted to ROC format in the text box
-//  - Starts in ROC mode by default; toggle button switches to CE mode and back
-//  - Calls onChange with a CE string ("YYYY-MM-DD") regardless of entry mode
-//  - Calls onChange with "" when the input is cleared
-//  - Shows the correct placeholder and hint text for each mode
-//  - Works without a label (label prop omitted)
-//  - Handles an empty initial value without crashing
+// Design notes (current implementation):
+//  - The component is fully controlled. The active mode is driven by the
+//    `useRoc` prop (no internal toggle button) — the parent (e.g. Step4Confirm)
+//    owns the 民國/西元 switch.
+//  - Internally the field always stores/emits CE date strings ("YYYY-MM-DD").
+//  - Display uses 年月日 separators: ROC mode → "114年08月18日",
+//    CE mode → "2025年08月18日".
+//  - Accepted input: a fully-formatted "XXX年MM月DD日" string, or a raw numeric
+//    run (7 digits for ROC "1141231", 8 digits for CE "20250818").
 //
 // NOTE on userEvent.type vs fireEvent.change:
 //  userEvent.type fires onChange on EVERY keystroke, so asserting the last call
-//  would check only the final character, not the complete value.
-//  For date string inputs we use fireEvent.change to simulate the user
-//  completing the full value — this matches how a date field behaves in practice
-//  (the value is committed as a whole, not character by character).
+//  would check only the final character, not the complete value. Date fields are
+//  committed as a whole value, so we use fireEvent.change to simulate the user
+//  completing the full value.
 //
 // How to run only this file:
-//   npm test -- --testPathPattern="ROCDateInput" --watchAll=false
+//   npx vitest run src/components/__tests__/ROCDateInput.test.jsx
 
+import { vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import ROCDateInput from '../ROCDateInput'
 
 describe('ROCDateInput', () => {
-  const mockOnChange = jest.fn()
+  const mockOnChange = vi.fn()
 
   beforeEach(() => {
     // Reset call history before each test so assertions stay independent
@@ -40,19 +39,17 @@ describe('ROCDateInput', () => {
   // ───────────────────────────────────────────────────────────────
 
   it('renders the label text when a label prop is provided', () => {
-    // Expected: the string "報價日期" appears in the document
     render(<ROCDateInput label="報價日期" value="" onChange={mockOnChange} />)
     expect(screen.getByText('報價日期')).toBeInTheDocument()
   })
 
   it('renders without a label when label prop is omitted', () => {
-    // Expected: no crash; the text input is still accessible via its aria-label
+    // No crash; the text input is still accessible via its aria-label
     render(<ROCDateInput value="" onChange={mockOnChange} />)
     expect(screen.getByRole('textbox')).toBeInTheDocument()
   })
 
   it('renders without crashing when value is empty string', () => {
-    // Expected: component mounts cleanly; input value is ""
     render(<ROCDateInput label="日期" value="" onChange={mockOnChange} />)
     expect(screen.getByRole('textbox').value).toBe('')
   })
@@ -61,109 +58,111 @@ describe('ROCDateInput', () => {
   // Display / value conversion
   // ───────────────────────────────────────────────────────────────
 
-  it('converts and displays a CE value as ROC format in the text box', () => {
-    // Input value "2025-08-18" (CE) → displayed as "114-08-18" (ROC)
-    // because default mode is 民國
+  it('displays a CE value converted to ROC 年月日 format by default (民國 mode)', () => {
+    // value "2025-08-18" (CE) → displayed as "114年08月18日" because useRoc defaults to true
     render(<ROCDateInput value="2025-08-18" onChange={mockOnChange} />)
-    expect(screen.getByRole('textbox').value).toBe('114-08-18')
+    expect(screen.getByRole('textbox').value).toBe('114年08月18日')
   })
 
-  it('displays a CE value as-is when in CE mode', async () => {
-    // After toggling to 西元 mode, the value should not be converted
-    const user = userEvent.setup()
-    render(<ROCDateInput label="日期" value="2025-08-18" onChange={mockOnChange} />)
-    await user.click(screen.getByText('民國')) // switch to CE mode
-    expect(screen.getByRole('textbox').value).toBe('2025-08-18')
+  it('displays a CE value in 西元 年月日 format when useRoc is false', () => {
+    // Regression guard: an existing CE value shown in 西元 mode must keep the
+    // correct month separator ("月", not "年"). Previously a stray replace turned
+    // "2025-08-18" into "2025年08年18日".
+    render(<ROCDateInput value="2025-08-18" useRoc={false} onChange={mockOnChange} />)
+    expect(screen.getByRole('textbox').value).toBe('2025年08月18日')
+  })
+
+  it('re-formats the display when useRoc toggles after blur (民國 ↔ 西元)', () => {
+    const { rerender } = render(
+      <ROCDateInput value="2025-08-18" useRoc onChange={mockOnChange} />
+    )
+    const input = screen.getByRole('textbox')
+    expect(input.value).toBe('114年08月18日')
+
+    // Simulate blur leaving a formatted ROC string in local state
+    fireEvent.change(input, { target: { value: '114年08月18日' } })
+    fireEvent.blur(input)
+    expect(input.value).toBe('114年08月18日')
+
+    // Parent toggles to 西元 — display should switch to CE format
+    rerender(<ROCDateInput value="2025-08-18" useRoc={false} onChange={mockOnChange} />)
+    expect(input.value).toBe('2025年08月18日')
+
+    // Toggle back to 民國
+    rerender(<ROCDateInput value="2025-08-18" useRoc onChange={mockOnChange} />)
+    expect(input.value).toBe('114年08月18日')
   })
 
   // ───────────────────────────────────────────────────────────────
-  // Mode toggle
+  // Controlled mode (useRoc prop) — placeholder / aria-label
   // ───────────────────────────────────────────────────────────────
 
-  it('shows "民國" toggle button by default (starts in ROC mode)', () => {
-    // The button label reflects the *current* active mode
+  it('shows a mode-aware placeholder in 民國 mode (useRoc defaults to true)', () => {
     render(<ROCDateInput label="日期" value="" onChange={mockOnChange} />)
-    expect(screen.getByText('民國')).toBeInTheDocument()
+    expect(screen.getByRole('textbox')).toHaveAttribute(
+      'placeholder',
+      '民國年月日，例如 114年12月31日 或 1141231'
+    )
+    expect(screen.queryByText(/格式：/)).not.toBeInTheDocument()
   })
 
-  it('switches button label from "民國" to "西元" after one click', async () => {
-    // Expected: clicking once toggles to CE mode; button now shows "西元"
-    const user = userEvent.setup()
-    render(<ROCDateInput label="日期" value="" onChange={mockOnChange} />)
-    await user.click(screen.getByText('民國'))
-    expect(screen.getByText('西元')).toBeInTheDocument()
+  it('shows a mode-aware placeholder when useRoc is false', () => {
+    render(<ROCDateInput label="日期" value="" useRoc={false} onChange={mockOnChange} />)
+    expect(screen.getByRole('textbox')).toHaveAttribute(
+      'placeholder',
+      '西元年月日，例如 2026年12月31日 或 20261231'
+    )
+    expect(screen.queryByText(/格式：/)).not.toBeInTheDocument()
   })
 
-  it('switches back to "民國" mode after a second toggle click', async () => {
-    // Expected: two clicks → back to ROC mode; button shows "民國" again
-    const user = userEvent.setup()
-    render(<ROCDateInput label="日期" value="" onChange={mockOnChange} />)
-    await user.click(screen.getByText('民國'))
-    await user.click(screen.getByText('西元'))
-    expect(screen.getByText('民國')).toBeInTheDocument()
+  it('uses a mode-aware aria-label when no label is provided', () => {
+    const { rerender } = render(<ROCDateInput value="" onChange={mockOnChange} />)
+    expect(screen.getByLabelText('民國日期')).toBeInTheDocument()
+    rerender(<ROCDateInput value="" useRoc={false} onChange={mockOnChange} />)
+    expect(screen.getByLabelText('西元日期')).toBeInTheDocument()
   })
 
   // ───────────────────────────────────────────────────────────────
-  // onChange behaviour — ROC mode
-  //
-  // We use fireEvent.change (instead of userEvent.type) because date
-  // inputs are filled as a complete value. userEvent.type fires onChange
-  // on every keystroke, so the last call would be for the final character
-  // alone, not the full date string.
+  // onChange behaviour — ROC (民國) mode
   // ───────────────────────────────────────────────────────────────
 
-  it('calls onChange with a CE string when user enters a full ROC date', () => {
-    // User fills in "114-08-18" in ROC mode (default)
-    // Expected: onChange receives the CE equivalent "2025-08-18"
+  it('calls onChange with the CE string when a full ROC date is entered (formatted)', () => {
     render(<ROCDateInput value="" onChange={mockOnChange} />)
-    fireEvent.change(screen.getByRole('textbox'), { target: { value: '114-08-18' } })
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: '114年08月18日' } })
+    expect(mockOnChange).toHaveBeenCalledWith('2025-08-18')
+  })
+
+  it('calls onChange with the CE string for raw 7-digit ROC input', () => {
+    render(<ROCDateInput value="" onChange={mockOnChange} />)
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: '1140818' } })
     expect(mockOnChange).toHaveBeenCalledWith('2025-08-18')
   })
 
   it('calls onChange with "" when the input is cleared', () => {
-    // User deletes all text
-    // Expected: onChange receives "" (not null or undefined)
     render(<ROCDateInput value="2025-08-18" onChange={mockOnChange} />)
     fireEvent.change(screen.getByRole('textbox'), { target: { value: '' } })
     expect(mockOnChange).toHaveBeenCalledWith('')
   })
 
   it('calls onChange once per change event (not per keystroke)', () => {
-    // Expected: one fireEvent.change → exactly one onChange call
     render(<ROCDateInput value="" onChange={mockOnChange} />)
-    fireEvent.change(screen.getByRole('textbox'), { target: { value: '114-08-18' } })
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: '1140818' } })
     expect(mockOnChange).toHaveBeenCalledTimes(1)
   })
 
   // ───────────────────────────────────────────────────────────────
-  // onChange behaviour — CE mode
+  // onChange behaviour — CE (西元) mode
   // ───────────────────────────────────────────────────────────────
 
-  it('calls onChange with the CE string as-is when user enters a date in CE mode', async () => {
-    // After toggling to 西元, the raw value is passed through unchanged
-    // Expected: onChange receives "2025-08-18" directly (no conversion)
-    const user = userEvent.setup()
-    render(<ROCDateInput label="日期" value="" onChange={mockOnChange} />)
-    await user.click(screen.getByText('民國')) // switch to CE mode
-    fireEvent.change(screen.getByRole('textbox'), { target: { value: '2025-08-18' } })
+  it('calls onChange with the CE string for raw 8-digit CE input when useRoc is false', () => {
+    render(<ROCDateInput value="" useRoc={false} onChange={mockOnChange} />)
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: '20250818' } })
     expect(mockOnChange).toHaveBeenCalledWith('2025-08-18')
   })
 
-  // ───────────────────────────────────────────────────────────────
-  // Placeholder and hint text
-  // ───────────────────────────────────────────────────────────────
-
-  it('shows ROC format hint text in default (民國) mode', () => {
-    // Expected: hint paragraph contains "民國年-月-日"
-    render(<ROCDateInput label="日期" value="" onChange={mockOnChange} />)
-    expect(screen.getByText(/民國年-月-日/)).toBeInTheDocument()
-  })
-
-  it('shows CE format hint text after switching to 西元 mode', async () => {
-    // Expected: after toggle, hint paragraph contains "西元年-月-日"
-    const user = userEvent.setup()
-    render(<ROCDateInput label="日期" value="" onChange={mockOnChange} />)
-    await user.click(screen.getByText('民國'))
-    expect(screen.getByText(/西元年-月-日/)).toBeInTheDocument()
+  it('calls onChange with the CE string for a formatted CE date when useRoc is false', () => {
+    render(<ROCDateInput value="" useRoc={false} onChange={mockOnChange} />)
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: '2025年08月18日' } })
+    expect(mockOnChange).toHaveBeenCalledWith('2025-08-18')
   })
 })

@@ -3,7 +3,7 @@
 // Smoke tests for the top-level <App /> component.
 //
 // App wraps the entire tree:
-//   ThemeProvider → NotificationProvider → AuthProvider → BrowserRouter → Routes
+//   AppearanceProvider → NotificationProvider → AuthProvider → BrowserRouter → Routes
 //
 // What we test here:
 //  - The component tree mounts without throwing
@@ -22,19 +22,21 @@
 // How to run only this file:
 //   npm test -- --testPathPattern="App.test" --watchAll=false
 
+import { vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import App from '../App'
 import { supabase } from '../lib/supabase'
 
 // Prevent real Supabase calls — getSession must return a real Promise
 // so that AuthProvider's .then() handler works correctly in tests
-jest.mock('../lib/supabase', () => ({
+vi.mock('../lib/supabase', () => ({
+  SESSION_TIMEOUT_HOURS: 24,
   supabase: {
     auth: {
-      getSession: jest.fn(),
-      onAuthStateChange: jest.fn(),
-      signInWithPassword: jest.fn(),
-      signOut: jest.fn(),
+      getSession: vi.fn(),
+      onAuthStateChange: vi.fn(),
+      signInWithPassword: vi.fn(),
+      signOut: vi.fn(),
     },
   },
 }))
@@ -42,7 +44,7 @@ jest.mock('../lib/supabase', () => ({
 describe('App', () => {
   beforeEach(() => {
     // Suppress React Router v6 → v7 migration warnings that are irrelevant to tests
-    jest.spyOn(console, 'warn').mockImplementation((msg) => {
+    vi.spyOn(console, 'warn').mockImplementation((msg) => {
       if (typeof msg === 'string' && msg.includes('React Router Future Flag Warning')) return
       console.warn(msg)
     })
@@ -53,7 +55,7 @@ describe('App', () => {
     // (reading 'then')" on getSession().
     supabase.auth.getSession.mockResolvedValue({ data: { session: null } })
     supabase.auth.onAuthStateChange.mockReturnValue({
-      data: { subscription: { unsubscribe: jest.fn() } },
+      data: { subscription: { unsubscribe: vi.fn() } },
     })
   })
   // ─────────────────────────────────────────────────────────────

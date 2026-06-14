@@ -7,11 +7,11 @@
 // Functions under test:
 //   ceToRoc        – CE year number  → ROC year number
 //   rocToCe        – ROC year number → CE year number
-//   formatRocDate  – CE date string  → Chinese display string  (e.g. "民國114年08月18日")
-//   rocInputToCe   – ROC input string "XXX-MM-DD" → CE string "YYYY-MM-DD"
-//   ceToRocInput   – CE string "YYYY-MM-DD" → ROC input string "XXX-MM-DD"
+//   formatRocDate  – CE date string  → ROC display string  (e.g. "114年08月18日")
+//   rocInputToCe   – ROC input "XXX年MM月DD日" or raw "XXXMMDD" → CE "YYYY-MM-DD"
+//   ceToRocInput   – CE string "YYYY-MM-DD" → ROC display "XXX年MM月DD日"
 //   todayCe        – returns today as "YYYY-MM-DD"
-//   todayRocInput  – returns today as ROC input "XXX-MM-DD"
+//   todayRocInput  – returns today as ROC display "XXX年MM月DD日"
 
 import {
   ceToRoc,
@@ -75,17 +75,17 @@ describe('rocToCe', () => {
 
 // ─────────────────────────────────────────────────────────────────
 // formatRocDate
-// Formats a CE date string "YYYY-MM-DD" into the full Chinese
-// display format "民國XXX年MM月DD日".
+// Formats a CE date string "YYYY-MM-DD" into the ROC display
+// format "XXX年MM月DD日" (the ROC year is implied by the 年月日 form).
 // ─────────────────────────────────────────────────────────────────
 describe('formatRocDate', () => {
-  it('formats a standard date: "2025-08-18" → "民國114年08月18日"', () => {
-    expect(formatRocDate('2025-08-18')).toBe('民國114年08月18日')
+  it('formats a standard date: "2025-08-18" → "114年08月18日"', () => {
+    expect(formatRocDate('2025-08-18')).toBe('114年08月18日')
   })
 
-  it('preserves leading zeros in month and day: "2025-01-05" → "民國114年01月05日"', () => {
+  it('preserves leading zeros in month and day: "2025-01-05" → "114年01月05日"', () => {
     // Month "01" and day "05" must stay zero-padded as stored in the CE string
-    expect(formatRocDate('2025-01-05')).toBe('民國114年01月05日')
+    expect(formatRocDate('2025-01-05')).toBe('114年01月05日')
   })
 
   it('returns an empty string for an empty input (no date selected yet)', () => {
@@ -101,16 +101,16 @@ describe('formatRocDate', () => {
 
 // ─────────────────────────────────────────────────────────────────
 // ceToRocInput
-// Converts a CE date string "YYYY-MM-DD" to the ROC input format
-// "XXX-MM-DD" used in <ROCDateInput> fields.
+// Converts a CE date string "YYYY-MM-DD" to the ROC display format
+// "XXX年MM月DD日" used in <ROCDateInput> fields.
 // ─────────────────────────────────────────────────────────────────
 describe('ceToRocInput', () => {
-  it('converts "2025-08-18" → "114-08-18"', () => {
-    expect(ceToRocInput('2025-08-18')).toBe('114-08-18')
+  it('converts "2025-08-18" → "114年08月18日"', () => {
+    expect(ceToRocInput('2025-08-18')).toBe('114年08月18日')
   })
 
-  it('converts "2024-01-01" → "113-01-01"', () => {
-    expect(ceToRocInput('2024-01-01')).toBe('113-01-01')
+  it('converts "2024-01-01" → "113年01月01日"', () => {
+    expect(ceToRocInput('2024-01-01')).toBe('113年01月01日')
   })
 
   it('returns an empty string for empty input', () => {
@@ -120,16 +120,16 @@ describe('ceToRocInput', () => {
 
 // ─────────────────────────────────────────────────────────────────
 // rocInputToCe
-// Parses the ROC input format "XXX-MM-DD" back into a CE date
-// string "YYYY-MM-DD" suitable for storing in the database.
+// Parses ROC input — either formatted "XXX年MM月DD日" or a raw 7-digit
+// run "XXXMMDD" — back into a CE date string "YYYY-MM-DD" for storage.
 // ─────────────────────────────────────────────────────────────────
 describe('rocInputToCe', () => {
-  it('converts "114-08-18" → "2025-08-18"', () => {
-    expect(rocInputToCe('114-08-18')).toBe('2025-08-18')
+  it('converts formatted "114年08月18日" → "2025-08-18"', () => {
+    expect(rocInputToCe('114年08月18日')).toBe('2025-08-18')
   })
 
-  it('converts "113-01-01" → "2024-01-01"', () => {
-    expect(rocInputToCe('113-01-01')).toBe('2024-01-01')
+  it('converts raw "1130101" → "2024-01-01"', () => {
+    expect(rocInputToCe('1130101')).toBe('2024-01-01')
   })
 
   it('returns an empty string for empty input', () => {
@@ -145,14 +145,14 @@ describe('rocInputToCe', () => {
 describe('round-trip: ceToRocInput → rocInputToCe', () => {
   it('restores the original CE date string exactly', () => {
     const original  = '2025-08-18'
-    const rocInput  = ceToRocInput(original)  // "114-08-18"
+    const rocInput  = ceToRocInput(original)  // "114年08月18日"
     const restored  = rocInputToCe(rocInput)  // back to "2025-08-18"
     expect(restored).toBe(original)
   })
 
   it('round-trips correctly for an early-year date (month and day with leading zeros)', () => {
     const original  = '2024-01-05'
-    const rocInput  = ceToRocInput(original)  // "113-01-05"
+    const rocInput  = ceToRocInput(original)  // "113年01月05日"
     const restored  = rocInputToCe(rocInput)
     expect(restored).toBe(original)
   })
@@ -176,17 +176,17 @@ describe('todayCe', () => {
 
 // ─────────────────────────────────────────────────────────────────
 // todayRocInput
-// Returns today's date in ROC input format "XXX-MM-DD".
+// Returns today's date in ROC display format "XXX年MM月DD日".
 // The ROC year should equal the CE year minus 1911.
 // ─────────────────────────────────────────────────────────────────
 describe('todayRocInput', () => {
-  it('returns a string matching the ROC input format XXX-MM-DD', () => {
+  it('returns a string matching the ROC display format XXX年MM月DD日', () => {
     // ROC year is 2-3 digits; month and day are always 2 digits
-    expect(todayRocInput()).toMatch(/^\d{2,3}-\d{2}-\d{2}$/)
+    expect(todayRocInput()).toMatch(/^\d{2,3}年\d{2}月\d{2}日$/)
   })
 
   it('ROC year in output equals CE year minus 1911', () => {
-    const rocYear = parseInt(todayRocInput().split('-')[0], 10)
+    const rocYear = parseInt(todayRocInput().split('年')[0], 10)
     const ceYear  = new Date().getFullYear()
     expect(rocYear).toBe(ceYear - 1911)
   })
