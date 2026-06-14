@@ -493,15 +493,16 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
 }
 
 function DiffBadge({ type }) {
-  const classMap = {
-    added: 'diff-badge diff-badge--added',
-    modified: 'diff-badge diff-badge--modified',
-    removed: 'diff-badge diff-badge--removed',
+  const base = 'inline-flex items-center flex-shrink-0 px-2 py-0.5 rounded-full text-xs font-bold border'
+  const variantMap = {
+    added: 'bg-green-100 text-green-800 border-green-300',
+    modified: 'bg-yellow-100 text-yellow-800 border-yellow-300',
+    removed: 'bg-red-100 text-red-800 border-red-300',
   }
   const labelMap = {
     added: '▲ 新增', modified: '✎ 更改', removed: '✕ 刪除',
   }
-  const cls = classMap[type]
-  if (!cls) return null
-  return <span className={cls}>{labelMap[type]}</span>
+  const variant = variantMap[type]
+  if (!variant) return null
+  return <span className={`${base} ${variant}`}>{labelMap[type]}</span>
 }

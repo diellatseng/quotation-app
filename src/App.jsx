@@ -17,10 +17,7 @@ import ServicesAdmin         from './pages/admin/ServicesAdmin'
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
   if (loading) return (
-    <div style={{
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      minHeight: '100vh', fontSize: 'var(--text-md)', color: 'var(--color-text-muted)',
-    }}>
+    <div className="flex items-center justify-center min-h-screen text-base text-muted-foreground">
       載入中…
     </div>
   )

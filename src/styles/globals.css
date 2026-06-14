@@ -1,8 +1,3 @@
-/* Declare the legacy layer FIRST so it ranks below Tailwind's theme/base/
-   components/utilities layers. d_globals.css fills this layer. This guarantees
-   migrated Tailwind utilities override leftover legacy CSS during the transition. */
-@layer legacy;
-
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
@@ -13,10 +8,37 @@
    since nothing sets data-theme="dark". */
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
-/* Tailwind v4 preflight gives <button> cursor:default. Restore the expected
-   pointer cursor for all interactive buttons (raw buttons, IconButton, menu
-   items, etc.) that don't go through the Button component. */
 @layer base {
+  /* Accessibility font scaling: AppearanceContext writes --base-font-size onto
+     <html>; this rule applies it. Falls back to the app's 18px base when unset. */
+  html {
+    font-size: var(--base-font-size, 18px);
+  }
+
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    min-height: 100vh;
+  }
+
+  a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+  a:hover {
+    text-decoration: underline;
+  }
+
+  /* Visible keyboard focus ring (accessibility) */
+  :focus-visible {
+    outline: 3px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Tailwind v4 preflight gives <button> cursor:default. Restore the expected
+     pointer cursor for all interactive buttons (raw buttons, IconButton, menu
+     items, etc.) that don't go through the Button component. */
   button:not(:disabled),
   [role="button"]:not(:disabled),
   summary {
@@ -26,6 +48,10 @@
 
 /* ── 1. Tailwind v4 Theme Configuration ── */
 @theme {
+    /* Default UI font — drives Tailwind preflight's html font-family so the app
+       renders in Noto Sans TC. */
+    --font-sans: 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
+
     /* Map Tailwind utility classes to your custom semantic CSS variables */
     --color-background: var(--background);
     --color-foreground: var(--foreground);
@@ -68,23 +94,12 @@
     --destructive: #dc2626;
     /* theme-safe red */
     --destructive-foreground: #ffffff;
-
-    /* 
-     * BACKWARD COMPATIBILITY BRIDGE
-     * Maps old styles (Button.css, ActionMenu.css) to the new token system 
-    */
-    --color-bg: var(--background);
-    --color-bg-surface: var(--card);
-    --color-text: var(--foreground);
-    --color-text-secondary: var(--muted-foreground);
-    --color-border: var(--border);
 }
 
 /* ── 3. High-Contrast Accessibility Variant ──
-   Activated by ThemeContext via <html data-contrast="high">. Overrides the
-   semantic tokens so migrated Tailwind components (bg-card, text-foreground,
-   border-border, …) respond to the SAME toggle that drives the legacy
-   components defined in d_globals.css's [data-contrast="high"] block. */
+   Activated by AppearanceContext via <html data-contrast="high">. Overrides the
+   semantic tokens so Tailwind components (bg-card, text-foreground,
+   border-border, …) switch to a high-contrast palette. */
 [data-contrast="high"] {
     --background: #ffffff;
     --foreground: #000000;

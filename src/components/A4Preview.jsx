@@ -263,7 +263,7 @@ function buildQuotationSections({
                   ? <span className="a4-svc-removed">{svc.service_name}</span>
                   : svc.service_name}
                 {svc.diff_status && (
-                  <span className={`diff-badge a4-diff-badge diff-badge--${svc.diff_status}`}>
+                  <span className={`a4-diff-badge a4-diff-badge--${svc.diff_status}`}>
                     {svc.diff_status === 'added' ? '▲新增' : svc.diff_status === 'modified' ? '✎更改' : '✕刪除'}
                   </span>
                 )}
@@ -395,7 +395,7 @@ function buildDescSections({ mode, quotation, services, client, contactPerson, c
         <div className="a4-appendix-svc">
           <div className="a4-svc-header">{svc.service_name}</div>
           <div
-            className="desc-block a4-desc-block"
+            className="a4-desc-block"
             dangerouslySetInnerHTML={{ __html: (svc.description || '').replace(/\n/g, '<br>') }}
           />
         </div>

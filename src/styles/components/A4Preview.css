@@ -2,15 +2,16 @@
    All styles for the A4Preview component.
 
    Type scale (px, fixed — A4 is a 794px print surface, rem would be affected
-   by the app's --base-font-size override):
+     by the app's --base-font-size override):
      10px  footer, continuation header
      12px  section labels, meta labels, company meta, notes, signatures, meta values, table body (td), service names  ← main body size
      16px  appendix service-group headers, company name, appendix titles
      28px  document title (報價單)
 
-   Reused from globals.css (no redefinition here):
-     .desc-block  + .desc-block ul/ol/li/p/strong/em  (rich-text body)
-     .diff-badge  + .diff-badge--added/modified/removed  (pill labels)
+   Self-contained: this file defines everything A4Preview needs, including the
+   rich-text body (.a4-desc-block + ul/ol/li/p/strong/em) and the version-diff
+   pills (.a4-diff-badge + --added/modified/removed). No dependency on the
+   shared globals stylesheet.
 ────────────────────────────────────────────────────────────────────────────── */
 
 /* ── Measurement layer (hidden off-screen) ───────────────────────────────────*/
@@ -397,6 +398,14 @@
 .a4-desc-block ul ul { list-style-type: circle; }
 .a4-desc-block ol ol { list-style-type: lower-alpha; }
 .a4-desc-block li { margin: 0.25em 0; }
+.a4-desc-block p { margin: 0.5em 0; }
+.a4-desc-block p:first-child { margin-top: 0; }
+.a4-desc-block p:last-child { margin-bottom: 0; }
+.a4-desc-block strong,
+.a4-desc-block b { font-weight: 700; }
+.a4-desc-block em,
+.a4-desc-block i { font-style: italic; }
+.a4-desc-block u { text-decoration: underline; }
 
 
 /* ── Empty state note (no descriptions / no checklist items) ─────────────── */
@@ -405,9 +414,31 @@
   color: #888;
   padding: 12px 0;
 }
-/* ── Diff badge spacing inside service name cell ─────────────────────────── */
-/* Extends .diff-badge from globals.css — adds left margin for inline context */
+/* ── Diff badge (self-contained) ─────────────────────────────────────────── */
 .a4-diff-badge {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
   margin-left: 6px;
   vertical-align: middle;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px solid transparent;
+}
+.a4-diff-badge--added {
+  background: #dcfce7;
+  color: #166534;
+  border-color: #86efac;
+}
+.a4-diff-badge--modified {
+  background: #fef9c3;
+  color: #854d0e;
+  border-color: #fde047;
+}
+.a4-diff-badge--removed {
+  background: #fee2e2;
+  color: #991b1b;
+  border-color: #fca5a5;
 }
