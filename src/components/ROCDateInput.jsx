@@ -93,7 +93,9 @@ export default function ROCDateInput({ value, onChange, useRoc = true, id, label
     }
   }
 
-  const placeholder = useRoc ? '114年12月31日 或 1141231' : '2026年12月31日 或 20261231'
+  const placeholder = useRoc
+    ? '民國年月日，例如 114年12月31日 或 1141231'
+    : '西元年月日，例如 2026年12月31日 或 20261231'
 
   return (
     <div>
@@ -114,9 +116,6 @@ export default function ROCDateInput({ value, onChange, useRoc = true, id, label
         aria-label={label || (useRoc ? '民國日期' : '西元日期')}
       />
       {error && <p className="text-xs text-destructive mt-1">{error}</p>}
-      <p className="text-xs text-muted-foreground mt-1">
-        格式：{useRoc ? '民國年月日，例如 114年12月31日 或 1141231' : '西元年月日，例如 2026年12月31日 或 20261231'}
-      </p>
     </div>
   )
 }

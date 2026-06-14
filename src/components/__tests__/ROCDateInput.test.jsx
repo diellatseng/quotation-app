@@ -94,19 +94,25 @@ describe('ROCDateInput', () => {
   })
 
   // ───────────────────────────────────────────────────────────────
-  // Controlled mode (useRoc prop) — placeholder / hint / aria-label
+  // Controlled mode (useRoc prop) — placeholder / aria-label
   // ───────────────────────────────────────────────────────────────
 
-  it('shows the ROC placeholder and hint in 民國 mode (useRoc defaults to true)', () => {
+  it('shows a mode-aware placeholder in 民國 mode (useRoc defaults to true)', () => {
     render(<ROCDateInput label="日期" value="" onChange={mockOnChange} />)
-    expect(screen.getByRole('textbox')).toHaveAttribute('placeholder', '114年12月31日 或 1141231')
-    expect(screen.getByText(/民國年月日/)).toBeInTheDocument()
+    expect(screen.getByRole('textbox')).toHaveAttribute(
+      'placeholder',
+      '民國年月日，例如 114年12月31日 或 1141231'
+    )
+    expect(screen.queryByText(/格式：/)).not.toBeInTheDocument()
   })
 
-  it('shows the CE placeholder and hint when useRoc is false', () => {
+  it('shows a mode-aware placeholder when useRoc is false', () => {
     render(<ROCDateInput label="日期" value="" useRoc={false} onChange={mockOnChange} />)
-    expect(screen.getByRole('textbox')).toHaveAttribute('placeholder', '2026年12月31日 或 20261231')
-    expect(screen.getByText(/西元年月日/)).toBeInTheDocument()
+    expect(screen.getByRole('textbox')).toHaveAttribute(
+      'placeholder',
+      '西元年月日，例如 2026年12月31日 或 20261231'
+    )
+    expect(screen.queryByText(/格式：/)).not.toBeInTheDocument()
   })
 
   it('uses a mode-aware aria-label when no label is provided', () => {
