@@ -19,6 +19,7 @@ export default function ClientPicker({ value, onChange, disabled = false }) {
   const [newContact, setNewContact] = useState({ name: '', mobile: '', office_phone: '', fax: '', email: '' })
   const { success: notifySuccess, error: notifyError } = useNotification()
   const containerRef = useRef(null)
+  const listRef = useRef(null)
 
   useEffect(() => {
     supabase.from('clients').select('id, company_name, phone, email')
@@ -51,6 +52,49 @@ export default function ClientPicker({ value, onChange, disabled = false }) {
     }
   }, [selectedClient])
 
+  // Keep the highlighted option scrolled into view during keyboard navigation
+  useEffect(() => {
+    if (highlightedIndex < 0 || !listRef.current) return
+    listRef.current.children[highlightedIndex]?.scrollIntoView({ block: 'nearest' })
+  }, [highlightedIndex])
+
+  const handleKeyDown = (e) => {
+    if (showCreate) return
+
+    if (e.key === 'Escape') {
+      setIsOpen(false)
+      return
+    }
+
+    // Open the dropdown on first arrow press
+    if (!isOpen) {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault()
+        setIsOpen(true)
+      }
+      return
+    }
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault()
+        setHighlightedIndex(prev => (prev < filtered.length - 1 ? prev + 1 : prev))
+        break
+      case 'ArrowUp':
+        e.preventDefault()
+        setHighlightedIndex(prev => (prev > 0 ? prev - 1 : 0))
+        break
+      case 'Enter':
+        e.preventDefault()
+        if (highlightedIndex >= 0 && highlightedIndex < filtered.length) {
+          handleSelect(filtered[highlightedIndex])
+        }
+        break
+      default:
+        break
+    }
+  }
+
   const handleSelect = (client) => {
     // Close UI immediately
     setSearch(client.company_name)
@@ -66,9 +110,10 @@ export default function ClientPicker({ value, onChange, disabled = false }) {
             .single()
 
           const { data: contacts } = await supabase
-            .from('contact_people')
+            .from('contact_persons')
             .select('*')
             .eq('client_id', client.id)
+            .order('is_primary', { ascending: false })
 
           onChange?.({ client: fullClient, contacts: contacts || [] })
         } catch (err) {
@@ -94,7 +139,7 @@ export default function ClientPicker({ value, onChange, disabled = false }) {
 
       if (newContact.name.trim()) {
         const { error: contactErr } = await supabase
-          .from('contact_people')
+          .from('contact_persons')
           .insert([{ ...newContact, client_id: clientData.id }])
 
         if (contactErr) throw contactErr
@@ -135,9 +180,11 @@ export default function ClientPicker({ value, onChange, disabled = false }) {
               onChange={(e) => {
                 setSearch(e.target.value)
                 setIsOpen(true)
+                setHighlightedIndex(-1)
                 if (!e.target.value) onChange?.(null)
               }}
               onFocus={() => setIsOpen(true)}
+              onKeyDown={handleKeyDown}
               disabled={disabled || showCreate}
             />
             {search && (
@@ -165,7 +212,7 @@ export default function ClientPicker({ value, onChange, disabled = false }) {
 
         {/* Dropdown panel */}
         {isOpen && !showCreate && (
-          <div className="absolute z-50 w-full mt-1 max-h-60 overflow-auto bg-card border border-border rounded-md shadow-lg divide-y divide-border animate-in fade-in duration-100">
+          <div ref={listRef} className="absolute z-50 w-full mt-1 max-h-60 overflow-auto bg-card border border-border rounded-md shadow-lg divide-y divide-border animate-in fade-in duration-100">
             {filtered.length > 0 ? (
               filtered.map((client, idx) => (
                 <div

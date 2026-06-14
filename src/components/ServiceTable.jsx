@@ -327,7 +327,7 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
 
                   {!isEditing && hasDesc && (
                     <div
-                      className="prose prose-sm max-w-none break-words text-muted-foreground"
+                      className="prose prose-sm max-w-none break-words text-foreground [--tw-prose-body:var(--color-foreground)] [--tw-prose-headings:var(--color-foreground)] [--tw-prose-bold:var(--color-foreground)]"
                       dangerouslySetInnerHTML={{ __html: svc.description }}
                     />
                   )}
