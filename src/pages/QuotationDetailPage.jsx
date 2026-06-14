@@ -15,11 +15,11 @@ import Button from '../components/Button'
 const fmt = (n) => `NT$ ${Number(n || 0).toLocaleString('zh-TW')}`
 
 const COMPANY_INFO = {
-  name: process.env.REACT_APP_COMPANY_NAME || '公司名稱',
-  address: process.env.REACT_APP_COMPANY_ADDRESS || '公司地址',
-  phone: process.env.REACT_APP_COMPANY_PHONE || '公司電話',
-  fax: process.env.REACT_APP_COMPANY_FAX || '',
-  email: process.env.REACT_APP_COMPANY_EMAIL || '',
+  name: import.meta.env.VITE_COMPANY_NAME || '公司名稱',
+  address: import.meta.env.VITE_COMPANY_ADDRESS || '公司地址',
+  phone: import.meta.env.VITE_COMPANY_PHONE || '公司電話',
+  fax: import.meta.env.VITE_COMPANY_FAX || '',
+  email: import.meta.env.VITE_COMPANY_EMAIL || '',
 }
 
 export default function QuotationDetailPage() {

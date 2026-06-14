@@ -327,13 +327,13 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
 
                   {!isEditing && hasDesc && (
                     <div
-                      className="desc-block"
+                      className="prose prose-sm max-w-none break-words text-muted-foreground"
                       dangerouslySetInnerHTML={{ __html: svc.description }}
                     />
                   )}
 
                   {!isEditing && !hasDesc && !readOnly && (
-                    <div className="desc-empty">
+                    <div className="text-sm text-muted-foreground italic px-3 py-2 border border-dashed border-border rounded-sm text-center">
                       尚未填寫說明 — 點擊「新增說明」
                     </div>
                   )}
@@ -352,9 +352,9 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
 
               {/* ── Description stub (collapsed, has content) ────────────── */}
               {!isRemoved && collapsed && hasDesc && (
-                <div className="desc-stub" onClick={() => toggleCollapse(idx)}>
+                <div className="border-t border-border px-3 py-1.5 text-xs text-muted-foreground cursor-pointer bg-muted flex items-center gap-2" onClick={() => toggleCollapse(idx)}>
                   <span
-                    className="desc-stub__text"
+                    className="flex-1 overflow-hidden whitespace-nowrap text-ellipsis italic"
                     dangerouslySetInnerHTML={{
                       __html:
                         (svc.description || '').replace(/<[^>]*>/g, ' ').trim().slice(0, 80) + '…'

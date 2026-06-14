@@ -1,7 +1,7 @@
 // src/App.js
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './hooks/useAuth'
-import { ThemeProvider } from './context/ThemeContext'
+import { AppearanceProvider } from './context/AppearanceContext'
 import { NotificationProvider } from './context/NotificationContext'
 import NotificationCenter from './components/NotificationCenter'
 
@@ -50,14 +50,14 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <ThemeProvider>
+    <AppearanceProvider>
       <NotificationProvider>
         <AuthProvider>
-          <BrowserRouter basename={process.env.PUBLIC_URL || '/'}>
+          <BrowserRouter basename={import.meta.env.BASE_URL}>
             <AppRoutes />
           </BrowserRouter>
         </AuthProvider>
       </NotificationProvider>
-    </ThemeProvider>
+    </AppearanceProvider>
   )
 }

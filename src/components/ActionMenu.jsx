@@ -34,7 +34,7 @@ export default function ActionMenu({ id, openId, onOpen, onClose, children }) {
   }, [isOpen])
 
   return (
-    <div className="action-menu" ref={triggerRef}>
+    <div className="relative inline-flex" ref={triggerRef}>
       <IconButton
         icon="more_horiz"
         tooltip="更多操作"
@@ -48,9 +48,8 @@ export default function ActionMenu({ id, openId, onOpen, onClose, children }) {
       {/* 3. 🌟 Defensive check: Only render when open AND coordinates are fully computed */}
       {isOpen && coords && createPortal(
         <div
-          className="action-menu__dropdown"
+          className="fixed z-20 min-w-[140px] p-2 flex flex-col gap-0.5 bg-card border border-border rounded-md shadow-lg"
           style={{
-            position: 'fixed',
             top: `${coords.top}px`,
             right: `${coords.right}px`,
             left: 'auto', // overrides default CSS overrides if any
@@ -74,7 +73,7 @@ export function ActionMenuItem({ icon, label, onClick, danger = false }) {
       tooltip={label}
       variant="ghost"
       size="sm"
-      className={`action-menu__item${danger ? ' action-menu__item--danger' : ''}`}
+      className={`w-full !justify-start${danger ? ' !text-destructive hover:!bg-destructive/10 hover:!text-destructive' : ''}`}
       onClick={onClick}
     />
   )

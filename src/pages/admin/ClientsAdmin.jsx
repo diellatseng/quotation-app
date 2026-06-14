@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useNotification } from '../../context/NotificationContext.jsx'
+import Button from '../../components/Button'
 
 export default function ClientsAdmin() {
   const [clients, setClients] = useState([])
@@ -79,14 +80,14 @@ export default function ClientsAdmin() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold">客戶資料庫</h2>
-        <button className="btn btn-primary" onClick={() => { setSelected(null); setForm(emptyClient()); setContacts([]); setShowForm(true) }}>
+        <Button variant="primary" onClick={() => { setSelected(null); setForm(emptyClient()); setContacts([]); setShowForm(true) }}>
           + 新增客戶
-        </button>
+        </Button>
       </div>
 
-      <div className={`grid gap-5 ${showForm ? 'grid-cols-2' : 'grid-cols-1'}`} style={{ gridTemplateColumns: showForm ? '1fr 1.4fr' : '1fr' }}>
+      <div className={`grid gap-5 ${showForm ? 'grid-cols-[1fr_1.4fr]' : 'grid-cols-1'}`}>
         {/* List */}
-        <div className="card p-0 overflow-hidden">
+        <div className="bg-card text-card-foreground border border-border rounded-xl shadow-sm overflow-hidden">
           {clients.length === 0 ? (
             <p className="p-6 text-muted-foreground text-center">尚無客戶</p>
           ) : (
@@ -106,8 +107,8 @@ export default function ClientsAdmin() {
 
         {/* Form */}
         {showForm && (
-          <div className="card">
-            <p className="section-title">{selected ? '編輯客戶' : '新增客戶'}</p>
+          <div className="bg-card text-card-foreground border border-border rounded-xl p-6 shadow-sm">
+            <p className="text-base font-semibold text-foreground mb-4">{selected ? '編輯客戶' : '新增客戶'}</p>
             <div className="grid grid-cols-2 gap-4 mb-4">
               <F label="公司名稱 *" value={form.company_name} onChange={v => setForm(f => ({ ...f, company_name: v }))} />
               <F label="電子郵件" value={form.email} onChange={v => setForm(f => ({ ...f, email: v }))} />
@@ -123,8 +124,8 @@ export default function ClientsAdmin() {
             {selected && (
               <div className="mt-6">
                 <div className="flex justify-between items-center mb-3">
-                  <p className="section-title mb-0">聯絡人</p>
-                  <button className="btn btn-ghost btn-sm" onClick={addContact}>+ 新增</button>
+                  <p className="text-base font-semibold text-foreground">聯絡人</p>
+                  <Button variant="ghost" size="sm" onClick={addContact}>+ 新增</Button>
                 </div>
                 {contacts.map((ct, idx) => (
                   <div key={ct.id} className="border border-border rounded-lg p-3 mb-3">
@@ -140,7 +141,7 @@ export default function ClientsAdmin() {
                           onChange={e => updateContact(idx, 'is_primary', e.target.checked)} />
                         主要聯絡人
                       </label>
-                      <button className="btn btn-danger btn-sm" onClick={() => deleteContact(ct.id)}>刪除</button>
+                      <Button variant="danger" size="sm" onClick={() => deleteContact(ct.id)}>刪除</Button>
                     </div>
                   </div>
                 ))}
@@ -148,9 +149,9 @@ export default function ClientsAdmin() {
             )}
 
             <div className="flex gap-3 mt-5">
-              <button className="btn btn-primary" onClick={saveClient} disabled={loading}>{loading ? '儲存中…' : '儲存'}</button>
-              {selected && <button className="btn btn-danger" onClick={() => deleteClient(selected.id)}>刪除客戶</button>}
-              <button className="btn btn-ghost" onClick={() => { setShowForm(false); setSelected(null) }}>取消</button>
+              <Button variant="primary" onClick={saveClient} disabled={loading}>{loading ? '儲存中…' : '儲存'}</Button>
+              {selected && <Button variant="danger" onClick={() => deleteClient(selected.id)}>刪除客戶</Button>}
+              <Button variant="ghost" onClick={() => { setShowForm(false); setSelected(null) }}>取消</Button>
             </div>
           </div>
         )}
@@ -162,8 +163,12 @@ export default function ClientsAdmin() {
 function F({ label, value, onChange, compact }) {
   return (
     <div className={compact ? '' : 'mb-4'}>
-      <label className="field-label">{label}</label>
-      <input className="field-input" value={value || ''} onChange={e => onChange(e.target.value)} />
+      <label className="block text-xs font-semibold text-foreground mb-1.5">{label}</label>
+      <input
+        className="w-full h-10 px-3 text-sm bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+        value={value || ''}
+        onChange={e => onChange(e.target.value)}
+      />
     </div>
   )
 }

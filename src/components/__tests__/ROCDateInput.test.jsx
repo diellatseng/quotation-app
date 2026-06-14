@@ -23,12 +23,13 @@
 // How to run only this file:
 //   npm test -- --testPathPattern="ROCDateInput" --watchAll=false
 
+import { vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import ROCDateInput from '../ROCDateInput'
 
 describe('ROCDateInput', () => {
-  const mockOnChange = jest.fn()
+  const mockOnChange = vi.fn()
 
   beforeEach(() => {
     // Reset call history before each test so assertions stay independent

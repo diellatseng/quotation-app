@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
-import { useTheme } from '../context/ThemeContext'
+import { useAppearance } from '../context/AppearanceContext'
 import { useNotification } from '../context/NotificationContext'
 import { formatRocDate } from '../lib/rocDate'
 import Dialog from '../components/Dialog'
@@ -13,7 +13,6 @@ import Button from '../components/Button'
 import FilterPill from '../components/FilterPill'
 import ActionMenu, { ActionMenuItem, useActionMenuClose } from '../components/ActionMenu'
 import packageJson from '../../package.json'
-import '../styles/components/ActionMenu.css'
 
 const STATUS_FILTERS = ['全部', '草稿', '已報價', '已確認', '已結案']
 const fmt = (n) => n ? `NT$ ${Number(n).toLocaleString('zh-TW')}` : '—'
@@ -30,7 +29,7 @@ export default function DashboardPage() {
   const [actionMenuId, setActionMenuId] = useState(null)
   useActionMenuClose(actionMenuId, () => setActionMenuId(null))
   const { user, signOut } = useAuth()
-  const { baseFontSize, setFontSize, contrast, toggleContrast } = useTheme()
+  const { baseFontSize, setFontSize, contrast, toggleContrast } = useAppearance()
   const { success, error } = useNotification()
   const navigate = useNavigate()
 

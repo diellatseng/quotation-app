@@ -30,7 +30,7 @@ export default function WizardShell({
       {/* ── Sticky step indicator ── */}
       <nav
         aria-label="報價單建立步驟"
-        className="sticky top-0 z-50 bg-white/85 dark:bg-zinc-900/85 backdrop-blur-md border-b border-border"
+        className="sticky top-0 z-50 bg-card/90 backdrop-blur-md border-b border-border"
       >
         <div className="max-w-5xl mx-auto px-4 py-3 flex justify-between items-center">
           {STEPS.map((step) => {
@@ -43,16 +43,16 @@ export default function WizardShell({
                 className={`flex items-center gap-2 cursor-pointer select-none transition-colors duration-200 ${isActive
                     ? 'text-foreground font-semibold'
                     : isCompleted
-                      ? 'text-muted-foreground/80 hover:text-foreground'
-                      : 'text-muted-foreground/50'
+                      ? 'text-foreground hover:text-primary'
+                      : 'text-muted-foreground'
                   }`}
               >
                 <span
                   className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold transition-colors duration-200 ${isActive
                       ? 'bg-primary text-primary-foreground'
                       : isCompleted
-                        ? 'bg-muted text-foreground border border-border'
-                        : 'bg-muted/40 text-muted-foreground/40 border border-transparent'
+                        ? 'bg-accent text-accent-foreground'
+                        : 'bg-muted text-muted-foreground border border-border'
                     }`}
                 >
                   {step.num}

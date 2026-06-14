@@ -381,6 +381,23 @@
   word-break: break-word;
 }
 
+/* Tailwind v4 preflight resets ul/ol to padding:0 / list-style:none. The
+   legacy .desc-block rules live in @layer legacy, which loses to preflight
+   (@layer base) for non-!important props, so list markers ended up flush
+   against the left edge. These selectors are unlayered (A4Preview.css is
+   imported directly), so they win and restore proper marker indentation. */
+.a4-desc-block ul,
+.a4-desc-block ol {
+  padding-left: 1.6em;
+  margin: 0.4em 0;
+  list-style-position: outside;
+}
+.a4-desc-block ul { list-style-type: disc; }
+.a4-desc-block ol { list-style-type: decimal; }
+.a4-desc-block ul ul { list-style-type: circle; }
+.a4-desc-block ol ol { list-style-type: lower-alpha; }
+.a4-desc-block li { margin: 0.25em 0; }
+
 
 /* ── Empty state note (no descriptions / no checklist items) ─────────────── */
 .a4-empty-note {

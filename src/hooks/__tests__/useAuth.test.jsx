@@ -1,15 +1,17 @@
 // src/hooks/__tests__/useAuth.test.js
+import { vi } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import { AuthProvider, useAuth } from '../useAuth'
 import { supabase } from '../../lib/supabase'
 
-jest.mock('../../lib/supabase', () => ({
+vi.mock('../../lib/supabase', () => ({
+  SESSION_TIMEOUT_HOURS: 24,
   supabase: {
     auth: {
-      getSession: jest.fn(),
-      onAuthStateChange: jest.fn(),
-      signInWithPassword: jest.fn(),
-      signOut: jest.fn(),
+      getSession: vi.fn(),
+      onAuthStateChange: vi.fn(),
+      signInWithPassword: vi.fn(),
+      signOut: vi.fn(),
     }
   }
 }))
@@ -19,10 +21,10 @@ describe('useAuth', () => {
   const mockSession = { user: mockUser, access_token: 'token' }
 
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
     supabase.auth.getSession.mockResolvedValue({ data: { session: null } })
     supabase.auth.onAuthStateChange.mockReturnValue({
-      data: { subscription: { unsubscribe: jest.fn() } }
+      data: { subscription: { unsubscribe: vi.fn() } }
     })
   })
 

@@ -1,7 +1,13 @@
 /* ── globals.css ──────────────────────────────────────────────
    Single source of truth for all design tokens.
    ThemeProvider writes to :root via JS for dynamic changes.
+
+   NOTE: This legacy stylesheet is wrapped in @layer legacy so that
+   Tailwind's (layered) utilities always win over these rules during
+   the migration. The matching `@layer legacy;` declaration lives at
+   the top of globals.css to fix the layer order below Tailwind.
 ──────────────────────────────────────────────────────────────── */
+@layer legacy {
 
 /* ── Reset ── */
 *,
@@ -1930,3 +1936,5 @@ a:hover {
 .data-table tr:hover .btn-dashboard-action--archive {
   background: var(--color-bg-raised);
 }
+
+} /* end @layer legacy */

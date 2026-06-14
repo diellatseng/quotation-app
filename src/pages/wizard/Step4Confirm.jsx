@@ -77,10 +77,49 @@ export default function Step4Confirm({ data, update, negContext }) {
       </div>
 
       <div className="bg-card text-card-foreground border border-border rounded-xl p-6 shadow-sm">
-        <p className="text-base font-semibold text-foreground mb-4">報價費用設定</p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+        <p className="text-base font-semibold text-foreground mb-4">基本資訊</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-foreground">服務費用總額 (未稅) *</label>
+            <label htmlFor="quote_number" className="block text-xs font-semibold text-foreground">報價編號 *</label>
+            <input
+              id="quote_number"
+              type="text"
+              className="w-full h-10 px-3 text-sm bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
+              value={data.quote_number}
+              onChange={e => update({ quote_number: e.target.value })}
+              placeholder="QT-2025-00001"
+              required
+            />
+          </div>
+          <div>
+            <ROCDateInput
+              id="quote_date"
+              label="報價日期 *"
+              value={data.quote_date}
+              onChange={v => update({ quote_date: v })}
+              useRoc={useRoc}
+              required
+            />
+          </div>
+          <div className="space-y-1.5">
+            <span className="block text-xs font-semibold text-foreground">使用民國曆顯示</span>
+            <div className="flex items-center h-10">
+              <Switch
+                id="date_format"
+                checked={useRoc}
+                onChange={setUseRoc}
+                size="sm"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-card text-card-foreground border border-border rounded-xl p-6 shadow-sm">
+        <p className="text-base font-semibold text-foreground mb-4">費用</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold text-foreground">服務費用總額 (未稅) *</label>
             <div className="relative">
               <span className="absolute left-3 top-2.5 text-sm text-muted-foreground font-medium">NT$</span>
               <input
@@ -94,14 +133,16 @@ export default function Step4Confirm({ data, update, negContext }) {
             </div>
           </div>
 
-          <div className="flex items-center justify-between h-10 px-4 bg-muted/40 border border-border rounded-lg">
-            <span className="text-sm font-medium text-foreground">外加 5% 營業稅金</span>
-            <Switch
-              id="tax_included"
-              checked={data.tax_included}
-              onChange={val => update({ tax_included: val })}
-              size="sm"
-            />
+          <div className="space-y-1.5">
+            <span className="block text-xs font-semibold text-foreground">外加 5% 營業稅金</span>
+            <div className="flex items-center h-10">
+              <Switch
+                id="tax_included"
+                checked={data.tax_included}
+                onChange={val => update({ tax_included: val })}
+                size="sm"
+              />
+            </div>
           </div>
         </div>
 
@@ -114,7 +155,7 @@ export default function Step4Confirm({ data, update, negContext }) {
       <div className="bg-card text-card-foreground border border-border rounded-xl p-6 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
           <div>
-            <p className="text-base font-semibold text-foreground">付款階段條件</p>
+            <p className="text-base font-semibold text-foreground">付款階段</p>
             <p className="text-xs text-muted-foreground mt-0.5">付款階段百分比總和必須等於 100%</p>
           </div>
           <button
@@ -188,43 +229,6 @@ export default function Step4Confirm({ data, update, negContext }) {
           }`}>
           <span>目前設定百分比總和：</span>
           <span className="text-sm font-bold">{totalPercentage} % / 100 %</span>
-        </div>
-      </div>
-
-      <div className="bg-card text-card-foreground border border-border rounded-xl p-6 shadow-sm">
-        <p className="text-base font-semibold text-foreground mb-4">單據基礎參數資訊</p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-          <div className="space-y-1.5">
-            <label htmlFor="quote_number" className="text-xs font-semibold text-foreground">報價編號 *</label>
-            <input
-              id="quote_number"
-              type="text"
-              className="w-full h-10 px-3 text-sm bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
-              value={data.quote_number}
-              onChange={e => update({ quote_number: e.target.value })}
-              placeholder="QT-2025-00001"
-              required
-            />
-          </div>
-          <div>
-            <ROCDateInput
-              id="quote_date"
-              label="報價日期 *"
-              value={data.quote_date}
-              onChange={v => update({ quote_date: v })}
-              useRoc={useRoc}
-              required
-            />
-          </div>
-          <div className="flex items-center gap-3 h-10 px-4 bg-muted/40 border border-border rounded-lg">
-            <span className="text-sm font-medium text-foreground">使用民國曆顯示</span>
-            <Switch
-              id="date_format"
-              checked={useRoc}
-              onChange={setUseRoc}
-              size="sm"
-            />
-          </div>
         </div>
       </div>
 

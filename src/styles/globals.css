@@ -1,5 +1,28 @@
+/* Declare the legacy layer FIRST so it ranks below Tailwind's theme/base/
+   components/utilities layers. d_globals.css fills this layer. This guarantees
+   migrated Tailwind utilities override leftover legacy CSS during the transition. */
+@layer legacy;
+
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
+
+/* This app has no OS-driven dark mode — only a high-contrast accessibility
+   toggle (data-contrast). Make `dark:` selector-based so the OS
+   prefers-color-scheme:dark setting can't bleed dark styles onto the
+   always-light UI (status badges, wizard header, etc.). Never activated
+   since nothing sets data-theme="dark". */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* Tailwind v4 preflight gives <button> cursor:default. Restore the expected
+   pointer cursor for all interactive buttons (raw buttons, IconButton, menu
+   items, etc.) that don't go through the Button component. */
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not(:disabled),
+  summary {
+    cursor: pointer;
+  }
+}
 
 /* ── 1. Tailwind v4 Theme Configuration ── */
 @theme {
@@ -7,6 +30,7 @@
     --color-background: var(--background);
     --color-foreground: var(--foreground);
     --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
     --color-muted: var(--muted);
     --color-muted-foreground: var(--muted-foreground);
     --color-primary: var(--primary);
@@ -27,6 +51,9 @@
     --card-foreground: #09090b;
     --muted: #f4f4f5;
     --muted-foreground: #71717a;
+
+    /* Borders */
+    --border: #e4e4e7;
 
     /* Semantic Primary Actions */
     --primary: #18181b;
@@ -53,19 +80,29 @@
     --color-border: var(--border);
 }
 
-/* ── 3. Dark Theme Configuration Variant ── */
-[data-theme="dark"] {
-    --background: #09090b;
-    --foreground: #fafafa;
+/* ── 3. High-Contrast Accessibility Variant ──
+   Activated by ThemeContext via <html data-contrast="high">. Overrides the
+   semantic tokens so migrated Tailwind components (bg-card, text-foreground,
+   border-border, …) respond to the SAME toggle that drives the legacy
+   components defined in d_globals.css's [data-contrast="high"] block. */
+[data-contrast="high"] {
+    --background: #ffffff;
+    --foreground: #000000;
 
-    --card: #09090b;
-    --card-foreground: #fafafa;
+    --card: #ffffff;
+    --card-foreground: #000000;
 
-    --muted: #27272a;
-    --muted-foreground: #a1a1aa;
+    --muted: #f0f0f0;
+    --muted-foreground: #333333;
 
-    --primary: #fafafa;
-    --primary-foreground: #18181b;
+    --border: #000000;
 
-    --border: #27272a;
+    --primary: #000000;
+    --primary-foreground: #ffffff;
+
+    --accent: #0040aa;
+    --accent-foreground: #ffffff;
+
+    --destructive: #8b0000;
+    --destructive-foreground: #ffffff;
 }

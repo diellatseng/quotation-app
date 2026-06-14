@@ -90,12 +90,15 @@ export default function ROCDateInput({ value, onChange, useRoc = true, id, label
 
   return (
     <div>
-      {label && <label htmlFor={id} className="field-label">{label}</label>}
+      {label && <label htmlFor={id} className="block text-xs font-semibold text-foreground mb-1.5">{label}</label>}
       <input
         id={id}
         type="text"
         inputMode="numeric"
-        className={`field-input ${error ? 'field-input-error' : ''}`}
+        className={`w-full h-10 px-3 text-sm bg-background border rounded-lg text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 transition-all ${error
+          ? 'border-destructive focus:ring-destructive/20 focus:border-destructive'
+          : 'border-border focus:ring-primary/20 focus:border-primary'
+          }`}
         value={displayValue}
         onChange={handleChange}
         onBlur={handleBlur}
@@ -103,8 +106,8 @@ export default function ROCDateInput({ value, onChange, useRoc = true, id, label
         required={required}
         aria-label={label || (useRoc ? '民國日期' : '西元日期')}
       />
-      {error && <p className="roc-error">{error}</p>}
-      <p className="roc-hint">
+      {error && <p className="text-xs text-destructive mt-1">{error}</p>}
+      <p className="text-xs text-muted-foreground mt-1">
         格式：{useRoc ? '民國年月日，例如 114年12月31日 或 1141231' : '西元年月日，例如 2026年12月31日 或 20261231'}
       </p>
     </div>

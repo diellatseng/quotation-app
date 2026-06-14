@@ -3,6 +3,10 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useNotification } from '../../context/NotificationContext.jsx'
 import RichEditor from '../../components/RichEditor.jsx'
+import Button from '../../components/Button'
+
+const LABEL_CLS = 'block text-xs font-semibold text-foreground mb-1.5'
+const INPUT_CLS = 'w-full h-10 px-3 text-sm bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all'
 
 export default function ServicesAdmin() {
   const [services, setServices] = useState([])
@@ -75,16 +79,16 @@ export default function ServicesAdmin() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-6)' }}>
-        <h2 style={{ fontSize: 'var(--text-xl)', fontWeight: 700 }}>服務資料庫</h2>
-        <button className="btn btn-primary" onClick={() => { setSelected(null); setForm({ name: '', category: '', description: '' }); setChecklistItems([]); setShowForm(true) }}>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-xl font-bold">服務資料庫</h2>
+        <Button variant="primary" onClick={() => { setSelected(null); setForm({ name: '', category: '', description: '' }); setChecklistItems([]); setShowForm(true) }}>
           + 新增服務
-        </button>
+        </Button>
       </div>
 
-      <div className={`grid gap-5 ${showForm ? 'grid-cols-2' : 'grid-cols-1'}`} style={{ gridTemplateColumns: showForm ? '1fr 1.4fr' : '1fr' }}>
+      <div className={`grid gap-5 ${showForm ? 'grid-cols-[1fr_1.4fr]' : 'grid-cols-1'}`}>
         {/* List */}
-        <div className="card p-0 overflow-hidden">
+        <div className="bg-card text-card-foreground border border-border rounded-xl shadow-sm overflow-hidden">
           {Object.entries(grouped).map(([cat, svcs]) => (
             <div key={cat}>
               <div className="px-4 py-2 bg-muted text-xs font-bold text-muted-foreground uppercase tracking-wide">
@@ -107,19 +111,19 @@ export default function ServicesAdmin() {
 
         {/* Form */}
         {showForm && (
-          <div className="card">
-            <p className="section-title">{selected ? '編輯服務' : '新增服務'}</p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', marginBottom: 'var(--space-4)' }}>
+          <div className="bg-card text-card-foreground border border-border rounded-xl p-6 shadow-sm">
+            <p className="text-base font-semibold text-foreground mb-4">{selected ? '編輯服務' : '新增服務'}</p>
+            <div className="flex flex-col gap-4 mb-4">
               <div>
-                <label className="field-label">服務名稱 *</label>
-                <input className="field-input" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+                <label className={LABEL_CLS}>服務名稱 *</label>
+                <input className={INPUT_CLS} value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
               </div>
               <div>
-                <label className="field-label">類別</label>
-                <input className="field-input" value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} placeholder="例如：申報作業、勘驗作業" />
+                <label className={LABEL_CLS}>類別</label>
+                <input className={INPUT_CLS} value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} placeholder="例如：申報作業、勘驗作業" />
               </div>
               <div>
-                <label className="field-label">說明</label>
+                <label className={LABEL_CLS}>說明</label>
                 <RichEditor
                   value={form.description}
                   onChange={html => setForm(f => ({ ...f, description: html }))}
@@ -129,25 +133,25 @@ export default function ServicesAdmin() {
 
             {/* Checklist items */}
             {selected && (
-              <div style={{ marginTop: 'var(--space-2)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-3)' }}>
-                  <p className="section-title" style={{ marginBottom: 0 }}>客戶準備清單</p>
-                  <button className="btn btn-ghost btn-sm" onClick={addItem}>+ 新增</button>
+              <div className="mt-2">
+                <div className="flex justify-between items-center mb-3">
+                  <p className="text-base font-semibold text-foreground">客戶準備清單</p>
+                  <Button variant="ghost" size="sm" onClick={addItem}>+ 新增</Button>
                 </div>
                 {checklistItems.map((item, idx) => (
-                  <div key={item.id} style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center', marginBottom: 'var(--space-2)' }}>
-                    <span style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)', width: 24, textAlign: 'right', flexShrink: 0 }}>{idx + 1}.</span>
-                    <input className="field-input" value={item.item_text} onChange={e => updateItem(idx, e.target.value)} placeholder="準備項目" style={{ flex: 1 }} />
-                    <button className="btn btn-danger btn-sm" onClick={() => deleteItem(item.id)} aria-label="刪除">✕</button>
+                  <div key={item.id} className="flex gap-2 items-center mb-2">
+                    <span className="text-muted-foreground text-sm w-6 text-right shrink-0">{idx + 1}.</span>
+                    <input className={`${INPUT_CLS} flex-1`} value={item.item_text} onChange={e => updateItem(idx, e.target.value)} placeholder="準備項目" />
+                    <Button variant="danger" size="sm" onClick={() => deleteItem(item.id)} aria-label="刪除">✕</Button>
                   </div>
                 ))}
               </div>
             )}
 
-            <div style={{ display: 'flex', gap: 'var(--space-3)', marginTop: 'var(--space-5)' }}>
-              <button className="btn btn-primary" onClick={save} disabled={loading}>{loading ? '儲存中…' : '儲存'}</button>
-              {selected && <button className="btn btn-danger" onClick={deleteSvc}>刪除</button>}
-              <button className="btn btn-ghost" onClick={() => { setShowForm(false); setSelected(null) }}>取消</button>
+            <div className="flex gap-3 mt-5">
+              <Button variant="primary" onClick={save} disabled={loading}>{loading ? '儲存中…' : '儲存'}</Button>
+              {selected && <Button variant="danger" onClick={deleteSvc}>刪除</Button>}
+              <Button variant="ghost" onClick={() => { setShowForm(false); setSelected(null) }}>取消</Button>
             </div>
           </div>
         )}

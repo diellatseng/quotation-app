@@ -3,19 +3,19 @@
 const STATUS_MAP = {
   '草稿': {
     label: '草稿',
-    classes: 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700'
+    classes: 'bg-zinc-100 text-zinc-700 border-zinc-300'
   },
   '已報價': {
     label: '已報價',
-    classes: 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400 border-blue-200/50 dark:border-blue-900/50'
+    classes: 'bg-blue-50 text-blue-700 border-blue-300'
   },
   '已確認': {
     label: '已確認',
-    classes: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border-emerald-200/50 dark:border-emerald-900/50'
+    classes: 'bg-emerald-50 text-emerald-700 border-emerald-300'
   },
   '已結案': {
     label: '已結案',
-    classes: 'bg-zinc-200 text-zinc-700 dark:bg-zinc-700 dark:text-zinc-300 border-zinc-300 dark:border-zinc-600'
+    classes: 'bg-zinc-700 text-zinc-50 border-zinc-700'
   },
 }
 
@@ -32,7 +32,7 @@ export default function StatusBadge({ status, isNegotiating = false, size = 'md'
         {entry.label}
       </span>
       {isNegotiating && (
-        <span className={`inline-block border ${sizeClasses} bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 border-amber-200/50 dark:border-amber-900/50`}>
+        <span className={`inline-block border ${sizeClasses} bg-amber-50 text-amber-800 border-amber-300`}>
           議價中
         </span>
       )}
