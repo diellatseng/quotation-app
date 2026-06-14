@@ -1,6 +1,9 @@
 // src/pages/wizard/Step3Services.jsx
 import { useEffect } from 'react'
 import ServiceTable from '../../components/ServiceTable'
+import DiffBadge from '../../components/DiffBadge'
+import Icon from '../../components/Icon'
+import { FEATURE_NEGOTIATION, FEATURE_VERSIONING } from '../../lib/featureFlags'
 
 function computeDiff(current, parent) {
   if (!parent || parent.length === 0) return current
@@ -36,22 +39,20 @@ function computeDiff(current, parent) {
 }
 
 export default function Step3Services({ data, update, parentServices = null, negContext = null }) {
-  const isVersionEdit = parentServices !== null
+  const isVersionEdit = FEATURE_VERSIONING && parentServices !== null
 
   useEffect(() => {
-    if (isVersionEdit) {
-      const merged = computeDiff(data.services, parentServices)
-      const hasDiff = merged.some(s => s.diff_status !== null)
-      if (hasDiff || merged.length !== data.services.length) {
-        update({ services: merged })
-      }
+    if (!isVersionEdit) return
+    const merged = computeDiff(data.services, parentServices)
+    const hasDiff = merged.some(s => s.diff_status !== null)
+    if (hasDiff || merged.length !== data.services.length) {
+      update({ services: merged })
     }
-  }, [isVersionEdit, parentServices])
+  }, [isVersionEdit, parentServices]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleChange = (newServices) => {
     if (isVersionEdit) {
-      const merged = computeDiff(newServices, parentServices)
-      update({ services: merged })
+      update({ services: computeDiff(newServices, parentServices) })
     } else {
       update({ services: newServices })
     }
@@ -72,27 +73,15 @@ export default function Step3Services({ data, update, parentServices = null, neg
       {showDiffBanner && (
         <div className="p-4 rounded-xl text-sm border bg-muted/40 border-border flex flex-wrap items-center gap-2">
           <span className="font-medium text-foreground">版本差異比較：</span>
-          {addedCount > 0 && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
-              ▲ 新增 {addedCount}
-            </span>
-          )}
-          {modifiedCount > 0 && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-600 border border-amber-500/20">
-              ✎ 更改 {modifiedCount}
-            </span>
-          )}
-          {removedCount > 0 && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-600 border border-rose-500/20">
-              ✕ 刪除 {removedCount}
-            </span>
-          )}
+          {addedCount > 0 && <DiffBadge type="added" count={addedCount} />}
+          {modifiedCount > 0 && <DiffBadge type="modified" count={modifiedCount} />}
+          {removedCount > 0 && <DiffBadge type="removed" count={removedCount} />}
         </div>
       )}
 
-      {negContext && (
+      {FEATURE_NEGOTIATION && negContext && (
         <div className="p-4 rounded-xl text-sm border bg-primary/[0.02] border-primary/20 flex items-center gap-2">
-          <span className="text-base">💬</span>
+          <Icon name="forum" className="text-lg leading-none text-primary shrink-0" title="" />
           <span className="text-foreground">
             議價歷史記錄金額：<strong className="font-bold text-primary">NT$ {Number(negContext.amount).toLocaleString('zh-TW')}</strong>
             {negContext.notes && <span className="text-muted-foreground"> ／ {negContext.notes}</span>}
@@ -110,7 +99,6 @@ export default function Step3Services({ data, update, parentServices = null, neg
         <ServiceTable
           services={data.services}
           onChange={handleChange}
-          isVersionEdit={isVersionEdit}
         />
       </div>
     </div>

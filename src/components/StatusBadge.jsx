@@ -1,5 +1,4 @@
 // src/components/StatusBadge.jsx
-
 const STATUS_MAP = {
   '草稿': {
     label: '草稿',

@@ -1,19 +1,20 @@
 // src/components/NotificationCenter.jsx
 import { useNotification } from '../context/NotificationContext'
+import Icon from './Icon'
 
-const icons = {
-  success: '✓',
-  error:   '✕',
-  warning: '⚠',
-  info:    'ℹ',
+const ICONS = {
+  success: 'check_circle',
+  error: 'error',
+  warning: 'warning',
+  info: 'info',
 }
 
 // Per-type colour variants (background + border + icon colour)
 const TOAST_STYLES = {
   success: { box: 'bg-green-50 border-green-600', icon: 'text-green-600' },
-  error:   { box: 'bg-red-50 border-red-600', icon: 'text-red-600' },
+  error: { box: 'bg-red-50 border-red-600', icon: 'text-red-600' },
   warning: { box: 'bg-amber-50 border-amber-600', icon: 'text-amber-600' },
-  info:    { box: 'bg-blue-50 border-blue-600', icon: 'text-blue-600' },
+  info: { box: 'bg-blue-50 border-blue-600', icon: 'text-blue-600' },
 }
 
 export default function NotificationCenter() {
@@ -30,6 +31,7 @@ export default function NotificationCenter() {
     >
       {toasts.map(toast => {
         const variant = TOAST_STYLES[toast.type] || TOAST_STYLES.info
+        const iconName = ICONS[toast.type] || ICONS.info
         return (
           <div
             key={toast.id}
@@ -37,18 +39,19 @@ export default function NotificationCenter() {
             role="alert"
             aria-atomic="true"
           >
-            <span className={`text-lg font-bold leading-none shrink-0 mt-0.5 ${variant.icon}`} aria-hidden="true">
-              {icons[toast.type]}
+            <span className={`shrink-0 mt-0.5 ${variant.icon}`} aria-hidden="true">
+              <Icon name={iconName} className="text-xl leading-none" title="" />
             </span>
             <span className="flex-1 text-sm text-foreground leading-snug">
               {toast.message}
             </span>
             <button
-              className="shrink-0 p-0.5 text-lg leading-none text-muted-foreground rounded-sm cursor-pointer hover:text-foreground transition-colors"
+              type="button"
+              className="shrink-0 p-0.5 text-muted-foreground rounded-sm cursor-pointer hover:text-foreground transition-colors"
               onClick={() => dismiss(toast.id)}
               aria-label="關閉通知"
             >
-              ×
+              <Icon name="close" className="text-lg leading-none" title="" />
             </button>
           </div>
         )

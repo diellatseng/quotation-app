@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { useNotification } from '../../context/NotificationContext.jsx'
 import RichEditor from '../../components/RichEditor.jsx'
 import Button from '../../components/Button'
+import IconButton from '../../components/IconButton'
 
 const LABEL_CLS = 'block text-xs font-semibold text-foreground mb-1.5'
 const INPUT_CLS = 'w-full h-10 px-3 text-sm bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all'
@@ -81,9 +82,12 @@ export default function ServicesAdmin() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold">服務資料庫</h2>
-        <Button variant="primary" onClick={() => { setSelected(null); setForm({ name: '', category: '', description: '' }); setChecklistItems([]); setShowForm(true) }}>
-          + 新增服務
-        </Button>
+        <IconButton
+          variant="primary"
+          icon="add"
+          label="新增服務"
+          onClick={() => { setSelected(null); setForm({ name: '', category: '', description: '' }); setChecklistItems([]); setShowForm(true) }}
+        />
       </div>
 
       <div className={`grid gap-5 ${showForm ? 'grid-cols-[1fr_1.4fr]' : 'grid-cols-1'}`}>
@@ -136,13 +140,13 @@ export default function ServicesAdmin() {
               <div className="mt-2">
                 <div className="flex justify-between items-center mb-3">
                   <p className="text-base font-semibold text-foreground">客戶準備清單</p>
-                  <Button variant="ghost" size="sm" onClick={addItem}>+ 新增</Button>
+                  <IconButton variant="ghost" size="sm" icon="add" label="新增" onClick={addItem} />
                 </div>
                 {checklistItems.map((item, idx) => (
                   <div key={item.id} className="flex gap-2 items-center mb-2">
                     <span className="text-muted-foreground text-sm w-6 text-right shrink-0">{idx + 1}.</span>
                     <input className={`${INPUT_CLS} flex-1`} value={item.item_text} onChange={e => updateItem(idx, e.target.value)} placeholder="準備項目" />
-                    <Button variant="danger" size="sm" onClick={() => deleteItem(item.id)} aria-label="刪除">✕</Button>
+                    <IconButton variant="danger" size="sm" icon="close" tooltip="刪除" onClick={() => deleteItem(item.id)} aria-label="刪除" />
                   </div>
                 ))}
               </div>

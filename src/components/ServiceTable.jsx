@@ -4,6 +4,8 @@ import { createPortal } from 'react-dom'
 import RichEditor from './RichEditor'
 import Icon from './Icon'
 import IconButton from './IconButton'
+import DiffBadge from './DiffBadge'
+import { FEATURE_VERSIONING } from '../lib/featureFlags'
 import Button from '../components/Button'
 
 export default function ServiceTable({ services, onChange, readOnly = false }) {
@@ -119,13 +121,13 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
     <div className="text-center py-12 px-6 text-muted-foreground">
       <p className="text-base mb-4">尚無服務項目。請從工程範本載入或手動新增。</p>
       {!readOnly && (
-        <Button
+        <IconButton
           variant="accent"
           size="normal"
+          icon="add"
+          label="新增服務項目"
           onClick={addService}
-        >
-          + 新增服務項目
-        </Button>
+        />
       )}
     </div>
   )
@@ -136,7 +138,8 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
       <div className="flex items-center justify-between gap-2 mb-3 flex-wrap min-h-[28px]">
         {!readOnly && (
           <span className="flex items-center gap-1 text-xs text-muted-foreground">
-            <span>⠿</span>拖曳左側可調整順序
+            <Icon name="drag_indicator" className="text-base leading-none" title="" />
+            拖曳左側可調整順序
           </span>
         )}
         {hasAnyDesc && (
@@ -161,7 +164,7 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
           const isEditing = editingDesc === idx
           const hasDesc = (svc.description || '').trim().length > 0
           const collapsed = isCollapsed(idx)
-          const diff = svc.diff_status
+          const diff = FEATURE_VERSIONING ? svc.diff_status : null
           const isRemoved = diff === 'removed'
           const checklistCount = (svc.checklist_items || []).filter(i => i.item_text?.trim()).length
 
@@ -227,7 +230,11 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                   w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0
                   ${isRemoved ? 'bg-red-400 text-red-900' : svc.is_added ? 'bg-accent text-white' : 'bg-muted text-muted-foreground'}
                 `}>
-                  {isRemoved ? '✕' : idx + 1}
+                  {isRemoved ? (
+                    <Icon name="close" className="text-sm leading-none" title="" />
+                  ) : (
+                    idx + 1
+                  )}
                 </div>
 
                 {diff && <DiffBadge type={diff} />}
@@ -399,13 +406,13 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
       </div>
 
       {!readOnly && (
-        <Button
+        <IconButton
           variant="normal"
           className="mt-4 w-full"
+          icon="add"
+          label="新增服務項目"
           onClick={addService}
-        >
-          + 新增服務項目
-        </Button>
+        />
       )}
 
       {/* ── Checklist modal ─────────────────────────────────────────────── */}
@@ -456,25 +463,28 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                       />
                     )}
                     {!readOnly && (
-                      <button type="button" onClick={() => removeChecklistItem(checklistIdx, iIdx)}
-                        aria-label="刪除此清單項目"
-                        className="inline-flex items-center justify-center h-7 w-7 text-xs font-medium rounded-sm border border-red-300 bg-red-50 text-red-600 hover:bg-red-100 hover:border-red-400 cursor-pointer transition-all flex-shrink-0">
-                        ✕
-                      </button>
+                      <IconButton
+                        icon="close"
+                        tooltip="刪除此清單項目"
+                        onClick={() => removeChecklistItem(checklistIdx, iIdx)}
+                        variant="ghost"
+                        size="sm"
+                        className="!text-red-600 hover:!bg-red-50 flex-shrink-0"
+                      />
                     )}
                   </div>
                 ))}
               </div>
 
               {!readOnly && (
-                <Button
+                <IconButton
                   variant="ghost"
                   size="sm"
                   className="mt-3"
+                  icon="add"
+                  label="新增清單項目"
                   onClick={() => addChecklistItem(checklistIdx)}
-                >
-                  + 新增清單項目
-                </Button>
+                />
               )}
             </div>
 
@@ -490,19 +500,4 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
       )}
     </div>
   )
-}
-
-function DiffBadge({ type }) {
-  const base = 'inline-flex items-center flex-shrink-0 px-2 py-0.5 rounded-full text-xs font-bold border'
-  const variantMap = {
-    added: 'bg-green-100 text-green-800 border-green-300',
-    modified: 'bg-yellow-100 text-yellow-800 border-yellow-300',
-    removed: 'bg-red-100 text-red-800 border-red-300',
-  }
-  const labelMap = {
-    added: '▲ 新增', modified: '✎ 更改', removed: '✕ 刪除',
-  }
-  const variant = variantMap[type]
-  if (!variant) return null
-  return <span className={`${base} ${variant}`}>{labelMap[type]}</span>
 }

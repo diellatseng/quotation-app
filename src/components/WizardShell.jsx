@@ -1,5 +1,6 @@
 // src/components/WizardShell.jsx
 import Button from './Button'
+import IconButton from './IconButton'
 
 const STEPS = [
   { num: 1, label: '客戶資料' },
@@ -75,25 +76,25 @@ export default function WizardShell({
           {/* Left: actions */}
           <div className="flex gap-3 items-center">
             {onBackToDashboard && (
-              <Button
+              <IconButton
+                icon="arrow_back"
+                label="返回清單"
                 variant="normal"
                 size="normal"
                 onClick={onBackToDashboard}
                 disabled={saving}
                 aria-label="返回清單頁"
-              >
-                ← 返回清單
-              </Button>
+              />
             )}
             {!isFirst && (
-              <Button
+              <IconButton
+                icon="arrow_back"
+                label={backLabel || '上一步'}
                 variant="normal"
                 size="normal"
                 onClick={onBack}
                 aria-label="上一步"
-              >
-                ← {backLabel || '上一步'}
-              </Button>
+              />
             )}
           </div>
 
@@ -111,15 +112,15 @@ export default function WizardShell({
               </Button>
             )}
             {(!isLast || nextLabel) && (
-              <Button
+              <IconButton
+                icon="arrow_forward"
+                label={nextLabel || '下一步'}
                 variant="accent"
                 size="normal"
                 onClick={onNext}
                 disabled={isLast ? saving : !canNext}
                 aria-label="下一步"
-              >
-                {nextLabel || '下一步'} →
-              </Button>
+              />
             )}
           </div>
         </div>

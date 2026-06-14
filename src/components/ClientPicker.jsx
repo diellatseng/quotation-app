@@ -3,6 +3,8 @@ import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { useNotification } from '../context/NotificationContext'
 import Button from './Button'
+import Icon from './Icon'
+import IconButton from './IconButton'
 
 export default function ClientPicker({ value, onChange, disabled = false }) {
   const [clients, setClients] = useState([])
@@ -191,22 +193,23 @@ export default function ClientPicker({ value, onChange, disabled = false }) {
               <button
                 type="button"
                 onClick={() => { setSearch(''); onChange?.(null); }}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-sm p-1"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1"
+                aria-label="清除搜尋"
               >
-                ✕
+                <Icon name="close" className="text-base leading-none" title="" />
               </button>
             )}
           </div>
 
           {!showCreate && (
-            <Button
+            <IconButton
               variant="normal"
               type="button"
+              icon="add"
+              label="新增客戶"
               onClick={() => setShowCreate(true)}
               disabled={disabled}
-            >
-              + 新增客戶
-            </Button>
+            />
           )}
         </div>
 
@@ -226,8 +229,19 @@ export default function ClientPicker({ value, onChange, disabled = false }) {
                 >
                   <div>
                     <div className="font-medium">{client.company_name}</div>
-                    <div className="text-xs text-muted-foreground mt-0.5">
-                      {client.phone && `📞 ${client.phone}`} {client.email && ` ✉️ ${client.email}`}
+                    <div className="text-xs text-muted-foreground mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5">
+                      {client.phone && (
+                        <span className="inline-flex items-center gap-1">
+                          <Icon name="call" className="text-sm leading-none" title="" />
+                          {client.phone}
+                        </span>
+                      )}
+                      {client.email && (
+                        <span className="inline-flex items-center gap-1">
+                          <Icon name="mail" className="text-sm leading-none" title="" />
+                          {client.email}
+                        </span>
+                      )}
                     </div>
                   </div>
                   {value === client.id && <span className="text-primary text-xs font-semibold">已選取</span>}
@@ -245,8 +259,9 @@ export default function ClientPicker({ value, onChange, disabled = false }) {
       {/* Inline Creation Subform */}
       {showCreate && (
         <div className="border border-border rounded-lg p-4 bg-muted/20 space-y-4 animate-in fade-in duration-200">
-          <h3 className="text-sm font-semibold text-foreground border-b border-border pb-1.5">
-            ✨ 新增客戶基本資料
+          <h3 className="text-sm font-semibold text-foreground border-b border-border pb-1.5 flex items-center gap-1.5">
+            <Icon name="domain_add" className="text-base leading-none" title="" />
+            新增客戶基本資料
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -281,8 +296,9 @@ export default function ClientPicker({ value, onChange, disabled = false }) {
             </Field>
           </div>
 
-          <h3 className="text-sm font-semibold text-foreground border-b border-border pt-2 pb-1.5">
-            👤 聯絡人資料
+          <h3 className="text-sm font-semibold text-foreground border-b border-border pt-2 pb-1.5 flex items-center gap-1.5">
+            <Icon name="person" className="text-base leading-none" title="" />
+            聯絡人資料
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

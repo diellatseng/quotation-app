@@ -1,5 +1,6 @@
 // src/components/RichEditor.jsx
 import { useRef, useEffect, useCallback } from 'react'
+import Icon from './Icon'
 
 const COLOR_PRESETS = ['#1a1916', '#c0392b', '#1a5fad', '#27ae60', '#e67e22', '#8e44ad', '#888888']
 
@@ -114,14 +115,14 @@ export default function RichEditor({ value, onChange, minHeight = 100, maxHeight
         <ToolBtn title="斜體" onClick={() => exec('italic')}><em>I</em></ToolBtn>
         <ToolBtn title="底線" onClick={() => exec('underline')}><u>U</u></ToolBtn>
         <Sep />
-        <ToolBtn title="靠左" onClick={() => exec('justifyLeft')}>⬅</ToolBtn>
-        <ToolBtn title="置中" onClick={() => exec('justifyCenter')}>☰</ToolBtn>
-        <ToolBtn title="靠右" onClick={() => exec('justifyRight')}>➡</ToolBtn>
+        <ToolIconBtn title="靠左" icon="format_align_left" onClick={() => exec('justifyLeft')} />
+        <ToolIconBtn title="置中" icon="format_align_center" onClick={() => exec('justifyCenter')} />
+        <ToolIconBtn title="靠右" icon="format_align_right" onClick={() => exec('justifyRight')} />
         <Sep />
-        <ToolBtn title="項目符號清單" onClick={() => exec('insertUnorderedList')}>• 清單</ToolBtn>
-        <ToolBtn title="數字清單" onClick={() => exec('insertOrderedList')}>1. 清單</ToolBtn>
-        <ToolBtn title="增加縮排" onClick={() => exec('indent')}>⇥</ToolBtn>
-        <ToolBtn title="減少縮排" onClick={() => exec('outdent')}>⇤</ToolBtn>
+        <ToolIconBtn title="項目符號清單" icon="format_list_bulleted" onClick={() => exec('insertUnorderedList')} />
+        <ToolIconBtn title="數字清單" icon="format_list_numbered" onClick={() => exec('insertOrderedList')} />
+        <ToolIconBtn title="增加縮排" icon="format_indent_increase" onClick={() => exec('indent')} />
+        <ToolIconBtn title="減少縮排" icon="format_indent_decrease" onClick={() => exec('outdent')} />
         <Sep />
 
         {/* Font size */}
@@ -159,7 +160,7 @@ export default function RichEditor({ value, onChange, minHeight = 100, maxHeight
           className="w-5 h-5 border-none p-0 cursor-pointer bg-none"
         />
         <Sep />
-        <ToolBtn title="清除格式" onClick={() => exec('removeFormat')}>✕ 格式</ToolBtn>
+        <ToolIconBtn title="清除格式" icon="format_clear" onClick={() => exec('removeFormat')} />
       </div>
 
       {/* ── Editable area ── */}
@@ -206,6 +207,20 @@ function ToolBtn({ onClick, title, children }) {
       className="px-1.5 py-0.5 text-[11px] leading-snug border border-border rounded bg-background text-foreground cursor-pointer hover:bg-muted transition-colors"
     >
       {children}
+    </button>
+  )
+}
+
+function ToolIconBtn({ onClick, title, icon }) {
+  return (
+    <button
+      type="button"
+      title={title}
+      aria-label={title}
+      onClick={onClick}
+      className="inline-flex items-center justify-center w-7 h-7 border border-border rounded bg-background text-foreground cursor-pointer hover:bg-muted transition-colors"
+    >
+      <Icon name={icon} className="text-base leading-none" title="" />
     </button>
   )
 }

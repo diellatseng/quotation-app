@@ -10,8 +10,11 @@ import Dialog from '../components/Dialog'
 import StatusBadge from '../components/StatusBadge'
 import Switch from '../components/Switch'
 import Button from '../components/Button'
+import IconButton from '../components/IconButton'
+import Icon from '../components/Icon'
 import FilterPill from '../components/FilterPill'
 import ActionMenu, { ActionMenuItem, useActionMenuClose } from '../components/ActionMenu'
+import { FEATURE_NEGOTIATION, FEATURE_VERSIONING } from '../lib/featureFlags'
 import packageJson from '../../package.json'
 
 const STATUS_FILTERS = ['全部', '草稿', '已報價', '已確認', '已結案']
@@ -50,17 +53,22 @@ export default function DashboardPage() {
     const { data, error: err } = await q
     if (err) { error('載入失敗：' + err.message); setLoading(false); return }
 
-    const latestMap = {}
-      ; (data || []).forEach(qt => {
-        const root = getRootId(qt, data)
-        if (!latestMap[root] || qt.version > latestMap[root].version) {
-          latestMap[root] = qt
-        }
-      })
-    setQuotations(Object.values(latestMap))
+    if (FEATURE_VERSIONING) {
+      const latestMap = {}
+        ; (data || []).forEach(qt => {
+          const root = getRootId(qt, data)
+          if (!latestMap[root] || qt.version > latestMap[root].version) {
+            latestMap[root] = qt
+          }
+        })
+      setQuotations(Object.values(latestMap))
+    } else {
+      setQuotations(data || [])
+    }
     setLoading(false)
   }
 
+  /* inactive: versioning — resolve quote chain root for latest-version dedup */
   const getRootId = (qt, all) => {
     if (!qt.parent_id) return qt.id
     const parent = all.find(q => q.id === qt.parent_id)
@@ -100,7 +108,7 @@ export default function DashboardPage() {
       (q.quote_number || '').includes(search) ||
       (q.clients?.company_name || '').includes(search)
     const matchStatus = statusFilter === '全部' || q.status === statusFilter
-    const matchNeg = !showNegotiating || q.is_negotiating
+    const matchNeg = !FEATURE_NEGOTIATION || !showNegotiating || q.is_negotiating
     const matchDelete = q.status !== '已刪除'
     return matchSearch && matchStatus && matchNeg && matchDelete
   })
@@ -193,13 +201,13 @@ export default function DashboardPage() {
             placeholder="搜尋報價編號、客戶名稱…"
             aria-label="搜尋報價單"
           />
-          <Button
+          <IconButton
+            icon="add"
+            label="新增報價單"
             variant="primary"
             onClick={() => navigate('/quotation/new')}
             aria-label="新增報價單"
-          >
-            + 新增報價單
-          </Button>
+          />
         </div>
 
         {/* Filter Area */}
@@ -236,7 +244,9 @@ export default function DashboardPage() {
           </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-border bg-card p-12 text-center text-card-foreground shadow-sm">
-            <div className="text-4xl mb-3" aria-hidden="true">📋</div>
+            <div className="mb-3 text-muted-foreground/60" aria-hidden="true">
+              <Icon name="description" className="text-5xl" title="" />
+            </div>
             <p className="text-sm font-medium text-muted-foreground">尚無報價單</p>
             <Button
               variant="primary"
@@ -259,9 +269,9 @@ export default function DashboardPage() {
                 >
                   <div className="flex items-center justify-between">
                     <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-mono font-medium text-muted-foreground border border-border">
-                      {q.quote_number}{q.version > 1 ? ` v${q.version}` : ''}
+                      {q.quote_number}{FEATURE_VERSIONING && q.version > 1 ? ` v${q.version}` : ''}
                     </span>
-                    <StatusBadge status={q.status} isNegotiating={q.is_negotiating} size="sm" />
+                    <StatusBadge status={q.status} isNegotiating={FEATURE_NEGOTIATION && q.is_negotiating} size="sm" />
                   </div>
                   <div className="text-sm font-medium text-foreground">{q.clients?.company_name || '—'}</div>
                   <div className="flex justify-between items-center text-xs text-muted-foreground">
@@ -294,14 +304,14 @@ export default function DashboardPage() {
                     >
                       <td className="p-4 align-middle">
                         <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-mono font-medium text-muted-foreground border border-border">
-                          {q.quote_number}{q.version > 1 ? ` v${q.version}` : ''}
+                          {q.quote_number}{FEATURE_VERSIONING && q.version > 1 ? ` v${q.version}` : ''}
                         </span>
                       </td>
                       <td className="p-4 align-middle font-medium text-foreground">{q.clients?.company_name || '—'}</td>
                       <td className="p-4 align-middle text-muted-foreground">{formatRocDate(q.quote_date)}</td>
                       <td className="p-4 align-middle font-semibold text-foreground">{fmt(q.fee_amount)}</td>
                       <td className="p-4 align-middle" onClick={e => e.stopPropagation()}>
-                        <StatusBadge status={q.status} isNegotiating={q.is_negotiating} size="sm" />
+                        <StatusBadge status={q.status} isNegotiating={FEATURE_NEGOTIATION && q.is_negotiating} size="sm" />
                       </td>
                       <td className="p-4 align-middle text-right" onClick={e => e.stopPropagation()}>
                         <div className="flex items-center justify-end gap-2">

@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useNotification } from '../../context/NotificationContext.jsx'
 import Button from '../../components/Button'
+import IconButton from '../../components/IconButton'
 
 export default function ClientsAdmin() {
   const [clients, setClients] = useState([])
@@ -80,9 +81,12 @@ export default function ClientsAdmin() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold">客戶資料庫</h2>
-        <Button variant="primary" onClick={() => { setSelected(null); setForm(emptyClient()); setContacts([]); setShowForm(true) }}>
-          + 新增客戶
-        </Button>
+        <IconButton
+          variant="primary"
+          icon="add"
+          label="新增客戶"
+          onClick={() => { setSelected(null); setForm(emptyClient()); setContacts([]); setShowForm(true) }}
+        />
       </div>
 
       <div className={`grid gap-5 ${showForm ? 'grid-cols-[1fr_1.4fr]' : 'grid-cols-1'}`}>
@@ -125,7 +129,7 @@ export default function ClientsAdmin() {
               <div className="mt-6">
                 <div className="flex justify-between items-center mb-3">
                   <p className="text-base font-semibold text-foreground">聯絡人</p>
-                  <Button variant="ghost" size="sm" onClick={addContact}>+ 新增</Button>
+                  <IconButton variant="ghost" size="sm" icon="add" label="新增" onClick={addContact} />
                 </div>
                 {contacts.map((ct, idx) => (
                   <div key={ct.id} className="border border-border rounded-lg p-3 mb-3">

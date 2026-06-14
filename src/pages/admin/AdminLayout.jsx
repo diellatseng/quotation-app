@@ -1,5 +1,6 @@
 // src/pages/admin/AdminLayout.jsx
 import { NavLink, Outlet } from 'react-router-dom'
+import Icon from '../../components/Icon'
 
 const NAV_LINKS = [
   { to: '/admin/clients', label: '客戶資料庫' },
@@ -28,8 +29,14 @@ export default function AdminLayout() {
               </NavLink>
             ))}
           </nav>
-          <NavLink to="/dashboard" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors ml-auto">
-            ← 返回
+          <NavLink
+            to="/dashboard"
+            className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors ml-auto"
+          >
+            <span aria-hidden="true">
+              <Icon name="arrow_back" className="text-base" title="" />
+            </span>
+            返回
           </NavLink>
         </div>
       </header>

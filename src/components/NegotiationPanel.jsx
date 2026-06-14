@@ -4,6 +4,8 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useNotification } from '../context/NotificationContext'
 import Button from './Button'
+import Icon from './Icon'
+import IconButton from './IconButton'
 
 const fmt = (n) => `NT$ ${Number(n || 0).toLocaleString('zh-TW')}`
 
@@ -65,8 +67,9 @@ export default function NegotiationPanel({ quotationId, currentAmount, logs = []
                     <span className="text-sm text-muted-foreground">
                       原報價：<s>{fmt(log.old_amount)}</s>
                     </span>
-                    <span className="text-sm font-bold text-foreground">
-                      → 議價後：{fmt(log.new_amount)}
+                    <span className="text-sm font-bold text-foreground inline-flex items-center gap-1">
+                      <Icon name="arrow_forward" className="text-sm leading-none" title="" />
+                      議價後：{fmt(log.new_amount)}
                     </span>
                   </div>
                   {log.notes && (
@@ -83,15 +86,21 @@ export default function NegotiationPanel({ quotationId, currentAmount, logs = []
 
       {/* Add entry */}
       <div className="border-t border-border pt-4 mt-2">
-        <Button
-          type="button"
-          variant="normal"
-          size="sm"
-          onClick={() => setOpen(v => !v)}
-          aria-expanded={open}
-        >
-          {open ? '取消' : '+ 新增議價記錄'}
-        </Button>
+        {open ? (
+          <Button type="button" variant="ghost" size="sm" onClick={() => setOpen(false)}>
+            取消
+          </Button>
+        ) : (
+          <IconButton
+            type="button"
+            variant="normal"
+            size="sm"
+            icon="add"
+            label="新增議價記錄"
+            onClick={() => setOpen(true)}
+            aria-expanded={false}
+          />
+        )}
       </div>
 
       {open && (

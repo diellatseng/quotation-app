@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import ROCDateInput from '../../components/ROCDateInput'
 import Switch from '../../components/Switch'
+import IconButton from '../../components/IconButton'
 import { formatRocDate, formatCeDisplay } from '../../lib/rocDate'
 
 const fmt = (n) => `NT$ ${Number(n || 0).toLocaleString('zh-TW')}`
@@ -33,7 +34,7 @@ const PRESETS = [
   },
 ]
 
-export default function Step4Confirm({ data, update, negContext }) {
+export default function Step4Confirm({ data, update }) {
   const [useRoc, setUseRoc] = useState(true)
   const [editingMeta, setEditingMeta] = useState(false)
 
@@ -191,13 +192,15 @@ export default function Step4Confirm({ data, update, negContext }) {
             <p className="text-base font-semibold text-foreground">付款階段</p>
             <p className="text-xs text-muted-foreground mt-0.5">付款階段百分比總和必須等於 100%</p>
           </div>
-          <button
+          <IconButton
             type="button"
+            icon="add"
+            label="新增階段"
+            variant="primary"
+            size="sm"
             onClick={handleAddStage}
-            className="self-start px-3 py-1.5 text-xs font-semibold bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors shadow-sm"
-          >
-            ＋ 新增階段
-          </button>
+            className="self-start text-xs font-semibold shadow-sm"
+          />
         </div>
 
         <div className="flex flex-wrap gap-1.5 mb-4">
@@ -260,16 +263,17 @@ export default function Step4Confirm({ data, update, negContext }) {
                       {fmt(stageShare)}
                     </td>
                     <td className="px-2 py-2 text-center align-middle">
-                      <button
+                      <IconButton
                         type="button"
+                        icon="close"
+                        tooltip="刪除此階段"
+                        aria-label="刪除此階段"
                         onClick={() => handleRemoveStage(stage.id)}
                         disabled={data.payment_stages.length <= 1}
-                        className="text-muted-foreground hover:text-rose-600 disabled:opacity-30 disabled:hover:text-muted-foreground p-1 transition-colors"
-                        title="刪除此階段"
-                        aria-label="刪除此階段"
-                      >
-                        ✕
-                      </button>
+                        variant="ghost"
+                        size="sm"
+                        className="text-muted-foreground hover:text-rose-600 disabled:opacity-30 disabled:hover:text-muted-foreground"
+                      />
                     </td>
                   </tr>
                 )
@@ -307,16 +311,17 @@ export default function Step4Confirm({ data, update, negContext }) {
                 <div className="text-xs font-semibold text-muted-foreground w-28 text-right shrink-0">
                   {fmt(stageShare)}
                 </div>
-                <button
+                <IconButton
                   type="button"
+                  icon="close"
+                  tooltip="刪除此階段"
+                  aria-label="刪除此階段"
                   onClick={() => handleRemoveStage(stage.id)}
                   disabled={data.payment_stages.length <= 1}
-                  className="text-muted-foreground hover:text-rose-600 disabled:opacity-30 disabled:hover:text-muted-foreground p-1 transition-colors ml-auto"
-                  title="刪除此階段"
-                  aria-label="刪除此階段"
-                >
-                  ✕
-                </button>
+                  variant="ghost"
+                  size="sm"
+                  className="ml-auto text-muted-foreground hover:text-rose-600 disabled:opacity-30 disabled:hover:text-muted-foreground"
+                />
               </div>
             )
           })}

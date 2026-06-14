@@ -1,6 +1,7 @@
 // src/components/A4Preview.jsx
 import { forwardRef, useRef, useEffect, useState } from 'react'
 import { formatRocDate } from '../lib/rocDate'
+import { FEATURE_VERSIONING } from '../lib/featureFlags'
 import '../styles/components/A4Preview.css'
 
 const fmt = (n) => `NT$ ${Number(n || 0).toLocaleString('zh-TW')}`
@@ -166,7 +167,7 @@ function DocHeader({ mode, quotation, client, contactPerson, companyInfo, title 
         <>
           <div className="a4-rule" />
           <div className="a4-meta-grid">
-            <MetaRow label="報價編號" value={`${quotation.quote_number}${quotation.version > 1 ? ` (v${quotation.version})` : ''}`} />
+            <MetaRow label="報價編號" value={`${quotation.quote_number}${FEATURE_VERSIONING && quotation.version > 1 ? ` (v${quotation.version})` : ''}`} />
             <MetaRow label="報價日期" value={formatRocDate(quotation.quote_date)} />
             <MetaRow label="有效期限" value="開立日起 30 日" />
           </div>
@@ -259,10 +260,10 @@ function buildQuotationSections({
               <td className="a4-td a4-td--num a4-td--top">{idx + 1}</td>
               <td className="a4-td a4-td--cat a4-td--top a4-td--muted">{svc.category || ''}</td>
               <td className="a4-td a4-td--left a4-td--top">
-                {svc.diff_status === 'removed'
+                {FEATURE_VERSIONING && svc.diff_status === 'removed'
                   ? <span className="a4-svc-removed">{svc.service_name}</span>
                   : svc.service_name}
-                {svc.diff_status && (
+                {FEATURE_VERSIONING && svc.diff_status && (
                   <span className={`a4-diff-badge a4-diff-badge--${svc.diff_status}`}>
                     {svc.diff_status === 'added' ? '▲新增' : svc.diff_status === 'modified' ? '✎更改' : '✕刪除'}
                   </span>

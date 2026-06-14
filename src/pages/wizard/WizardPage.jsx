@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useNotification } from '../../context/NotificationContext.jsx'
 import { todayCe } from '../../lib/rocDate'
+import { FEATURE_NEGOTIATION, FEATURE_VERSIONING } from '../../lib/featureFlags'
 import WizardShell from '../../components/WizardShell'
 import Dialog from '../../components/Dialog'
 import Step1Client from './Step1Client'
@@ -46,15 +47,16 @@ const initState = () => ({
 export default function WizardPage() {
   const [searchParams] = useSearchParams()
   const editId = searchParams.get('edit')
-  const negAmount = searchParams.get('negAmount')
-  const negNotes = searchParams.get('negNotes') ? decodeURIComponent(searchParams.get('negNotes')) : ''
+  // inactive: negotiation — query params from 議價 flow
+  // const negAmount = searchParams.get('negAmount')
+  // const negNotes = searchParams.get('negNotes') ? decodeURIComponent(searchParams.get('negNotes')) : ''
 
   const initStep = parseInt(searchParams.get('step') || '1', 10)
 
-  const [parentServices, setParentServices] = useState([]) // v(n-1) services for diff
-  const [negContext, setNegContext] = useState(           // carried from negotiation
-    negAmount ? { amount: Number(negAmount), notes: negNotes } : null
-  )
+  // inactive: versioning — parent quote services for diff
+  const [parentServices, setParentServices] = useState([])
+  // inactive: negotiation — amount/notes carried into wizard
+  const [negContext] = useState(null)
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(false)
   const [quotationId, setQuotationId] = useState(null)
@@ -134,22 +136,24 @@ export default function WizardPage() {
         })),
         quote_number: q.quote_number,
         quote_date: q.quote_date,
-        fee_amount: negAmount ? negAmount : (q.fee_amount?.toString() || ''),
+        fee_amount: q.fee_amount?.toString() || '',
         tax_included: q.tax_included,
         notes: q.notes || '',
         version: q.version || 1,
       })
       setQuotationId(q.id)
 
-      // Load parent version's services for diff computation
-      const parentId = q.parent_id
-      if (parentId) {
-        const { data: pSvcs } = await supabase
-          .from('quotation_services')
-          .select('service_name, category, description')
-          .eq('quotation_id', parentId)
-          .order('sort_order')
-        setParentServices(pSvcs || [])
+      // inactive: versioning — load parent quote services for diff
+      if (FEATURE_VERSIONING) {
+        const parentId = q.parent_id
+        if (parentId) {
+          const { data: pSvcs } = await supabase
+            .from('quotation_services')
+            .select('service_name, category, description')
+            .eq('quotation_id', parentId)
+            .order('sort_order')
+          setParentServices(pSvcs || [])
+        }
       }
 
       setLoading(false)
@@ -343,7 +347,13 @@ export default function WizardPage() {
     }
   }
 
-  const stepProps = { data, update, loading, parentServices, negContext }
+  const stepProps = {
+    data,
+    update,
+    loading,
+    ...(FEATURE_VERSIONING ? { parentServices } : {}),
+    ...(FEATURE_NEGOTIATION ? { negContext } : {}),
+  }
 
   return (
     <>
