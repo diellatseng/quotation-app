@@ -1,10 +1,11 @@
 // src/components/IconButton.jsx
-import React from 'react'
-import Icon from './Icon'
-import Button from './Button'
+import { Button as ShadcnButton } from '@/components/ui/button'
+import { getIcon } from '@/lib/icons'
+import { cn } from '@/lib/utils'
+import { SIZE_MAP, VARIANT_MAP } from './Button'
 
 /**
- * IconButton — Button with integrated Material Symbol icon and optional text label
+ * IconButton — shadcn Button with Lucide icon and optional text label.
  */
 export default function IconButton({
   icon,
@@ -21,27 +22,24 @@ export default function IconButton({
   ...rest
 }) {
   const displayLabel = children || label
+  const LucideIcon = icon ? getIcon(icon) : null
+  const iconClass = size === 'sm' ? 'size-3.5' : 'size-4'
 
   return (
-    <Button
+    <ShadcnButton
       type={type}
       onClick={onClick}
-      variant={variant}
-      size={size}
-      className={className}
+      variant={VARIANT_MAP[variant] ?? 'outline'}
+      size={SIZE_MAP[size] ?? 'md'}
+      className={cn('font-semibold', className)}
       style={style}
       disabled={disabled}
       title={tooltip || label}
-      aria-label={tooltip || label}
+      aria-label={tooltip || label || undefined}
       {...rest}
     >
-      {icon && (
-        <Icon
-          name={icon}
-          className={size === 'sm' ? 'text-[18px]' : 'text-[20px]'}
-        />
-      )}
-      {displayLabel && <span>{displayLabel}</span>}
-    </Button>
+      {LucideIcon && <LucideIcon className={iconClass} />}
+      {displayLabel ? <span>{displayLabel}</span> : null}
+    </ShadcnButton>
   )
 }

@@ -1,20 +1,22 @@
 // src/components/Icon.jsx
-import React from 'react'
+import { cn } from '@/lib/utils'
+import { getIcon } from '@/lib/icons'
 
 /**
- * Icon — Material Symbols wrapper component
- * Renders Google Material Symbols with consistent styling using Tailwind utilities
+ * Icon — Lucide wrapper (legacy Material Symbol names still accepted via lib/icons).
  */
 export default function Icon({ name, style = {}, title = '', className = '' }) {
+  const LucideIcon = getIcon(name)
+  if (!LucideIcon) return null
+
+  const decorative = !title
+
   return (
-    <span
-      className={`material-symbols-outlined select-none align-middle ${className}`}
+    <LucideIcon
+      className={cn('shrink-0', className)}
       style={style}
-      title={title}
-      role="img"
-      aria-label={title}
-    >
-      {name}
-    </span>
+      aria-hidden={decorative ? true : undefined}
+      aria-label={decorative ? undefined : title}
+    />
   )
 }
