@@ -19,16 +19,24 @@ import {
 import StatusBadge from '../components/StatusBadge'
 import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
+import { FileText } from 'lucide-react'
 import { getIcon } from '@/lib/icons'
-import Icon from '../components/Icon'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import FilterPill from '../components/FilterPill'
-import ActionMenu, { ActionMenuItem } from '../components/ActionMenu'
 import { FEATURE_NEGOTIATION, FEATURE_VERSIONING } from '../lib/featureFlags'
 import packageJson from '../../package.json'
 
 const STATUS_FILTERS = ['全部', '草稿', '已報價', '已確認', '已結案']
 const fmt = (n) => n ? `NT$ ${Number(n).toLocaleString('zh-TW')}` : '—'
 const PlusIcon = getIcon('add')
+const MoreIcon = getIcon('more_horiz')
+const ArchiveIcon = getIcon('done_outline')
+const DeleteIcon = getIcon('delete')
 
 export default function DashboardPage() {
   const [quotations, setQuotations] = useState([])
@@ -276,7 +284,7 @@ export default function DashboardPage() {
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-border bg-card p-12 text-center text-card-foreground shadow-sm">
             <div className="mb-3 text-muted-foreground/60" aria-hidden="true">
-              <Icon name="description" className="text-5xl" title="" />
+              <FileText className="size-12 text-muted-foreground/60" aria-hidden="true" />
             </div>
             <p className="text-sm font-medium text-muted-foreground">尚無報價單</p>
             <Button
@@ -365,26 +373,50 @@ export default function DashboardPage() {
                               編輯
                             </Button>
                           )}
-                          <ActionMenu
-                            id={q.id}
-                            openId={actionMenuId}
-                            onOpen={setActionMenuId}
-                            onClose={() => setActionMenuId(null)}
+                          <DropdownMenu
+                            open={actionMenuId === q.id}
+                            onOpenChange={open => {
+                              if (open) setActionMenuId(q.id)
+                              else setActionMenuId(null)
+                            }}
                           >
-                            {q.status !== '已結案' && (
-                              <ActionMenuItem
-                                icon="done_outline"
-                                label="結案"
-                                onClick={() => archive(q.id)}
-                              />
-                            )}
-                            <ActionMenuItem
-                              icon="delete"
-                              label="刪除"
-                              danger
-                              onClick={() => handleDelete(q.id)}
+                            <DropdownMenuTrigger
+                              render={
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  title="更多操作"
+                                  aria-label="更多操作"
+                                  onClick={e => e.stopPropagation()}
+                                >
+                                  {MoreIcon && <MoreIcon />}
+                                </Button>
+                              }
                             />
-                          </ActionMenu>
+                            <DropdownMenuContent align="end" className="min-w-[140px]">
+                              {q.status !== '已結案' && (
+                                <DropdownMenuItem
+                                  onClick={e => {
+                                    e.stopPropagation()
+                                    archive(q.id)
+                                  }}
+                                >
+                                  {ArchiveIcon && <ArchiveIcon />}
+                                  結案
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuItem
+                                variant="destructive"
+                                onClick={e => {
+                                  e.stopPropagation()
+                                  handleDelete(q.id)
+                                }}
+                              >
+                                {DeleteIcon && <DeleteIcon />}
+                                刪除
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
                       </td>
                     </tr>

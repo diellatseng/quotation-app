@@ -3,8 +3,8 @@ import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useNotification } from '../context/NotificationContext'
+import { ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import Icon from './Icon'
 import { getIcon } from '@/lib/icons'
 
 const PlusIcon = getIcon('add')
@@ -70,7 +70,7 @@ export default function NegotiationPanel({ quotationId, currentAmount, logs = []
                       原報價：<s>{fmt(log.old_amount)}</s>
                     </span>
                     <span className="text-sm font-bold text-foreground inline-flex items-center gap-1">
-                      <Icon name="arrow_forward" className="text-sm leading-none" title="" />
+                      <ArrowRight className="size-3.5 shrink-0" aria-hidden="true" />
                       議價後：{fmt(log.new_amount)}
                     </span>
                   </div>

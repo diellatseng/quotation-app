@@ -1,6 +1,6 @@
 // src/components/RichEditor.jsx
 import { useRef, useEffect, useCallback } from 'react'
-import Icon from './Icon'
+import { getIcon } from '@/lib/icons'
 
 const COLOR_PRESETS = ['#1a1916', '#c0392b', '#1a5fad', '#27ae60', '#e67e22', '#8e44ad', '#888888']
 
@@ -212,6 +212,7 @@ function ToolBtn({ onClick, title, children }) {
 }
 
 function ToolIconBtn({ onClick, title, icon }) {
+  const LucideIcon = getIcon(icon)
   return (
     <button
       type="button"
@@ -220,7 +221,7 @@ function ToolIconBtn({ onClick, title, icon }) {
       onClick={onClick}
       className="inline-flex items-center justify-center w-7 h-7 border border-border rounded bg-background text-foreground cursor-pointer hover:bg-muted transition-colors"
     >
-      <Icon name={icon} className="text-base leading-none" title="" />
+      {LucideIcon ? <LucideIcon className="size-4 shrink-0" aria-hidden="true" /> : null}
     </button>
   )
 }

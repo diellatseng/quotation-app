@@ -1,12 +1,12 @@
 // src/components/NotificationCenter.jsx
+import { CircleCheck, CircleX, Info, TriangleAlert, X } from 'lucide-react'
 import { useNotification } from '../context/NotificationContext'
-import Icon from './Icon'
 
-const ICONS = {
-  success: 'check_circle',
-  error: 'error',
-  warning: 'warning',
-  info: 'info',
+const TOAST_ICONS = {
+  success: CircleCheck,
+  error: CircleX,
+  warning: TriangleAlert,
+  info: Info,
 }
 
 // Per-type colour variants (background + border + icon colour)
@@ -31,7 +31,7 @@ export default function NotificationCenter() {
     >
       {toasts.map(toast => {
         const variant = TOAST_STYLES[toast.type] || TOAST_STYLES.info
-        const iconName = ICONS[toast.type] || ICONS.info
+        const ToastIcon = TOAST_ICONS[toast.type] || TOAST_ICONS.info
         return (
           <div
             key={toast.id}
@@ -40,7 +40,7 @@ export default function NotificationCenter() {
             aria-atomic="true"
           >
             <span className={`shrink-0 mt-0.5 ${variant.icon}`} aria-hidden="true">
-              <Icon name={iconName} className="text-xl leading-none" title="" />
+              <ToastIcon className="size-5 shrink-0" />
             </span>
             <span className="flex-1 text-sm text-foreground leading-snug">
               {toast.message}
@@ -51,7 +51,7 @@ export default function NotificationCenter() {
               onClick={() => dismiss(toast.id)}
               aria-label="關閉通知"
             >
-              <Icon name="close" className="text-lg leading-none" title="" />
+              <X className="size-4 shrink-0" aria-hidden="true" />
             </button>
           </div>
         )

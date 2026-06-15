@@ -2,8 +2,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { useNotification } from '../context/NotificationContext'
+import { Building2, Mail, Phone, User, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import Icon from './Icon'
 import { getIcon } from '@/lib/icons'
 
 const PlusIcon = getIcon('add')
@@ -198,7 +198,7 @@ export default function ClientPicker({ value, onChange, disabled = false }) {
                 className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1"
                 aria-label="清除搜尋"
               >
-                <Icon name="close" className="text-base leading-none" title="" />
+                <X className="size-4 shrink-0" aria-hidden="true" />
               </button>
             )}
           </div>
@@ -237,13 +237,13 @@ export default function ClientPicker({ value, onChange, disabled = false }) {
                     <div className="text-xs text-muted-foreground mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5">
                       {client.phone && (
                         <span className="inline-flex items-center gap-1">
-                          <Icon name="call" className="text-sm leading-none" title="" />
+                          <Phone className="size-3.5 shrink-0" aria-hidden="true" />
                           {client.phone}
                         </span>
                       )}
                       {client.email && (
                         <span className="inline-flex items-center gap-1">
-                          <Icon name="mail" className="text-sm leading-none" title="" />
+                          <Mail className="size-3.5 shrink-0" aria-hidden="true" />
                           {client.email}
                         </span>
                       )}
@@ -265,7 +265,7 @@ export default function ClientPicker({ value, onChange, disabled = false }) {
       {showCreate && (
         <div className="border border-border rounded-lg p-4 bg-muted/20 space-y-4 animate-in fade-in duration-200">
           <h3 className="text-sm font-semibold text-foreground border-b border-border pb-1.5 flex items-center gap-1.5">
-            <Icon name="domain_add" className="text-base leading-none" title="" />
+            <Building2 className="size-4 shrink-0" aria-hidden="true" />
             新增客戶基本資料
           </h3>
 
@@ -302,7 +302,7 @@ export default function ClientPicker({ value, onChange, disabled = false }) {
           </div>
 
           <h3 className="text-sm font-semibold text-foreground border-b border-border pt-2 pb-1.5 flex items-center gap-1.5">
-            <Icon name="person" className="text-base leading-none" title="" />
+            <User className="size-4 shrink-0" aria-hidden="true" />
             聯絡人資料
           </h3>
 

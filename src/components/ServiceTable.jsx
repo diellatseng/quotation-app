@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import RichEditor from './RichEditor'
-import Icon from './Icon'
+import { ChevronsDown, ChevronsUp, GripVertical, ListChecks, Trash2, X } from 'lucide-react'
 import DiffBadge from './DiffBadge'
 import { Button } from '@/components/ui/button'
 import { getIcon } from '@/lib/icons'
@@ -147,7 +147,7 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
       <div className="flex items-center justify-between gap-2 mb-3 flex-wrap min-h-[28px]">
         {!readOnly && (
           <span className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Icon name="drag_indicator" className="text-base leading-none" title="" />
+            <GripVertical className="size-4 shrink-0" aria-hidden="true" />
             拖曳左側可調整順序
           </span>
         )}
@@ -159,7 +159,11 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
             aria-label={allCollapsed ? '展開所有說明' : '折疊所有說明'}
             className="ml-auto inline-flex items-center gap-1 h-7 px-2.5 text-xs font-medium rounded-md text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer transition-colors whitespace-nowrap"
           >
-            <Icon name={allCollapsed ? 'unfold_more' : 'unfold_less'} title="" />
+            {allCollapsed ? (
+              <ChevronsDown className="size-4 shrink-0" aria-hidden="true" />
+            ) : (
+              <ChevronsUp className="size-4 shrink-0" aria-hidden="true" />
+            )}
             {allCollapsed ? '全部展開' : '全部折疊'}
           </button>
         )}
@@ -245,7 +249,7 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                   ${isRemoved ? 'bg-diff-removed-badge text-diff-removed-badge-text' : svc.is_added ? 'bg-highlight-border text-primary-foreground' : 'bg-muted text-muted-foreground'}
                 `}>
                   {isRemoved ? (
-                    <Icon name="close" className="text-sm leading-none" title="" />
+                    <X className="size-3.5 shrink-0" aria-hidden="true" />
                   ) : (
                     idx + 1
                   )}
@@ -303,7 +307,7 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                           : 'bg-transparent text-muted-foreground border-transparent hover:bg-muted hover:text-foreground'
                           }`}
                       >
-                        <Icon name="checklist" title="" />
+                        <ListChecks className="size-4 shrink-0" aria-hidden="true" />
                         {checklistCount > 0 && <span>{checklistCount}</span>}
                       </button>
                     )}
@@ -331,7 +335,7 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                           aria-label="確認刪除服務項目"
                           className="inline-flex items-center gap-1 h-8 px-2.5 rounded-md text-xs font-semibold border border-destructive-muted-border bg-destructive-muted text-destructive-muted-text hover:bg-destructive-muted-hover cursor-pointer transition-colors whitespace-nowrap animate-in fade-in zoom-in-95 duration-150"
                         >
-                          <Icon name="delete" title="" />
+                          <Trash2 className="size-4 shrink-0" aria-hidden="true" />
                           確定刪除？
                         </button>
                       ) : (

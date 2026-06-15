@@ -1,8 +1,8 @@
 // src/pages/wizard/Step3Services.jsx
 import { useEffect } from 'react'
-import ServiceTable from '../../components/ServiceTable'
+import { MessageSquare } from 'lucide-react'
 import DiffBadge from '../../components/DiffBadge'
-import Icon from '../../components/Icon'
+import ServiceTable from '../../components/ServiceTable'
 import { FEATURE_NEGOTIATION, FEATURE_VERSIONING } from '../../lib/featureFlags'
 
 function computeDiff(current, parent) {
@@ -81,7 +81,7 @@ export default function Step3Services({ data, update, parentServices = null, neg
 
       {FEATURE_NEGOTIATION && negContext && (
         <div className="p-4 rounded-xl text-sm border bg-primary/[0.02] border-primary/20 flex items-center gap-2">
-          <Icon name="forum" className="text-lg leading-none text-primary shrink-0" title="" />
+          <MessageSquare className="size-5 shrink-0 text-primary" aria-hidden="true" />
           <span className="text-foreground">
             議價歷史記錄金額：<strong className="font-bold text-primary">NT$ {Number(negContext.amount).toLocaleString('zh-TW')}</strong>
             {negContext.notes && <span className="text-muted-foreground"> ／ {negContext.notes}</span>}
