@@ -16,7 +16,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import StatusBadge from '../components/StatusBadge'
+import { QuotationStatusBadges } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
 import { FileText } from 'lucide-react'
@@ -311,7 +311,7 @@ export default function DashboardPage() {
                     <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-mono font-medium text-muted-foreground border border-border">
                       {q.quote_number}{FEATURE_VERSIONING && q.version > 1 ? ` v${q.version}` : ''}
                     </span>
-                    <StatusBadge status={q.status} isNegotiating={FEATURE_NEGOTIATION && q.is_negotiating} size="sm" />
+                    <QuotationStatusBadges status={q.status} isNegotiating={FEATURE_NEGOTIATION && q.is_negotiating} />
                   </div>
                   <div className="text-sm font-medium text-foreground">{q.clients?.company_name || '—'}</div>
                   <div className="flex justify-between items-center text-xs text-muted-foreground">
@@ -351,7 +351,7 @@ export default function DashboardPage() {
                       <td className="p-4 align-middle text-muted-foreground">{formatRocDate(q.quote_date)}</td>
                       <td className="p-4 align-middle font-semibold text-foreground">{fmt(q.fee_amount)}</td>
                       <td className="p-4 align-middle" onClick={e => e.stopPropagation()}>
-                        <StatusBadge status={q.status} isNegotiating={FEATURE_NEGOTIATION && q.is_negotiating} size="sm" />
+                        <QuotationStatusBadges status={q.status} isNegotiating={FEATURE_NEGOTIATION && q.is_negotiating} />
                       </td>
                       <td className="p-4 align-middle text-right" onClick={e => e.stopPropagation()}>
                         <div className="flex items-center justify-end gap-2">

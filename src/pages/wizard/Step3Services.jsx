@@ -1,7 +1,7 @@
 // src/pages/wizard/Step3Services.jsx
 import { useEffect } from 'react'
 import { MessageSquare } from 'lucide-react'
-import DiffBadge from '../../components/DiffBadge'
+import { DiffBadge } from '@/components/ui/badge'
 import ServiceTable from '../../components/ServiceTable'
 import { FEATURE_NEGOTIATION, FEATURE_VERSIONING } from '../../lib/featureFlags'
 

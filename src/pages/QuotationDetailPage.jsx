@@ -6,7 +6,7 @@ import { useNotification } from '../context/NotificationContext'
 import { useExportPDF } from '../hooks/useExportPDF'
 import { formatRocDate } from '../lib/rocDate'
 import { FEATURE_NEGOTIATION, FEATURE_VERSIONING } from '../lib/featureFlags'
-import StatusBadge from '../components/StatusBadge'
+import { QuotationStatusBadges } from '@/components/ui/badge'
 // import NegotiationPanel from '../components/NegotiationPanel' // inactive: negotiation
 import ServiceTable from '../components/ServiceTable'
 import A4Preview from '../components/A4Preview'
@@ -163,10 +163,9 @@ export default function QuotationDetailPage() {
                     v{qt.version}
                   </span>
                 )}
-                <StatusBadge
+                <QuotationStatusBadges
                   status={qt.status}
                   isNegotiating={FEATURE_NEGOTIATION && qt.is_negotiating}
-                  size="sm"
                 />
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">
