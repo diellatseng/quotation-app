@@ -13,7 +13,7 @@ import Button from '../components/Button'
 import IconButton from '../components/IconButton'
 import Icon from '../components/Icon'
 import FilterPill from '../components/FilterPill'
-import ActionMenu, { ActionMenuItem, useActionMenuClose } from '../components/ActionMenu'
+import ActionMenu, { ActionMenuItem } from '../components/ActionMenu'
 import { FEATURE_NEGOTIATION, FEATURE_VERSIONING } from '../lib/featureFlags'
 import packageJson from '../../package.json'
 
@@ -30,7 +30,6 @@ export default function DashboardPage() {
   const [quotationId, setQuotationId] = useState(null)
   const [showExitDialog, setShowExitDialog] = useState(false)
   const [actionMenuId, setActionMenuId] = useState(null)
-  useActionMenuClose(actionMenuId, () => setActionMenuId(null))
   const { user, signOut } = useAuth()
   const { baseFontSize, setFontSize, contrast, toggleContrast } = useAppearance()
   const { success, error } = useNotification()
@@ -342,14 +341,14 @@ export default function DashboardPage() {
                               <ActionMenuItem
                                 icon="done_outline"
                                 label="結案"
-                                onClick={() => { setActionMenuId(null); archive(q.id) }}
+                                onClick={() => archive(q.id)}
                               />
                             )}
                             <ActionMenuItem
                               icon="delete"
                               label="刪除"
                               danger
-                              onClick={() => { setActionMenuId(null); handleDelete(q.id) }}
+                              onClick={() => handleDelete(q.id)}
                             />
                           </ActionMenu>
                         </div>
