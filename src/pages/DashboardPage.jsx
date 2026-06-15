@@ -27,7 +27,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import FilterPill from '../components/FilterPill'
 import { FEATURE_NEGOTIATION, FEATURE_VERSIONING } from '../lib/featureFlags'
 import packageJson from '../../package.json'
 
@@ -249,16 +248,19 @@ export default function DashboardPage() {
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-4">
           <div className="flex flex-wrap gap-2">
             {STATUS_FILTERS.map(f => (
-              <FilterPill
+              <Button
                 key={f}
-                pressed={statusFilter === f}
-                onChange={() => {
+                variant={statusFilter === f ? 'default' : 'outline'}
+                size="sm"
+                className="rounded-full px-4"
+                aria-pressed={statusFilter === f}
+                onClick={() => {
                   setStatusFilter(f)
                   setShowArchived(f === '已結案')
                 }}
               >
                 {f}
-              </FilterPill>
+              </Button>
             ))}
           </div>
           <div className="inline-flex items-center gap-3">
