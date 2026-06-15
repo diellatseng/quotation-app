@@ -121,6 +121,7 @@ export default function DashboardPage() {
         message="確定要刪除這份報價單嗎？"
         confirmText="刪除"
         cancelText="取消"
+        confirmVariant="destructive"
         onConfirm={handleDeleteConfirm}
         onCancel={handleDeleteCancel}
       />
