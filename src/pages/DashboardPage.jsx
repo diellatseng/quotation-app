@@ -17,7 +17,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import StatusBadge from '../components/StatusBadge'
-import Switch from '../components/Switch'
+import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
 import { getIcon } from '@/lib/icons'
 import Icon from '../components/Icon'
@@ -253,13 +253,17 @@ export default function DashboardPage() {
               </FilterPill>
             ))}
           </div>
-          <div className="flex items-center">
+          <div className="inline-flex items-center gap-3">
+            <label
+              htmlFor="archiveToggle"
+              className="text-sm font-medium text-foreground select-none cursor-pointer"
+            >
+              顯示已結案
+            </label>
             <Switch
-              checked={showArchived}
-              onChange={setShowArchived}
-              label="顯示已結案"
               id="archiveToggle"
-              size="md"
+              checked={showArchived}
+              onCheckedChange={setShowArchived}
             />
           </div>
         </div>

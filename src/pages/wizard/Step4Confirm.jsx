@@ -1,7 +1,7 @@
 // src/pages/wizard/Step4Confirm.jsx
 import { useState } from 'react'
 import ROCDateInput from '../../components/ROCDateInput'
-import Switch from '../../components/Switch'
+import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
 import { getIcon } from '@/lib/icons'
 import { formatRocDate, formatCeDisplay } from '../../lib/rocDate'
@@ -135,13 +135,19 @@ export default function Step4Confirm({ data, update }) {
                     useRoc={useRoc}
                     required
                   />
-                  <Switch
-                    id="date_format"
-                    checked={useRoc}
-                    onChange={setUseRoc}
-                    size="md"
-                    label="使用民國曆顯示"
-                  />
+                  <div className="inline-flex items-center gap-3">
+                    <label
+                      htmlFor="date_format"
+                      className="text-sm font-medium text-foreground select-none cursor-pointer"
+                    >
+                      使用民國曆顯示
+                    </label>
+                    <Switch
+                      id="date_format"
+                      checked={useRoc}
+                      onCheckedChange={setUseRoc}
+                    />
+                  </div>
                 </div>
               </div>
               <div className="flex justify-end">
@@ -174,13 +180,19 @@ export default function Step4Confirm({ data, update }) {
                 />
               </div>
             </div>
-            <Switch
-              id="tax_included"
-              checked={data.tax_included}
-              onChange={val => update({ tax_included: val })}
-              size="md"
-              label="外加 5% 營業稅金"
-            />
+            <div className="inline-flex items-center gap-3 sm:pb-1">
+              <label
+                htmlFor="tax_included"
+                className="text-sm font-medium text-foreground select-none cursor-pointer"
+              >
+                外加 5% 營業稅金
+              </label>
+              <Switch
+                id="tax_included"
+                checked={data.tax_included}
+                onCheckedChange={val => update({ tax_included: val })}
+              />
+            </div>
           </div>
         </div>
 
