@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useNotification } from '../context/NotificationContext'
-import Button from '../components/Button'
+import { Button } from '@/components/ui/button'
 import packageJson from '../../package.json'
 
 export default function LoginPage() {
@@ -126,10 +126,10 @@ export default function LoginPage() {
 
           <Button
             type="submit"
-            variant="primary"
+            variant="default"
+            size="md"
             disabled={loading}
-            style={{ width: '100%' }} /* Custom button width fallback */
-            className="w-full text-base py-2"
+            className="w-full font-semibold text-base py-2"
           >
             {loading ? '登入中…' : '登入'}
           </Button>

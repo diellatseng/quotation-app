@@ -9,8 +9,8 @@ import { formatRocDate } from '../lib/rocDate'
 import Dialog from '../components/Dialog'
 import StatusBadge from '../components/StatusBadge'
 import Switch from '../components/Switch'
-import Button from '../components/Button'
-import IconButton from '../components/IconButton'
+import { Button } from '@/components/ui/button'
+import { getIcon } from '@/lib/icons'
 import Icon from '../components/Icon'
 import FilterPill from '../components/FilterPill'
 import ActionMenu, { ActionMenuItem } from '../components/ActionMenu'
@@ -19,6 +19,7 @@ import packageJson from '../../package.json'
 
 const STATUS_FILTERS = ['全部', '草稿', '已報價', '已確認', '已結案']
 const fmt = (n) => n ? `NT$ ${Number(n).toLocaleString('zh-TW')}` : '—'
+const PlusIcon = getIcon('add')
 
 export default function DashboardPage() {
   const [quotations, setQuotations] = useState([])
@@ -146,6 +147,7 @@ export default function DashboardPage() {
             <Button
               variant="ghost-inverse"
               size="sm"
+              className="font-semibold"
               onClick={() => setFontSize(baseFontSize - 1)}
               aria-label="縮小字體"
             >
@@ -157,6 +159,7 @@ export default function DashboardPage() {
             <Button
               variant="ghost-inverse"
               size="sm"
+              className="font-semibold"
               onClick={() => setFontSize(baseFontSize + 1)}
               aria-label="放大字體"
             >
@@ -166,6 +169,7 @@ export default function DashboardPage() {
           <Button
             variant="ghost-inverse"
             size="sm"
+            className="font-semibold"
             onClick={toggleContrast}
             aria-label={contrast === 'high' ? '關閉高對比' : '開啟高對比'}
           >
@@ -174,6 +178,7 @@ export default function DashboardPage() {
           <Button
             variant="ghost-inverse"
             size="sm"
+            className="font-semibold"
             onClick={() => navigate('/admin/clients')}
           >
             管理
@@ -181,6 +186,7 @@ export default function DashboardPage() {
           <Button
             variant="ghost-inverse"
             size="sm"
+            className="font-semibold"
             onClick={signOut}
           >
             登出
@@ -201,13 +207,16 @@ export default function DashboardPage() {
             placeholder="搜尋報價編號、客戶名稱…"
             aria-label="搜尋報價單"
           />
-          <IconButton
-            icon="add"
-            label="新增報價單"
-            variant="primary"
+          <Button
+            variant="default"
+            size="md"
+            className="font-semibold"
             onClick={() => navigate('/quotation/new')}
             aria-label="新增報價單"
-          />
+          >
+            {PlusIcon && <PlusIcon data-icon="inline-start" />}
+            新增報價單
+          </Button>
         </div>
 
         {/* Filter Area */}
@@ -249,8 +258,9 @@ export default function DashboardPage() {
             </div>
             <p className="text-sm font-medium text-muted-foreground">尚無報價單</p>
             <Button
-              variant="primary"
-              className="mt-4"
+              variant="default"
+              size="md"
+              className="mt-4 font-semibold"
               onClick={() => navigate('/quotation/new')}
             >
               建立第一份報價單
@@ -316,16 +326,18 @@ export default function DashboardPage() {
                       <td className="p-4 align-middle text-right" onClick={e => e.stopPropagation()}>
                         <div className="flex items-center justify-end gap-2">
                           <Button
-                            variant="normal"
+                            variant="outline"
                             size="sm"
+                            className="font-semibold"
                             onClick={() => navigate(`/quotation/${q.id}`)}
                           >
                             檢視
                           </Button>
                           {q.status === '草稿' && (
                             <Button
-                              variant="normal"
+                              variant="outline"
                               size="sm"
+                              className="font-semibold"
                               onClick={() => navigate(`/quotation/new?edit=${q.id}`)}
                             >
                               編輯

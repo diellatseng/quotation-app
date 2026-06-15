@@ -2,9 +2,11 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { useNotification } from '../context/NotificationContext'
-import Button from './Button'
+import { Button } from '@/components/ui/button'
 import Icon from './Icon'
-import IconButton from './IconButton'
+import { getIcon } from '@/lib/icons'
+
+const PlusIcon = getIcon('add')
 
 export default function ClientPicker({ value, onChange, disabled = false }) {
   const [clients, setClients] = useState([])
@@ -202,14 +204,17 @@ export default function ClientPicker({ value, onChange, disabled = false }) {
           </div>
 
           {!showCreate && (
-            <IconButton
-              variant="normal"
+            <Button
+              variant="outline"
               type="button"
-              icon="add"
-              label="新增客戶"
+              size="md"
+              className="font-semibold"
               onClick={() => setShowCreate(true)}
               disabled={disabled}
-            />
+            >
+              {PlusIcon && <PlusIcon data-icon="inline-start" />}
+              新增客戶
+            </Button>
           )}
         </div>
 
@@ -335,8 +340,10 @@ export default function ClientPicker({ value, onChange, disabled = false }) {
 
           <div className="flex gap-2 pt-2">
             <Button
-              variant="primary"
+              variant="default"
               type="button"
+              size="md"
+              className="font-semibold"
               onClick={createClient}
               disabled={loading || disabled}
             >
@@ -345,6 +352,8 @@ export default function ClientPicker({ value, onChange, disabled = false }) {
             <Button
               variant="ghost"
               type="button"
+              size="md"
+              className="font-semibold"
               onClick={() => setShowCreate(false)}
               disabled={disabled}
             >

@@ -1,6 +1,6 @@
 // src/components/WizardShell.jsx
-import Button from './Button'
-import IconButton from './IconButton'
+import { Button } from '@/components/ui/button'
+import { getIcon } from '@/lib/icons'
 
 const STEPS = [
   { num: 1, label: '客戶資料' },
@@ -8,6 +8,9 @@ const STEPS = [
   { num: 3, label: '服務內容' },
   { num: 4, label: '報價與付款' }
 ]
+
+const ArrowBackIcon = getIcon('arrow_back')
+const ArrowForwardIcon = getIcon('arrow_forward')
 
 export default function WizardShell({
   currentStep,
@@ -76,25 +79,29 @@ export default function WizardShell({
           {/* Left: actions */}
           <div className="flex gap-3 items-center">
             {onBackToDashboard && (
-              <IconButton
-                icon="arrow_back"
-                label="返回清單"
-                variant="normal"
-                size="normal"
+              <Button
+                variant="outline"
+                size="md"
+                className="font-semibold"
                 onClick={onBackToDashboard}
                 disabled={saving}
                 aria-label="返回清單頁"
-              />
+              >
+                {ArrowBackIcon && <ArrowBackIcon data-icon="inline-start" />}
+                返回清單
+              </Button>
             )}
             {!isFirst && (
-              <IconButton
-                icon="arrow_back"
-                label={backLabel || '上一步'}
-                variant="normal"
-                size="normal"
+              <Button
+                variant="outline"
+                size="md"
+                className="font-semibold"
                 onClick={onBack}
                 aria-label="上一步"
-              />
+              >
+                {ArrowBackIcon && <ArrowBackIcon data-icon="inline-start" />}
+                {backLabel || '上一步'}
+              </Button>
             )}
           </div>
 
@@ -103,7 +110,8 @@ export default function WizardShell({
             {onSaveDraft && (
               <Button
                 variant="ghost"
-                size="normal"
+                size="md"
+                className="font-semibold"
                 onClick={onSaveDraft}
                 disabled={saving}
                 aria-label="儲存草稿"
@@ -112,15 +120,17 @@ export default function WizardShell({
               </Button>
             )}
             {(!isLast || nextLabel) && (
-              <IconButton
-                icon="arrow_forward"
-                label={nextLabel || '下一步'}
+              <Button
                 variant="accent"
-                size="normal"
+                size="md"
+                className="font-semibold"
                 onClick={onNext}
                 disabled={isLast ? saving : !canNext}
                 aria-label="下一步"
-              />
+              >
+                {nextLabel || '下一步'}
+                {ArrowForwardIcon && <ArrowForwardIcon data-icon="inline-end" />}
+              </Button>
             )}
           </div>
         </div>

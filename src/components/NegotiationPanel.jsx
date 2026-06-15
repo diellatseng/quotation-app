@@ -3,9 +3,11 @@ import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useNotification } from '../context/NotificationContext'
-import Button from './Button'
+import { Button } from '@/components/ui/button'
 import Icon from './Icon'
-import IconButton from './IconButton'
+import { getIcon } from '@/lib/icons'
+
+const PlusIcon = getIcon('add')
 
 const fmt = (n) => `NT$ ${Number(n || 0).toLocaleString('zh-TW')}`
 
@@ -87,19 +89,21 @@ export default function NegotiationPanel({ quotationId, currentAmount, logs = []
       {/* Add entry */}
       <div className="border-t border-border pt-4 mt-2">
         {open ? (
-          <Button type="button" variant="ghost" size="sm" onClick={() => setOpen(false)}>
+          <Button type="button" variant="ghost" size="sm" className="font-semibold" onClick={() => setOpen(false)}>
             取消
           </Button>
         ) : (
-          <IconButton
+          <Button
             type="button"
-            variant="normal"
+            variant="outline"
             size="sm"
-            icon="add"
-            label="新增議價記錄"
+            className="font-semibold"
             onClick={() => setOpen(true)}
             aria-expanded={false}
-          />
+          >
+            {PlusIcon && <PlusIcon data-icon="inline-start" />}
+            新增議價記錄
+          </Button>
         )}
       </div>
 
@@ -134,10 +138,10 @@ export default function NegotiationPanel({ quotationId, currentAmount, logs = []
             />
           </div>
           <div className="flex gap-3">
-            <Button type="submit" variant="primary" disabled={saving}>
+            <Button type="submit" variant="default" size="md" className="font-semibold" disabled={saving}>
               {saving ? '儲存中…' : '確認議價'}
             </Button>
-            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>取消</Button>
+            <Button type="button" variant="ghost" size="md" className="font-semibold" onClick={() => setOpen(false)}>取消</Button>
           </div>
         </form>
       )}

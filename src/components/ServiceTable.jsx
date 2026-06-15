@@ -3,10 +3,17 @@ import { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import RichEditor from './RichEditor'
 import Icon from './Icon'
-import IconButton from './IconButton'
 import DiffBadge from './DiffBadge'
+import { Button } from '@/components/ui/button'
+import { getIcon } from '@/lib/icons'
 import { FEATURE_VERSIONING } from '../lib/featureFlags'
-import Button from '../components/Button'
+
+const PlusIcon = getIcon('add')
+const ChevronRightIcon = getIcon('keyboard_arrow_right')
+const ChevronDownIcon = getIcon('keyboard_arrow_down')
+const EditIcon = getIcon('edit')
+const DeleteIcon = getIcon('delete')
+const CloseIcon = getIcon('close')
 
 export default function ServiceTable({ services, onChange, readOnly = false }) {
   const [checklistIdx, setChecklistIdx] = useState(null)
@@ -121,13 +128,15 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
     <div className="text-center py-12 px-6 text-muted-foreground">
       <p className="text-base mb-4">尚無服務項目。請從工程範本載入或手動新增。</p>
       {!readOnly && (
-        <IconButton
+        <Button
           variant="accent"
-          size="normal"
-          icon="add"
-          label="新增服務項目"
+          size="md"
+          className="font-semibold"
           onClick={addService}
-        />
+        >
+          {PlusIcon && <PlusIcon data-icon="inline-start" />}
+          新增服務項目
+        </Button>
       )}
     </div>
   )
@@ -215,15 +224,20 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                 )}
 
                 {/* Disclosure chevron (leading) */}
-                {!isRemoved && (
-                  <IconButton
-                    icon={collapsed ? 'keyboard_arrow_right' : 'keyboard_arrow_down'}
-                    tooltip={collapsed ? '展開說明' : '摺疊說明'}
-                    onClick={() => toggleCollapse(idx)}
-                    variant="ghost"
-                    size="sm"
-                  />
-                )}
+                {!isRemoved && (() => {
+                  const CollapseIcon = collapsed ? ChevronRightIcon : ChevronDownIcon
+                  return (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      title={collapsed ? '展開說明' : '摺疊說明'}
+                      aria-label={collapsed ? '展開說明' : '摺疊說明'}
+                      onClick={() => toggleCollapse(idx)}
+                    >
+                      {CollapseIcon && <CollapseIcon />}
+                    </Button>
+                  )
+                })()}
 
                 {/* Number badge — dynamic colours */}
                 <div className={`
@@ -296,13 +310,15 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
 
                     {/* Edit description */}
                     {!readOnly && !isEditing && (
-                      <IconButton
-                        icon="edit"
-                        tooltip={hasDesc ? '編輯說明' : '新增說明'}
-                        onClick={() => startEditFromMenu(idx)}
+                      <Button
                         variant="ghost"
-                        size="sm"
-                      />
+                        size="icon"
+                        title={hasDesc ? '編輯說明' : '新增說明'}
+                        aria-label={hasDesc ? '編輯說明' : '新增說明'}
+                        onClick={() => startEditFromMenu(idx)}
+                      >
+                        {EditIcon && <EditIcon />}
+                      </Button>
                     )}
 
                     {/* Delete service — two-step inline confirm */}
@@ -319,14 +335,16 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                           確定刪除？
                         </button>
                       ) : (
-                        <IconButton
-                          icon="delete"
-                          tooltip="刪除服務項目"
-                          onClick={() => requestDelete(idx)}
+                        <Button
                           variant="ghost"
-                          size="sm"
-                          className="!text-muted-foreground hover:!bg-destructive-muted hover:!text-destructive-muted-text"
-                        />
+                          size="icon"
+                          title="刪除服務項目"
+                          aria-label="刪除服務項目"
+                          onClick={() => requestDelete(idx)}
+                          className="text-muted-foreground hover:bg-destructive-muted hover:text-destructive-muted-text"
+                        >
+                          {DeleteIcon && <DeleteIcon />}
+                        </Button>
                       )
                     )}
                   </div>
@@ -346,7 +364,9 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                     {!readOnly && isEditing && (
                       <div className="flex gap-1.5">
                         <Button
+                          variant="outline"
                           size="sm"
+                          className="font-semibold"
                           onClick={cancelEdit}
                         >
                           取消
@@ -354,6 +374,7 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                         <Button
                           variant="accent"
                           size="sm"
+                          className="font-semibold"
                           onClick={() => commitEdit(idx)}
                         >
                           完成
@@ -406,13 +427,15 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
       </div>
 
       {!readOnly && (
-        <IconButton
-          variant="normal"
-          className="mt-4 w-full"
-          icon="add"
-          label="新增服務項目"
+        <Button
+          variant="outline"
+          size="md"
+          className="mt-4 w-full font-semibold"
           onClick={addService}
-        />
+        >
+          {PlusIcon && <PlusIcon data-icon="inline-start" />}
+          新增服務項目
+        </Button>
       )}
 
       {/* ── Checklist modal ─────────────────────────────────────────────── */}
@@ -436,7 +459,15 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                   {services[checklistIdx].service_name || '未命名服務'}
                 </p>
               </div>
-              <IconButton icon="close" tooltip="關閉" variant="ghost" size="sm" onClick={closeChecklist} />
+              <Button
+                variant="ghost"
+                size="icon"
+                title="關閉"
+                aria-label="關閉"
+                onClick={closeChecklist}
+              >
+                {CloseIcon && <CloseIcon />}
+              </Button>
             </div>
 
             {/* Body */}
@@ -463,34 +494,37 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                       />
                     )}
                     {!readOnly && (
-                      <IconButton
-                        icon="close"
-                        tooltip="刪除此清單項目"
-                        onClick={() => removeChecklistItem(checklistIdx, iIdx)}
+                      <Button
                         variant="ghost"
-                        size="sm"
-                        className="!text-destructive-muted-text hover:!bg-destructive-muted flex-shrink-0"
-                      />
+                        size="icon"
+                        title="刪除此清單項目"
+                        aria-label="刪除此清單項目"
+                        onClick={() => removeChecklistItem(checklistIdx, iIdx)}
+                        className="text-destructive-muted-text hover:bg-destructive-muted shrink-0"
+                      >
+                        {CloseIcon && <CloseIcon />}
+                      </Button>
                     )}
                   </div>
                 ))}
               </div>
 
               {!readOnly && (
-                <IconButton
+                <Button
                   variant="ghost"
                   size="sm"
-                  className="mt-3"
-                  icon="add"
-                  label="新增清單項目"
+                  className="mt-3 font-semibold"
                   onClick={() => addChecklistItem(checklistIdx)}
-                />
+                >
+                  {PlusIcon && <PlusIcon data-icon="inline-start" />}
+                  新增清單項目
+                </Button>
               )}
             </div>
 
             {/* Footer */}
             <div className="flex justify-end gap-2 px-5 py-3 border-t border-border">
-              <Button variant="accent" size="sm" onClick={closeChecklist}>
+              <Button variant="accent" size="sm" className="font-semibold" onClick={closeChecklist}>
                 完成
               </Button>
             </div>

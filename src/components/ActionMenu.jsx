@@ -5,8 +5,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { Button } from '@/components/ui/button'
 import { getIcon } from '@/lib/icons'
-import IconButton from './IconButton'
+
+const MoreIcon = getIcon('more_horiz')
 
 export default function ActionMenu({ id, openId, onOpen, onClose, children }) {
   const isOpen = openId === id
@@ -21,13 +23,15 @@ export default function ActionMenu({ id, openId, onOpen, onClose, children }) {
     >
       <DropdownMenuTrigger
         render={
-          <IconButton
-            icon="more_horiz"
-            tooltip="更多操作"
+          <Button
             variant="ghost"
-            size="sm"
+            size="icon"
+            title="更多操作"
+            aria-label="更多操作"
             onClick={e => e.stopPropagation()}
-          />
+          >
+            {MoreIcon && <MoreIcon />}
+          </Button>
         }
       />
       <DropdownMenuContent align="end" className="min-w-[140px]">

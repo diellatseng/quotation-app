@@ -2,8 +2,10 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useNotification } from '../../context/NotificationContext.jsx'
-import Button from '../../components/Button'
-import IconButton from '../../components/IconButton'
+import { Button } from '@/components/ui/button'
+import { getIcon } from '@/lib/icons'
+
+const PlusIcon = getIcon('add')
 
 export default function ClientsAdmin() {
   const [clients, setClients] = useState([])
@@ -81,12 +83,15 @@ export default function ClientsAdmin() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold">客戶資料庫</h2>
-        <IconButton
-          variant="primary"
-          icon="add"
-          label="新增客戶"
+        <Button
+          variant="default"
+          size="md"
+          className="font-semibold"
           onClick={() => { setSelected(null); setForm(emptyClient()); setContacts([]); setShowForm(true) }}
-        />
+        >
+          {PlusIcon && <PlusIcon data-icon="inline-start" />}
+          新增客戶
+        </Button>
       </div>
 
       <div className={`grid gap-5 ${showForm ? 'grid-cols-[1fr_1.4fr]' : 'grid-cols-1'}`}>
@@ -129,7 +134,10 @@ export default function ClientsAdmin() {
               <div className="mt-6">
                 <div className="flex justify-between items-center mb-3">
                   <p className="text-base font-semibold text-foreground">聯絡人</p>
-                  <IconButton variant="ghost" size="sm" icon="add" label="新增" onClick={addContact} />
+                  <Button variant="ghost" size="sm" className="font-semibold" onClick={addContact}>
+                    {PlusIcon && <PlusIcon data-icon="inline-start" />}
+                    新增
+                  </Button>
                 </div>
                 {contacts.map((ct, idx) => (
                   <div key={ct.id} className="border border-border rounded-lg p-3 mb-3">
@@ -145,7 +153,7 @@ export default function ClientsAdmin() {
                           onChange={e => updateContact(idx, 'is_primary', e.target.checked)} />
                         主要聯絡人
                       </label>
-                      <Button variant="danger" size="sm" onClick={() => deleteContact(ct.id)}>刪除</Button>
+                      <Button variant="danger" size="sm" className="font-semibold" onClick={() => deleteContact(ct.id)}>刪除</Button>
                     </div>
                   </div>
                 ))}
@@ -153,9 +161,9 @@ export default function ClientsAdmin() {
             )}
 
             <div className="flex gap-3 mt-5">
-              <Button variant="primary" onClick={saveClient} disabled={loading}>{loading ? '儲存中…' : '儲存'}</Button>
-              {selected && <Button variant="danger" onClick={() => deleteClient(selected.id)}>刪除客戶</Button>}
-              <Button variant="ghost" onClick={() => { setShowForm(false); setSelected(null) }}>取消</Button>
+              <Button variant="default" size="md" className="font-semibold" onClick={saveClient} disabled={loading}>{loading ? '儲存中…' : '儲存'}</Button>
+              {selected && <Button variant="danger" size="md" className="font-semibold" onClick={() => deleteClient(selected.id)}>刪除客戶</Button>}
+              <Button variant="ghost" size="md" className="font-semibold" onClick={() => { setShowForm(false); setSelected(null) }}>取消</Button>
             </div>
           </div>
         )}

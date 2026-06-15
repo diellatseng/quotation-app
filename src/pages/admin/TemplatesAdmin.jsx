@@ -2,8 +2,10 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useNotification } from '../../context/NotificationContext.jsx'
-import Button from '../../components/Button'
-import IconButton from '../../components/IconButton'
+import { Button } from '@/components/ui/button'
+import { getIcon } from '@/lib/icons'
+
+const PlusIcon = getIcon('add')
 
 const LABEL_CLS = 'block text-xs font-semibold text-foreground mb-1.5'
 const INPUT_CLS = 'w-full h-10 px-3 text-sm bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all'
@@ -80,12 +82,15 @@ export default function TemplatesAdmin() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold">工程範本</h2>
-        <IconButton
-          variant="primary"
-          icon="add"
-          label="新增範本"
+        <Button
+          variant="default"
+          size="md"
+          className="font-semibold"
           onClick={() => { setSelected(null); setForm({ name: '', description: '', category: '' }); setLinkedServices([]); setShowForm(true) }}
-        />
+        >
+          {PlusIcon && <PlusIcon data-icon="inline-start" />}
+          新增範本
+        </Button>
       </div>
 
       <div className={`grid gap-5 ${showForm ? 'grid-cols-[1fr_1.6fr]' : 'grid-cols-1'}`}>
@@ -160,9 +165,9 @@ export default function TemplatesAdmin() {
             </div>
 
             <div className="flex gap-3 mt-5">
-              <Button variant="primary" onClick={save} disabled={loading}>{loading ? '儲存中…' : '儲存範本'}</Button>
-              {selected && <Button variant="danger" onClick={deleteTmpl}>刪除</Button>}
-              <Button variant="ghost" onClick={() => { setShowForm(false); setSelected(null) }}>取消</Button>
+              <Button variant="default" size="md" className="font-semibold" onClick={save} disabled={loading}>{loading ? '儲存中…' : '儲存範本'}</Button>
+              {selected && <Button variant="danger" size="md" className="font-semibold" onClick={deleteTmpl}>刪除</Button>}
+              <Button variant="ghost" size="md" className="font-semibold" onClick={() => { setShowForm(false); setSelected(null) }}>取消</Button>
             </div>
           </div>
         )}

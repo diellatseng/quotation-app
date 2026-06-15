@@ -10,8 +10,12 @@ import StatusBadge from '../components/StatusBadge'
 // import NegotiationPanel from '../components/NegotiationPanel' // inactive: negotiation
 import ServiceTable from '../components/ServiceTable'
 import A4Preview from '../components/A4Preview'
-import Button from '../components/Button'
-import IconButton from '../components/IconButton'
+import { Button } from '@/components/ui/button'
+import { getIcon } from '@/lib/icons'
+
+const ArrowBackIcon = getIcon('arrow_back')
+const PrintIcon = getIcon('print')
+const EditIcon = getIcon('edit')
 
 const COMPANY_INFO = {
   name: import.meta.env.VITE_COMPANY_NAME || '公司名稱',
@@ -125,7 +129,7 @@ export default function QuotationDetailPage() {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background text-center px-4">
         <p className="text-sm font-medium text-muted-foreground">找不到該報價單</p>
-        <Button variant="normal" className="mt-4" onClick={() => navigate('/dashboard')}>
+        <Button variant="outline" size="md" className="mt-4 font-semibold" onClick={() => navigate('/dashboard')}>
           返回儀表板
         </Button>
       </div>
@@ -139,14 +143,16 @@ export default function QuotationDetailPage() {
       <header className="sticky top-0 z-10 border-b border-border bg-card/80 backdrop-blur-md px-4 py-4 md:px-8 shadow-sm">
         <div className="mx-auto max-w-7xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-3">
-            <IconButton
-              icon="arrow_back"
-              label="返回"
-              variant="normal"
+            <Button
+              variant="outline"
               size="sm"
+              className="font-semibold"
               onClick={() => navigate('/dashboard')}
               aria-label="返回儀表板"
-            />
+            >
+              {ArrowBackIcon && <ArrowBackIcon data-icon="inline-start" />}
+              返回
+            </Button>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-xl font-bold tracking-tight text-foreground">
@@ -171,32 +177,36 @@ export default function QuotationDetailPage() {
 
           {/* Core System Actions Trigger */}
           <div className="flex flex-wrap items-center gap-2">
-            <IconButton
-              icon="print"
-              label={exporting ? '匯出中…' : '匯出 PDF'}
-              variant="normal"
+            <Button
+              variant="outline"
               size="sm"
+              className="font-semibold"
               onClick={handleExport}
               disabled={exporting}
-            />
+            >
+              {PrintIcon && <PrintIcon data-icon="inline-start" />}
+              {exporting ? '匯出中…' : '匯出 PDF'}
+            </Button>
 
             {qt.status === '草稿' && (
               <>
-                <IconButton
-                  icon="edit"
-                  label="編輯草稿"
-                  variant="normal"
+                <Button
+                  variant="outline"
                   size="sm"
+                  className="font-semibold"
                   onClick={() => navigate(`/quotation/new?edit=${qt.id}`)}
-                />
-                <Button variant="primary" size="sm" onClick={() => updateStatus('已報價')}>
+                >
+                  {EditIcon && <EditIcon data-icon="inline-start" />}
+                  編輯草稿
+                </Button>
+                <Button variant="default" size="sm" className="font-semibold" onClick={() => updateStatus('已報價')}>
                   發送報價 (置為已報價)
                 </Button>
               </>
             )}
 
             {qt.status === '已報價' && (
-              <Button variant="primary" size="sm" onClick={() => updateStatus('已確認')}>
+              <Button variant="default" size="sm" className="font-semibold" onClick={() => updateStatus('已確認')}>
                 客戶確認簽回
               </Button>
             )}
