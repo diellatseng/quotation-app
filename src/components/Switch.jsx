@@ -1,7 +1,25 @@
-// src/components/Switch.jsx
-/**
- * Material 3 inspired Switch component with dual labels
- */
+// Legacy Switch API → shadcn/Base UI Switch
+import { Switch as ShadcnSwitch } from '@/components/ui/switch'
+import { cn } from '@/lib/utils'
+
+const SIZE_MAP = {
+  sm: 'sm',
+  md: 'default',
+  lg: 'default',
+}
+
+const WRAPPER_GAP = {
+  sm: 'gap-2',
+  md: 'gap-3',
+  lg: 'gap-4',
+}
+
+const LABEL_SIZE = {
+  sm: 'text-xs',
+  md: 'text-sm',
+  lg: 'text-base',
+}
+
 export default function Switch({
   checked = false,
   onChange,
@@ -11,108 +29,49 @@ export default function Switch({
   id,
   ariaLabel,
   disabled = false,
-  size = 'md', // 'sm' | 'md' | 'lg'
+  size = 'md',
 }) {
-  const handleClick = () => {
-    if (!disabled) {
-      onChange?.(!checked)
-    }
-  }
+  const shadcnSize = SIZE_MAP[size] || 'default'
+  const labelBase = cn(
+    'font-medium select-none transition-colors duration-200',
+    LABEL_SIZE[size] || LABEL_SIZE.md,
+    disabled ? 'text-muted-foreground/40 cursor-not-allowed' : 'cursor-pointer'
+  )
 
-  const handleKeyDown = (e) => {
-    if (disabled) return
-    if (e.key === ' ' || e.key === 'Enter') {
-      e.preventDefault()
-      onChange?.(!checked)
-    }
-  }
+  const switchEl = (
+    <ShadcnSwitch
+      id={id}
+      checked={checked}
+      onCheckedChange={onChange}
+      disabled={disabled}
+      size={shadcnSize}
+      aria-label={ariaLabel || (label != null ? label : `${labelOff} / ${labelOn}`)}
+    />
+  )
 
-  // Size specifications mapping
-  const sizeMap = {
-    sm: {
-      wrapper: 'gap-2',
-      track: 'w-9 h-5',
-      thumb: 'w-4 h-4',
-      translate: 'translate-x-4',
-      text: 'text-xs'
-    },
-    md: {
-      wrapper: 'gap-3',
-      track: 'w-11 h-6',
-      thumb: 'w-5 h-5',
-      translate: 'translate-x-5',
-      text: 'text-sm'
-    },
-    lg: {
-      wrapper: 'gap-4',
-      track: 'w-14 h-8',
-      thumb: 'w-6 h-6',
-      translate: 'translate-x-6',
-      text: 'text-base'
-    }
-  }
-
-  const currentSize = sizeMap[size] || sizeMap.md
-
-  const trackClasses = `relative inline-flex items-center rounded-full transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${currentSize.track} ${checked ? 'bg-primary' : 'bg-muted-foreground/30 dark:bg-muted-foreground/50'
-    } ${disabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`
-
-  const thumbClasses = `inline-block rounded-full bg-white shadow transition-transform duration-200 transform ${currentSize.thumb} ${checked ? currentSize.translate : 'translate-x-0.5'
-    }`
-
-  const labelBase = `font-medium select-none transition-colors duration-200 ${currentSize.text} ${disabled ? 'text-muted-foreground/40' : 'cursor-pointer'
-    }`
-
-  if (label !== null) {
+  if (label != null) {
     return (
-      <div className={`inline-flex items-center ${currentSize.wrapper}`}>
-        <label htmlFor={id} className={`${labelBase} text-foreground`}>
+      <div className={cn('inline-flex items-center', WRAPPER_GAP[size] || WRAPPER_GAP.md)}>
+        <label htmlFor={id} className={cn(labelBase, 'text-foreground')}>
           {label}
         </label>
-
-        <button
-          id={id}
-          role="switch"
-          type="button"
-          className={trackClasses}
-          onClick={handleClick}
-          onKeyDown={handleKeyDown}
-          aria-checked={checked}
-          aria-label={ariaLabel || label}
-          disabled={disabled}
-        >
-          <span className={thumbClasses} />
-        </button>
+        {switchEl}
       </div>
     )
   }
 
   return (
-    <div className={`inline-flex items-center ${currentSize.wrapper}`}>
+    <div className={cn('inline-flex items-center', WRAPPER_GAP[size] || WRAPPER_GAP.md)}>
       <label
         htmlFor={id}
-        className={`${labelBase} ${!checked && !disabled ? 'text-foreground' : 'text-muted-foreground'}`}
+        className={cn(labelBase, !checked && !disabled ? 'text-foreground' : 'text-muted-foreground')}
       >
         {labelOff}
       </label>
-
-      <button
-        id={id}
-        role="switch"
-        type="button"
-        className={trackClasses}
-        onClick={handleClick}
-        onKeyDown={handleKeyDown}
-        aria-checked={checked}
-        aria-label={ariaLabel || `${labelOff} / ${labelOn}`}
-        disabled={disabled}
-      >
-        <span className={thumbClasses} />
-      </button>
-
+      {switchEl}
       <label
         htmlFor={id}
-        className={`${labelBase} ${checked && !disabled ? 'text-foreground' : 'text-muted-foreground'}`}
+        className={cn(labelBase, checked && !disabled ? 'text-foreground' : 'text-muted-foreground')}
       >
         {labelOn}
       </label>

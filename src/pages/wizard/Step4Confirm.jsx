@@ -135,7 +135,7 @@ export default function Step4Confirm({ data, update }) {
                     id="date_format"
                     checked={useRoc}
                     onChange={setUseRoc}
-                    size="sm"
+                    size="md"
                     label="使用民國曆顯示"
                   />
                 </div>
@@ -174,7 +174,7 @@ export default function Step4Confirm({ data, update }) {
               id="tax_included"
               checked={data.tax_included}
               onChange={val => update({ tax_included: val })}
-              size="sm"
+              size="md"
               label="外加 5% 營業稅金"
             />
           </div>

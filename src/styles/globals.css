@@ -46,6 +46,8 @@
      items, etc.) that don't go through the Button component. */
   button:not(:disabled),
   [role="button"]:not(:disabled),
+  [role="switch"]:not([data-disabled]),
+  label[for]:not([aria-disabled="true"]),
   summary {
     cursor: pointer;
   }
