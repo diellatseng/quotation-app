@@ -6,7 +6,16 @@ import { useAuth } from '../hooks/useAuth'
 import { useAppearance } from '../context/AppearanceContext'
 import { useNotification } from '../context/NotificationContext'
 import { formatRocDate } from '../lib/rocDate'
-import Dialog from '../components/Dialog'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import StatusBadge from '../components/StatusBadge'
 import Switch from '../components/Switch'
 import { Button } from '@/components/ui/button'
@@ -115,16 +124,25 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors duration-200">
-      <Dialog
-        isOpen={showExitDialog}
-        title="刪除報價單"
-        message="確定要刪除這份報價單嗎？"
-        confirmText="刪除"
-        cancelText="取消"
-        confirmVariant="destructive"
-        onConfirm={handleDeleteConfirm}
-        onCancel={handleDeleteCancel}
-      />
+      <AlertDialog
+        open={showExitDialog}
+        onOpenChange={open => {
+          if (!open) handleDeleteCancel()
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>刪除報價單</AlertDialogTitle>
+            <AlertDialogDescription>確定要刪除這份報價單嗎？</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={handleDeleteConfirm}>
+              刪除
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* ── Top Bar / Navigation ── */}
       <header className="sticky top-0 z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-800 bg-zinc-950 px-4 py-4 md:px-8 text-zinc-50 shadow-md">

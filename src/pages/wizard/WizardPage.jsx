@@ -7,7 +7,16 @@ import { useNotification } from '../../context/NotificationContext.jsx'
 import { todayCe } from '../../lib/rocDate'
 import { FEATURE_NEGOTIATION, FEATURE_VERSIONING } from '../../lib/featureFlags'
 import WizardShell from '../../components/WizardShell'
-import Dialog from '../../components/Dialog'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import Step1Client from './Step1Client'
 import Step2Project from './Step2Project'
 import Step3Services from './Step3Services'
@@ -357,15 +366,23 @@ export default function WizardPage() {
 
   return (
     <>
-      <Dialog
-        isOpen={showExitDialog}
-        title="返回清單"
-        message="是否儲存目前的草稿？"
-        confirmText="儲存"
-        cancelText="不儲存"
-        onConfirm={handleExitConfirm}
-        onCancel={handleExitCancel}
-      />
+      <AlertDialog
+        open={showExitDialog}
+        onOpenChange={open => {
+          if (!open) handleExitCancel()
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>返回清單</AlertDialogTitle>
+            <AlertDialogDescription>是否儲存目前的草稿？</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>不儲存</AlertDialogCancel>
+            <AlertDialogAction onClick={handleExitConfirm}>儲存</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <WizardShell
         currentStep={step}
         onNext={step === 4 ? handleFinish : handleNext}
