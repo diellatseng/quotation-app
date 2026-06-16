@@ -3,6 +3,9 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+
+const NO_TEMPLATE = '__none__'
 
 export default function Step2Project({ data, update }) {
   const [templates, setTemplates] = useState([])
@@ -96,20 +99,21 @@ export default function Step2Project({ data, update }) {
 
       <div className="bg-card text-card-foreground border border-border rounded-xl p-6 shadow-sm">
         <p className="text-base font-semibold text-foreground mb-4">選擇服務範本</p>
-        <div className="flex flex-col gap-3">
+        <RadioGroup
+          value={data.project_template_id ?? NO_TEMPLATE}
+          onValueChange={(v) => {
+            if (v === NO_TEMPLATE) selectTemplate(null)
+            else selectTemplate(templates.find(t => t.id === v))
+          }}
+          className="flex flex-col gap-3"
+        >
           <label
             className={`flex items-start gap-4 p-4 border rounded-xl cursor-pointer transition-all hover:bg-muted/40 select-none ${data.project_template_id === null
                 ? 'border-primary bg-primary/[0.02] ring-1 ring-primary'
                 : 'border-border bg-background'
               }`}
           >
-            <input
-              type="radio"
-              name="template"
-              className="w-4 h-4 text-primary focus:ring-primary border-border mt-0.5"
-              checked={data.project_template_id === null}
-              onChange={() => selectTemplate(null)}
-            />
+            <RadioGroupItem value={NO_TEMPLATE} id="template-none" className="mt-0.5" />
             <div>
               <div className="text-sm font-semibold text-foreground">不使用範本</div>
               <div className="text-xs text-muted-foreground mt-0.5">服務內容與查核項目將手動新增與編輯</div>
@@ -124,13 +128,7 @@ export default function Step2Project({ data, update }) {
                   : 'border-border bg-background'
                 }`}
             >
-              <input
-                type="radio"
-                name="template"
-                className="w-4 h-4 text-primary focus:ring-primary border-border mt-0.5"
-                checked={data.project_template_id === tmpl.id}
-                onChange={() => selectTemplate(tmpl)}
-              />
+              <RadioGroupItem value={tmpl.id} id={`template-${tmpl.id}`} className="mt-0.5" />
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-semibold text-foreground">{tmpl.name}</div>
                 {tmpl.description && (
@@ -147,7 +145,7 @@ export default function Step2Project({ data, update }) {
               )}
             </label>
           ))}
-        </div>
+        </RadioGroup>
       </div>
     </div>
   )

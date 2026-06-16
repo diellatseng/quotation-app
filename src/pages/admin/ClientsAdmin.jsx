@@ -3,8 +3,10 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useNotification } from '../../context/NotificationContext.jsx'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { getIcon } from '@/lib/icons'
 
 const PlusIcon = getIcon('add')
@@ -150,11 +152,16 @@ export default function ClientsAdmin() {
                       <F label="電子郵件" value={ct.email || ''} onChange={v => updateContact(idx, 'email', v)} compact />
                     </div>
                     <div className="flex gap-3 items-center">
-                      <label className="flex items-center gap-2 cursor-pointer text-sm">
-                        <input type="checkbox" checked={ct.is_primary}
-                          onChange={e => updateContact(idx, 'is_primary', e.target.checked)} />
-                        主要聯絡人
-                      </label>
+                      <Field orientation="horizontal">
+                        <Checkbox
+                          id={`primary-${ct.id}`}
+                          checked={ct.is_primary}
+                          onCheckedChange={(checked) => updateContact(idx, 'is_primary', checked)}
+                        />
+                        <Label htmlFor={`primary-${ct.id}`} className="font-normal">
+                          主要聯絡人
+                        </Label>
+                      </Field>
                       <Button variant="danger" size="sm" className="font-semibold" onClick={() => deleteContact(ct.id)}>刪除</Button>
                     </div>
                   </div>

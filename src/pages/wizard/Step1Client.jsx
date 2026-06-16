@@ -1,5 +1,6 @@
 // src/pages/wizard/Step1Client.jsx
 import ClientPicker from '../../components/ClientPicker'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 
 export default function Step1Client({ data, update, loading = false }) {
   const handleClientChange = (value) => {
@@ -64,7 +65,11 @@ export default function Step1Client({ data, update, loading = false }) {
           {data.contacts && data.contacts.length > 0 && (
             <div className="border-t border-border pt-5">
               <p className="text-base font-semibold text-foreground mb-3">聯絡人選擇</p>
-              <div className="flex flex-col gap-2.5">
+              <RadioGroup
+                value={data.selectedContactId ?? undefined}
+                onValueChange={(id) => update({ selectedContactId: id })}
+                className="flex flex-col gap-2.5"
+              >
                 {data.contacts.map(c => (
                   <label
                     key={c.id}
@@ -73,13 +78,7 @@ export default function Step1Client({ data, update, loading = false }) {
                       : 'border-border bg-background'
                       }`}
                   >
-                    <input
-                      type="radio"
-                      name="selectedContact"
-                      className="w-4 h-4 text-primary focus:ring-primary border-border"
-                      checked={data.selectedContactId === c.id}
-                      onChange={() => update({ selectedContactId: c.id })}
-                    />
+                    <RadioGroupItem value={c.id} id={`contact-${c.id}`} />
                     <div className="flex-1 min-w-0">
                       <div className="font-semibold text-foreground text-sm">
                         {c.name} {c.title && <span className="text-muted-foreground font-normal text-xs">({c.title})</span>}
@@ -95,7 +94,7 @@ export default function Step1Client({ data, update, loading = false }) {
                     )}
                   </label>
                 ))}
-              </div>
+              </RadioGroup>
             </div>
           )}
         </div>

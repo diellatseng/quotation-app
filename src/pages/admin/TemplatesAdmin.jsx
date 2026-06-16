@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useNotification } from '../../context/NotificationContext.jsx'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { getIcon } from '@/lib/icons'
@@ -143,11 +144,9 @@ export default function TemplatesAdmin() {
                   {svcs.map(svc => (
                     <label key={svc.id} className={`flex items-center gap-3 px-4 py-3 border-b border-border cursor-pointer min-h-[44px] ${linkedServices.includes(svc.id) ? 'bg-primary/10' : 'hover:bg-muted/50'
                       }`}>
-                      <input
-                        type="checkbox"
+                      <Checkbox
                         checked={linkedServices.includes(svc.id)}
-                        onChange={() => toggleService(svc.id)}
-                        className="w-5 h-5"
+                        onCheckedChange={() => toggleService(svc.id)}
                       />
                       <span className={`text-sm ${linkedServices.includes(svc.id) ? 'font-semibold' : 'font-normal'}`}>
                         {svc.name}
