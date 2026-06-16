@@ -121,26 +121,6 @@ export function AppBreadcrumbBar({
   )
 }
 
-/** @deprecated Use AppBreadcrumbBar — tabs/nav belong in page content. */
-export function AppSubpageHeader(props) {
-  return (
-    <AppBreadcrumbBar
-      backTo={props.backTo}
-      onBack={props.onBack}
-      backLabel={props.backLabel}
-      backDisabled={props.backDisabled}
-      segments={
-        props.title
-          ? [props.subtitle, props.title].filter(Boolean)
-          : []
-      }
-      actions={props.actions}
-      maxWidth={props.maxWidth}
-      className={props.className}
-    />
-  )
-}
-
 /** @deprecated Use AppBreadcrumbBar back link instead. */
 export function AppBackButton({ to, onClick, label = '返回', disabled, className }) {
   const navigate = useNavigate()

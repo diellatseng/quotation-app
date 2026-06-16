@@ -22,6 +22,14 @@ import {
 } from '@/components/ui/input-group'
 import { Textarea } from '@/components/ui/textarea'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import IconTooltip from '@/components/IconTooltip'
 import { Plus, X } from 'lucide-react'
 import { formatRocDate, formatCeDisplay } from '../../lib/rocDate'
@@ -252,26 +260,26 @@ export default function Step4Confirm({ data, update }) {
           ))}
         </div>
 
-        <div className="hidden md:block overflow-x-auto border border-border rounded-lg">
-          <table className="w-full text-left border-collapse text-sm">
-            <thead>
-              <tr className="border-b border-border bg-muted/30">
-                <th className="w-10 px-3 py-2 text-xs font-semibold text-muted-foreground text-center">#</th>
-                <th className="px-3 py-2 text-xs font-semibold text-muted-foreground">階段名稱</th>
-                <th className="w-32 px-3 py-2 text-xs font-semibold text-muted-foreground text-right">百分比</th>
-                <th className="w-36 px-3 py-2 text-xs font-semibold text-muted-foreground text-right">金額</th>
-                <th className="w-10 px-2 py-2" aria-label="操作" />
-              </tr>
-            </thead>
-            <tbody>
+        <div className="hidden md:block overflow-hidden rounded-lg border border-border">
+          <Table>
+            <TableHeader>
+              <TableRow className="border-border bg-muted/30 hover:bg-muted/30">
+                <TableHead className="h-auto w-10 px-3 py-2 text-center text-xs font-semibold text-muted-foreground">#</TableHead>
+                <TableHead className="h-auto px-3 py-2 text-xs font-semibold text-muted-foreground">階段名稱</TableHead>
+                <TableHead className="h-auto w-32 px-3 py-2 text-right text-xs font-semibold text-muted-foreground">百分比</TableHead>
+                <TableHead className="h-auto w-36 px-3 py-2 text-right text-xs font-semibold text-muted-foreground">金額</TableHead>
+                <TableHead className="h-auto w-10 px-2 py-2" aria-label="操作" />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {data.payment_stages.map((stage, sIdx) => {
                 const stageShare = Math.round(grandTotal * (Number(stage.percentage || 0) / 100))
                 return (
-                  <tr key={stage.id} className="border-b border-border last:border-b-0">
-                    <td className="px-3 py-2 text-xs font-bold text-muted-foreground text-center align-middle">
+                  <TableRow key={stage.id} className="border-border">
+                    <TableCell className="px-3 py-2 text-center text-xs font-bold text-muted-foreground">
                       {sIdx + 1}
-                    </td>
-                    <td className="px-3 py-2 align-middle">
+                    </TableCell>
+                    <TableCell className="px-3 py-2">
                       <Input
                         type="text"
                         placeholder="請輸入階段名稱（例：開工前）"
@@ -280,8 +288,8 @@ export default function Step4Confirm({ data, update }) {
                         onChange={e => handleStageChange(stage.id, { stage_name: e.target.value })}
                         required
                       />
-                    </td>
-                    <td className="px-3 py-2 align-middle">
+                    </TableCell>
+                    <TableCell className="px-3 py-2">
                       <div className="flex items-center justify-end gap-1.5">
                         <Input
                           type="number"
@@ -292,13 +300,13 @@ export default function Step4Confirm({ data, update }) {
                           max="100"
                           required
                         />
-                        <span className="text-sm text-muted-foreground font-medium">%</span>
+                        <span className="text-sm font-medium text-muted-foreground">%</span>
                       </div>
-                    </td>
-                    <td className="px-3 py-2 text-xs font-semibold text-muted-foreground text-right align-middle whitespace-nowrap">
+                    </TableCell>
+                    <TableCell className="px-3 py-2 text-right text-xs font-semibold whitespace-nowrap text-muted-foreground">
                       {fmt(stageShare)}
-                    </td>
-                    <td className="px-2 py-2 text-center align-middle">
+                    </TableCell>
+                    <TableCell className="px-2 py-2 text-center">
                       <IconTooltip label="刪除此階段">
                         <Button
                           type="button"
@@ -312,12 +320,12 @@ export default function Step4Confirm({ data, update }) {
                           <X />
                         </Button>
                       </IconTooltip>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 )
               })}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
 
         <div className="md:hidden space-y-2">

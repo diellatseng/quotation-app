@@ -27,6 +27,14 @@ import {
 } from '@/components/ui/input-group'
 import { Switch } from '@/components/ui/switch'
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import {
   ToggleGroup,
   ToggleGroupItem,
 } from '@/components/ui/toggle-group'
@@ -357,37 +365,37 @@ export default function DashboardPage() {
             </div>
 
             {/* 🖥️ Desktop: Table Layout */}
-            <Card className="hidden md:block gap-0 overflow-x-auto py-0 shadow-sm">
-              <table className="w-full text-left border-collapse text-sm text-card-foreground">
-                <thead>
-                  <tr className="border-b border-border bg-muted/40 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                    <th className="p-4">報價編號</th>
-                    <th className="p-4">客戶名稱</th>
-                    <th className="p-4">報價日期</th>
-                    <th className="p-4">金額</th>
-                    <th className="p-4">狀態</th>
-                    <th className="p-4 text-right">操作</th>
-                  </tr>
-                </thead>
-                <tbody>
+            <Card className="hidden md:block gap-0 py-0 shadow-sm">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-border bg-muted/40 hover:bg-muted/40">
+                    <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">報價編號</TableHead>
+                    <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">客戶名稱</TableHead>
+                    <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">報價日期</TableHead>
+                    <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">金額</TableHead>
+                    <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">狀態</TableHead>
+                    <TableHead className="h-auto p-4 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">操作</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {filtered.map(q => (
-                    <tr
+                    <TableRow
                       key={q.id}
-                      className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors cursor-pointer"
+                      className="cursor-pointer border-border hover:bg-muted/30"
                       onClick={() => q.status === '草稿' ? navigate(`/quotation/new?edit=${q.id}`) : navigate(`/quotation/${q.id}`)}
                     >
-                      <td className="p-4 align-middle">
+                      <TableCell className="p-4">
                         <Badge variant="secondary" className="font-mono font-medium">
                           {q.quote_number}{FEATURE_VERSIONING && q.version > 1 ? ` v${q.version}` : ''}
                         </Badge>
-                      </td>
-                      <td className="p-4 align-middle font-medium text-foreground">{q.clients?.company_name || '—'}</td>
-                      <td className="p-4 align-middle text-muted-foreground">{formatRocDate(q.quote_date)}</td>
-                      <td className="p-4 align-middle font-semibold text-foreground">{fmt(q.fee_amount)}</td>
-                      <td className="p-4 align-middle" onClick={e => e.stopPropagation()}>
+                      </TableCell>
+                      <TableCell className="p-4 font-medium text-foreground">{q.clients?.company_name || '—'}</TableCell>
+                      <TableCell className="p-4 text-muted-foreground">{formatRocDate(q.quote_date)}</TableCell>
+                      <TableCell className="p-4 font-semibold text-foreground">{fmt(q.fee_amount)}</TableCell>
+                      <TableCell className="p-4" onClick={e => e.stopPropagation()}>
                         <QuotationStatusBadges status={q.status} isNegotiating={FEATURE_NEGOTIATION && q.is_negotiating} />
-                      </td>
-                      <td className="p-4 align-middle text-right" onClick={e => e.stopPropagation()}>
+                      </TableCell>
+                      <TableCell className="p-4 text-right" onClick={e => e.stopPropagation()}>
                         <DropdownMenu
                           open={actionMenuId === q.id}
                           onOpenChange={open => {
@@ -457,11 +465,11 @@ export default function DashboardPage() {
                             </DropdownMenuGroup>
                           </DropdownMenuContent>
                         </DropdownMenu>
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   ))}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </Card>
           </div>
         )}

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { toast } from 'sonner'
 import { AppBrandMark } from '@/components/AppShellHeader'
+import { AppLoadingSkeleton } from '@/components/skeletons'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -58,11 +59,7 @@ export default function LoginPage() {
   }
 
   if (authLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background text-muted-foreground">
-        檢查登入狀態…
-      </div>
-    )
+    return <AppLoadingSkeleton />
   }
 
   return (

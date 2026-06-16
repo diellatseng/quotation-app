@@ -1,8 +1,23 @@
 // src/components/RichEditor.jsx
 import { useRef, useEffect, useCallback } from 'react'
-import { ICONS } from '@/lib/icons'
+import {
+  AlignCenter,
+  AlignLeft,
+  AlignRight,
+  IndentDecrease,
+  IndentIncrease,
+  List,
+  ListOrdered,
+  Palette,
+  RemoveFormatting,
+} from 'lucide-react'
 import IconTooltip from '@/components/IconTooltip'
 import { Button } from '@/components/ui/button'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import {
   Select,
   SelectContent,
@@ -10,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Separator } from '@/components/ui/separator'
 
 const COLOR_PRESETS = ['#1a1916', '#c0392b', '#1a5fad', '#27ae60', '#e67e22', '#8e44ad', '#888888']
 
@@ -23,20 +39,7 @@ const FONT_SIZES = [
 ]
 
 /**
- * RichEditor — lightweight contentEditable rich-text editor.
- *
- * Props:
- *   value      {string}   HTML string (controlled)
- *   onChange   {fn}       Called with new HTML string on every change
- *   minHeight  {number}   Min height of editable area in px (default: 100)
- *   maxHeight  {number}   Max height of editable area in px (default: 260)
- *   placeholder {string}  Hint shown when empty (default: none)
- */
-/**
  * Add Tailwind list classes to ul, ol, and li elements in HTML.
- * This ensures lists render correctly when the HTML is displayed elsewhere
- * (ServiceTable, A4Preview, PDF export) since Tailwind utilities only apply
- * to elements with the class names.
  */
 function addTailwindListClasses(html) {
   if (!html) return html
@@ -44,7 +47,6 @@ function addTailwindListClasses(html) {
   const parser = new DOMParser()
   const doc = parser.parseFromString(html, 'text/html')
 
-  // Add classes to all ul elements
   doc.querySelectorAll('ul').forEach((ul) => {
     const level = getListNestingLevel(ul, 'ul')
     if (level === 0) {
@@ -56,7 +58,6 @@ function addTailwindListClasses(html) {
     }
   })
 
-  // Add classes to all ol elements
   doc.querySelectorAll('ol').forEach((ol) => {
     const level = getListNestingLevel(ol, 'ol')
     if (level === 0) {
@@ -66,7 +67,6 @@ function addTailwindListClasses(html) {
     }
   })
 
-  // Add classes to all li elements
   doc.querySelectorAll('li').forEach((li) => {
     li.className = 'list-item'
   })
@@ -74,9 +74,6 @@ function addTailwindListClasses(html) {
   return doc.body.innerHTML
 }
 
-/**
- * Get the nesting level of a list element (0 = top-level, 1 = nested, etc.)
- */
 function getListNestingLevel(el, type) {
   let level = 0
   let parent = el.parentElement
@@ -92,7 +89,6 @@ function getListNestingLevel(el, type) {
 export default function RichEditor({ value, onChange, minHeight = 100, maxHeight = 260, placeholder }) {
   const editorRef = useRef(null)
 
-  // Sync external value into DOM without clobbering cursor position
   useEffect(() => {
     const el = editorRef.current
     if (!el) return
@@ -113,7 +109,6 @@ export default function RichEditor({ value, onChange, minHeight = 100, maxHeight
     onChange(addTailwindListClasses(html))
   }
 
-  // Tab = indent inside list, Shift+Tab = outdent
   const handleKeyDown = (e) => {
     if (e.key === 'Tab') {
       e.preventDefault()
@@ -127,21 +122,20 @@ export default function RichEditor({ value, onChange, minHeight = 100, maxHeight
 
   return (
     <div className="overflow-hidden rounded-lg border border-border bg-card">
-      {/* ── Toolbar ── */}
       <div className="flex flex-wrap items-center gap-1 border-b border-border bg-muted px-2 py-1.5">
         <ToolBtn title="粗體" onClick={() => exec('bold')}><strong>B</strong></ToolBtn>
         <ToolBtn title="斜體" onClick={() => exec('italic')}><em>I</em></ToolBtn>
         <ToolBtn title="底線" onClick={() => exec('underline')}><u>U</u></ToolBtn>
-        <Sep />
-        <ToolIconBtn title="靠左" icon="format_align_left" onClick={() => exec('justifyLeft')} />
-        <ToolIconBtn title="置中" icon="format_align_center" onClick={() => exec('justifyCenter')} />
-        <ToolIconBtn title="靠右" icon="format_align_right" onClick={() => exec('justifyRight')} />
-        <Sep />
-        <ToolIconBtn title="項目符號清單" icon="format_list_bulleted" onClick={() => exec('insertUnorderedList')} />
-        <ToolIconBtn title="數字清單" icon="format_list_numbered" onClick={() => exec('insertOrderedList')} />
-        <ToolIconBtn title="增加縮排" icon="format_indent_increase" onClick={() => exec('indent')} />
-        <ToolIconBtn title="減少縮排" icon="format_indent_decrease" onClick={() => exec('outdent')} />
-        <Sep />
+        <Separator orientation="vertical" className="mx-0.5 h-5" />
+        <ToolIconBtn title="靠左" icon={AlignLeft} onClick={() => exec('justifyLeft')} />
+        <ToolIconBtn title="置中" icon={AlignCenter} onClick={() => exec('justifyCenter')} />
+        <ToolIconBtn title="靠右" icon={AlignRight} onClick={() => exec('justifyRight')} />
+        <Separator orientation="vertical" className="mx-0.5 h-5" />
+        <ToolIconBtn title="項目符號清單" icon={List} onClick={() => exec('insertUnorderedList')} />
+        <ToolIconBtn title="數字清單" icon={ListOrdered} onClick={() => exec('insertOrderedList')} />
+        <ToolIconBtn title="增加縮排" icon={IndentIncrease} onClick={() => exec('indent')} />
+        <ToolIconBtn title="減少縮排" icon={IndentDecrease} onClick={() => exec('outdent')} />
+        <Separator orientation="vertical" className="mx-0.5 h-5" />
 
         <Select onValueChange={(val) => exec('fontSize', val)}>
           <SelectTrigger size="sm" className="h-7 min-w-[3.25rem]" aria-label="字型大小">
@@ -153,33 +147,43 @@ export default function RichEditor({ value, onChange, minHeight = 100, maxHeight
             ))}
           </SelectContent>
         </Select>
-        <Sep />
+        <Separator orientation="vertical" className="mx-0.5 h-5" />
 
-        {/* Color presets */}
-        <span className="shrink-0 text-xs text-muted-foreground">字體顏色：</span>
-        {COLOR_PRESETS.map(c => (
-          <button
-            key={c}
-            type="button"
-            title={c}
-            onClick={() => exec('foreColor', c)}
-            className="size-5 shrink-0 cursor-pointer rounded-full border-[1.5px] border-border p-0"
-            style={{ background: c }}
-          />
-        ))}
+        <Popover>
+          <PopoverTrigger
+            render={
+              <Button type="button" variant="outline" size="icon-sm" aria-label="字體顏色" />
+            }
+          >
+            <Palette className="size-4 shrink-0" aria-hidden="true" />
+          </PopoverTrigger>
+          <PopoverContent align="start" className="w-auto max-w-none p-2">
+            <p className="mb-2 text-xs text-muted-foreground">字體顏色</p>
+            <div className="flex flex-wrap items-center gap-1.5">
+              {COLOR_PRESETS.map(c => (
+                <button
+                  key={c}
+                  type="button"
+                  title={c}
+                  onClick={() => exec('foreColor', c)}
+                  className="size-5 shrink-0 cursor-pointer rounded-full border-[1.5px] border-border p-0"
+                  style={{ background: c }}
+                />
+              ))}
+              <input
+                type="color"
+                title="自訂顏色"
+                onChange={e => exec('foreColor', e.target.value)}
+                className="size-7 shrink-0 cursor-pointer rounded border border-border bg-background p-0.5"
+              />
+            </div>
+          </PopoverContent>
+        </Popover>
 
-        {/* Custom colour picker */}
-        <input
-          type="color"
-          title="自訂顏色"
-          onChange={e => exec('foreColor', e.target.value)}
-          className="size-7 shrink-0 cursor-pointer rounded border border-border bg-background p-0.5"
-        />
-        <Sep />
-        <ToolIconBtn title="清除格式" icon="format_clear" onClick={() => exec('removeFormat')} />
+        <Separator orientation="vertical" className="mx-0.5 h-5" />
+        <ToolIconBtn title="清除格式" icon={RemoveFormatting} onClick={() => exec('removeFormat')} />
       </div>
 
-      {/* ── Editable area ── */}
       <div
         ref={editorRef}
         contentEditable
@@ -192,7 +196,6 @@ export default function RichEditor({ value, onChange, minHeight = 100, maxHeight
         style={{ minHeight: `${minHeight}px`, maxHeight: `${maxHeight}px` }}
       />
 
-      {/* Scoped list styles injected via a style tag */}
       <style>{`
         [contenteditable] ul,
         [contenteditable] ol {
@@ -231,8 +234,7 @@ function ToolBtn({ onClick, title, children }) {
   )
 }
 
-function ToolIconBtn({ onClick, title, icon }) {
-  const LucideIcon = ICONS[icon]
+function ToolIconBtn({ onClick, title, icon: Icon }) {
   return (
     <IconTooltip label={title}>
       <Button
@@ -242,12 +244,8 @@ function ToolIconBtn({ onClick, title, icon }) {
         aria-label={title}
         onClick={onClick}
       >
-        {LucideIcon ? <LucideIcon className="size-4 shrink-0" aria-hidden="true" /> : null}
+        <Icon className="size-4 shrink-0" aria-hidden="true" />
       </Button>
     </IconTooltip>
   )
-}
-
-function Sep() {
-  return <div className="mx-0.5 h-5 w-px shrink-0 self-center bg-border" />
 }

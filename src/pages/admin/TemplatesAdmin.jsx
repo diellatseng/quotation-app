@@ -200,7 +200,7 @@ export default function TemplatesAdmin() {
             <div className="flex gap-3 mt-5">
               <Button variant="default" size="md" className="font-semibold" onClick={save} disabled={loading}>{loading ? '儲存中…' : '儲存範本'}</Button>
               {selected && (
-                <Button variant="danger" size="md" className="font-semibold" onClick={() => setShowDeleteDialog(true)}>
+                <Button variant="destructive" size="md" className="font-semibold" onClick={() => setShowDeleteDialog(true)}>
                   刪除
                 </Button>
               )}

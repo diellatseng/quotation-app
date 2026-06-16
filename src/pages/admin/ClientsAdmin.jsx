@@ -34,6 +34,7 @@ export default function ClientsAdmin() {
   const [fetchLoading, setFetchLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [contactDeleteId, setContactDeleteId] = useState(null)
 
   const load = async () => {
     setFetchLoading(true)
@@ -96,10 +97,36 @@ export default function ClientsAdmin() {
   const deleteContact = async (id) => {
     await supabase.from('contact_persons').delete().eq('id', id)
     setContacts(prev => prev.filter(c => c.id !== id))
+    setContactDeleteId(null)
   }
 
   return (
     <div>
+      <AlertDialog
+        open={contactDeleteId !== null}
+        onOpenChange={open => {
+          if (!open) setContactDeleteId(null)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>刪除聯絡人</AlertDialogTitle>
+            <AlertDialogDescription>
+              確定要刪除此聯絡人嗎？此操作無法復原。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={() => contactDeleteId && deleteContact(contactDeleteId)}
+            >
+              刪除
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -198,7 +225,7 @@ export default function ClientsAdmin() {
                           主要聯絡人
                         </Label>
                       </Field>
-                      <Button variant="danger" size="sm" className="font-semibold" onClick={() => deleteContact(ct.id)}>刪除</Button>
+                      <Button variant="destructive" size="sm" className="font-semibold" onClick={() => setContactDeleteId(ct.id)}>刪除</Button>
                     </div>
                   </div>
                 ))}
@@ -208,7 +235,7 @@ export default function ClientsAdmin() {
             <div className="flex gap-3 mt-5">
               <Button variant="default" size="md" className="font-semibold" onClick={saveClient} disabled={loading}>{loading ? '儲存中…' : '儲存'}</Button>
               {selected && (
-                <Button variant="danger" size="md" className="font-semibold" onClick={() => setShowDeleteDialog(true)}>
+                <Button variant="destructive" size="md" className="font-semibold" onClick={() => setShowDeleteDialog(true)}>
                   刪除客戶
                 </Button>
               )}

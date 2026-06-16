@@ -196,7 +196,7 @@ export default function ServicesAdmin() {
                     <Input className="flex-1" value={item.item_text} onChange={e => updateItem(idx, e.target.value)} placeholder="準備項目" />
                     <IconTooltip label="刪除">
                       <Button
-                        variant="danger"
+                        variant="destructive"
                         size="icon"
                         aria-label="刪除"
                         onClick={() => deleteItem(item.id)}
@@ -212,7 +212,7 @@ export default function ServicesAdmin() {
             <div className="flex gap-3 mt-5">
               <Button variant="default" size="md" className="font-semibold" onClick={save} disabled={loading}>{loading ? '儲存中…' : '儲存'}</Button>
               {selected && (
-                <Button variant="danger" size="md" className="font-semibold" onClick={() => setShowDeleteDialog(true)}>
+                <Button variant="destructive" size="md" className="font-semibold" onClick={() => setShowDeleteDialog(true)}>
                   刪除
                 </Button>
               )}

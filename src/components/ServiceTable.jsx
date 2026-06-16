@@ -1,10 +1,20 @@
 // src/components/ServiceTable.jsx
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import RichEditor from './RichEditor'
 import { ChevronsDown, ChevronsUp, ChevronDown, ChevronRight, GripVertical, ListChecks, Pencil, Plus, Trash2, X } from 'lucide-react'
 import IconTooltip from '@/components/IconTooltip'
 import { Badge, DiffBadge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import {
   Dialog,
   DialogContent,
@@ -27,8 +37,7 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
   const [editingDesc, setEditingDesc] = useState(null)
   const [draftDesc, setDraftDesc] = useState('')
   const [collapsedDescs, setCollapsedDescs] = useState({})
-  const [confirmDeleteIdx, setConfirmDeleteIdx] = useState(null)
-  const confirmTimer = useRef(null)
+  const [deleteDialogIdx, setDeleteDialogIdx] = useState(null)
 
   // ── Drag state ────────────────────────────────────────────────────────────
   const dragIdx = useRef(null)
@@ -36,7 +45,7 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
   const [draggingIdx, setDraggingIdx] = useState(null)
   const [dragOverIdxState, setDragOverIdxState] = useState(null)
 
-  const handleDragStart = (idx) => { dragIdx.current = idx; setDraggingIdx(idx); setConfirmDeleteIdx(null) }
+  const handleDragStart = (idx) => { dragIdx.current = idx; setDraggingIdx(idx) }
   const handleDragEnter = (idx) => {
     if (idx === dragIdx.current) return
     dragOverIdx.current = idx; setDragOverIdxState(idx)
@@ -65,18 +74,12 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
     if (checklistIdx === idx) setChecklistIdx(null)
     const next = { ...collapsedDescs }; delete next[idx]; setCollapsedDescs(next)
   }
-  // Two-step delete: first click arms confirmation (auto-resets after 3s), second confirms.
-  const requestDelete = (idx) => {
-    clearTimeout(confirmTimer.current)
-    if (confirmDeleteIdx === idx) {
-      setConfirmDeleteIdx(null)
-      removeService(idx)
-      return
-    }
-    setConfirmDeleteIdx(idx)
-    confirmTimer.current = setTimeout(() => setConfirmDeleteIdx(null), 3000)
+  // Two-step delete replaced by AlertDialog — see deleteDialogIdx state.
+  const confirmDeleteService = () => {
+    if (deleteDialogIdx === null) return
+    removeService(deleteDialogIdx)
+    setDeleteDialogIdx(null)
   }
-  useEffect(() => () => clearTimeout(confirmTimer.current), [])
   const addService = () => onChange([...services, {
     id: crypto.randomUUID(), service_name: '', category: '',
     description: '', checklist_items: [], is_added: true,
@@ -142,6 +145,28 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
 
   return (
     <div>
+      <AlertDialog
+        open={deleteDialogIdx !== null}
+        onOpenChange={open => {
+          if (!open) setDeleteDialogIdx(null)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>刪除服務項目</AlertDialogTitle>
+            <AlertDialogDescription>
+              確定要刪除此服務項目嗎？此操作無法復原。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={confirmDeleteService}>
+              刪除
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* ── Toolbar ─────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between gap-2 mb-3 flex-wrap min-h-[28px]">
         {!readOnly && (
@@ -318,34 +343,19 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                       </IconTooltip>
                     )}
 
-                    {/* Delete service — two-step inline confirm */}
+                    {/* Delete service */}
                     {!readOnly && (
-                      confirmDeleteIdx === idx ? (
+                      <IconTooltip label="刪除服務項目">
                         <Button
-                          type="button"
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => requestDelete(idx)}
-                          title="再次點擊以確認刪除"
-                          aria-label="確認刪除服務項目"
-                          className="h-8 animate-in fade-in zoom-in-95 duration-150 whitespace-nowrap"
+                          variant="ghost"
+                          size="icon"
+                          aria-label="刪除服務項目"
+                          onClick={() => setDeleteDialogIdx(idx)}
+                          className="text-muted-foreground hover:bg-destructive-muted hover:text-destructive-muted-text"
                         >
-                          <Trash2 className="size-4 shrink-0" aria-hidden="true" />
-                          確定刪除？
+                          <Trash2 />
                         </Button>
-                      ) : (
-                        <IconTooltip label="刪除服務項目">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            aria-label="刪除服務項目"
-                            onClick={() => requestDelete(idx)}
-                            className="text-muted-foreground hover:bg-destructive-muted hover:text-destructive-muted-text"
-                          >
-                            <Trash2 />
-                          </Button>
-                        </IconTooltip>
-                      )
+                      </IconTooltip>
                     )}
                   </div>
                 )}
