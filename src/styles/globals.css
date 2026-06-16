@@ -54,6 +54,19 @@
   * {
     @apply border-border outline-ring/50;
   }
+
+  /* Required indicator: shadcn Field + Input pattern — asterisk on label when
+     a control inside the field has the HTML required attribute. */
+  [data-slot="field"]:has([data-slot="input"][required]:not([disabled]))
+    [data-slot="field-label"]::after,
+  [data-slot="field"]:has([data-slot="textarea"][required]:not([disabled]))
+    [data-slot="field-label"]::after,
+  [data-slot="field"]:has([data-slot="input-group-control"][required]:not([disabled]))
+    [data-slot="field-label"]::after {
+    content: "*";
+    margin-left: 0.125rem;
+    color: var(--destructive);
+  }
 }
 
 /* ── 1. Tailwind v4 Theme Configuration ── */

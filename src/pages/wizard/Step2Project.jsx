@@ -1,6 +1,8 @@
 // src/pages/wizard/Step2Project.jsx
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
+import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
 
 export default function Step2Project({ data, update }) {
   const [templates, setTemplates] = useState([])
@@ -42,59 +44,54 @@ export default function Step2Project({ data, update }) {
 
       <div className="bg-card text-card-foreground border border-border rounded-xl p-6 shadow-sm">
         <p className="text-base font-semibold text-foreground mb-4">工程基本資料</p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-foreground">工程名稱 *</label>
-            <input
+        <FieldGroup className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Field>
+            <FieldLabel>工程名稱</FieldLabel>
+            <Input
               type="text"
-              className="w-full h-10 px-3 text-sm bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               value={data.project_name || ''}
               onChange={e => update({ project_name: e.target.value })}
               placeholder="例如：住宅新建工程"
               required
             />
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-foreground">起造人 / 業主</label>
-            <input
+          </Field>
+          <Field>
+            <FieldLabel>起造人 / 業主</FieldLabel>
+            <Input
               type="text"
-              className="w-full h-10 px-3 text-sm bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               value={data.project_owner || ''}
               onChange={e => update({ project_owner: e.target.value })}
               placeholder="例如：王小明"
             />
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-foreground">建造執照字號</label>
-            <input
+          </Field>
+          <Field>
+            <FieldLabel>建造執照字號</FieldLabel>
+            <Input
               type="text"
-              className="w-full h-10 px-3 text-sm bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               value={data.building_permit || ''}
               onChange={e => update({ building_permit: e.target.value })}
               placeholder="例如：(112)高市工建築字第XXXXX號"
             />
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-foreground">地號資訊</label>
-            <input
+          </Field>
+          <Field>
+            <FieldLabel>地號資訊</FieldLabel>
+            <Input
               type="text"
-              className="w-full h-10 px-3 text-sm bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               value={data.land_section || ''}
               onChange={e => update({ land_section: e.target.value })}
               placeholder="例如：XX區XX段XX地號"
             />
-          </div>
-          <div className="space-y-1.5 md:col-span-2">
-            <label className="text-xs font-semibold text-foreground">工程規模 / 備註說明</label>
-            <input
+          </Field>
+          <Field className="md:col-span-2">
+            <FieldLabel>工程規模 / 備註說明</FieldLabel>
+            <Input
               type="text"
-              className="w-full h-10 px-3 text-sm bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               value={data.project_scale || ''}
               onChange={e => update({ project_scale: e.target.value })}
               placeholder="例如：地上5層，地下1層，RC構造，總樓地板面積..."
             />
-          </div>
-        </div>
+          </Field>
+        </FieldGroup>
       </div>
 
       <div className="bg-card text-card-foreground border border-border rounded-xl p-6 shadow-sm">

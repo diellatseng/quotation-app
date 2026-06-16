@@ -3,6 +3,15 @@ import { useState } from 'react'
 import ROCDateInput from '../../components/ROCDateInput'
 import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
+import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupText,
+} from '@/components/ui/input-group'
+import { Textarea } from '@/components/ui/textarea'
 import { getIcon } from '@/lib/icons'
 import { formatRocDate, formatCeDisplay } from '../../lib/rocDate'
 
@@ -113,23 +122,24 @@ export default function Step4Confirm({ data, update }) {
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-                <div className="space-y-1.5">
-                  <label htmlFor="quote_number" className="block text-xs font-semibold text-foreground">報價編號 *</label>
-                  <input
+              <FieldGroup className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                <Field>
+                  <FieldLabel htmlFor="quote_number">報價編號</FieldLabel>
+                  <Input
                     id="quote_number"
                     type="text"
-                    className="w-full h-10 px-3 text-sm bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
+                    size="md"
+                    className="font-medium"
                     value={data.quote_number}
                     onChange={e => update({ quote_number: e.target.value })}
                     placeholder="QT-2025-00001"
                     required
                   />
-                </div>
+                </Field>
                 <div className="space-y-2">
                   <ROCDateInput
                     id="quote_date"
-                    label="報價日期 *"
+                    label="報價日期"
                     value={data.quote_date}
                     onChange={v => update({ quote_date: v })}
                     useRoc={useRoc}
@@ -149,7 +159,7 @@ export default function Step4Confirm({ data, update }) {
                     />
                   </div>
                 </div>
-              </div>
+              </FieldGroup>
               <div className="flex justify-end">
                 <button
                   type="button"
@@ -165,21 +175,23 @@ export default function Step4Confirm({ data, update }) {
 
         <div className="px-6 py-4">
           <div className="flex flex-col sm:flex-row sm:items-end gap-4 sm:gap-8">
-            <div className="space-y-1.5 w-full sm:max-w-xs">
-              <label htmlFor="fee_amount" className="block text-xs font-semibold text-foreground">報價金額 (未稅) *</label>
-              <div className="relative">
-                <span className="absolute left-3 top-2.5 text-sm text-muted-foreground font-medium">NT$</span>
-                <input
+            <Field className="w-full sm:max-w-xs">
+              <FieldLabel htmlFor="fee_amount">報價金額 (未稅)</FieldLabel>
+              <InputGroup className="h-10">
+                <InputGroupAddon>
+                  <InputGroupText className="font-medium">NT$</InputGroupText>
+                </InputGroupAddon>
+                <InputGroupInput
                   id="fee_amount"
                   type="number"
-                  className="w-full h-10 pl-11 pr-3 text-sm bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
+                  className="h-10 font-medium"
                   value={data.fee_amount || ''}
                   onChange={e => update({ fee_amount: e.target.value })}
                   placeholder="0"
                   required
                 />
-              </div>
-            </div>
+              </InputGroup>
+            </Field>
             <div className="inline-flex items-center gap-3 sm:pb-1">
               <label
                 htmlFor="tax_included"
@@ -253,10 +265,10 @@ export default function Step4Confirm({ data, update }) {
                       {sIdx + 1}
                     </td>
                     <td className="px-3 py-2 align-middle">
-                      <input
+                      <Input
                         type="text"
                         placeholder="請輸入階段名稱（例：開工前）"
-                        className="w-full h-9 px-3 text-sm bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+                        className="w-full"
                         value={stage.stage_name}
                         onChange={e => handleStageChange(stage.id, { stage_name: e.target.value })}
                         required
@@ -264,10 +276,10 @@ export default function Step4Confirm({ data, update }) {
                     </td>
                     <td className="px-3 py-2 align-middle">
                       <div className="flex items-center justify-end gap-1.5">
-                        <input
+                        <Input
                           type="number"
                           placeholder="0"
-                          className="w-20 h-9 px-2 text-right text-sm bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary font-medium"
+                          className="w-20 text-right font-medium"
                           value={stage.percentage || ''}
                           onChange={e => handleStageChange(stage.id, { percentage: e.target.value })}
                           max="100"
@@ -306,19 +318,19 @@ export default function Step4Confirm({ data, update }) {
             return (
               <div key={stage.id} className="flex flex-wrap items-center gap-3 p-3 bg-muted/20 border border-border rounded-xl">
                 <span className="text-xs font-bold text-muted-foreground w-5 text-center">{sIdx + 1}</span>
-                <input
+                <Input
                   type="text"
                   placeholder="請輸入階段名稱（例：開工前）"
-                  className="flex-1 min-w-[160px] h-9 px-3 text-sm bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+                  className="flex-1 min-w-[160px]"
                   value={stage.stage_name}
                   onChange={e => handleStageChange(stage.id, { stage_name: e.target.value })}
                   required
                 />
                 <div className="flex items-center gap-2 w-28 shrink-0">
-                  <input
+                  <Input
                     type="number"
                     placeholder="0"
-                    className="w-full h-9 px-2 text-right text-sm bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary font-medium"
+                    className="w-full text-right font-medium"
                     value={stage.percentage || ''}
                     onChange={e => handleStageChange(stage.id, { percentage: e.target.value })}
                     max="100"
@@ -357,12 +369,12 @@ export default function Step4Confirm({ data, update }) {
 
       <div className="bg-card text-card-foreground border border-border rounded-xl p-6 shadow-sm">
         <p className="text-base font-semibold text-foreground mb-3">報價單備註事項</p>
-        <textarea
-          className="w-full p-3 text-sm bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-y"
+        <Textarea
           value={data.notes || ''}
           onChange={e => update({ notes: e.target.value })}
           placeholder="此處內容將顯示於印刷報價單底部（例如：本報價有效期限、付款流程細則說明、其他特定條款等…）"
           rows={4}
+          className="resize-y"
         />
       </div>
     </div>

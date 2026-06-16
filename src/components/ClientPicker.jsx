@@ -5,6 +5,12 @@ import { useNotification } from '../context/NotificationContext'
 import { Building2, Mail, Phone, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
+  Field,
+  FieldGroup,
+  FieldLabel,
+} from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
+import {
   Combobox,
   ComboboxContent,
   ComboboxEmpty,
@@ -226,74 +232,75 @@ export default function ClientPicker({ value, onChange, disabled = false }) {
             新增客戶基本資料
           </h3>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field label="公司名稱 *">
-              <input
-                className="w-full px-3 py-1.5 border border-border rounded-md bg-background text-foreground text-sm focus:outline-none focus:border-primary"
+          <FieldGroup className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Field>
+              <FieldLabel>公司名稱</FieldLabel>
+              <Input
+                required
                 value={newClient.company_name}
                 onChange={e => setNewClient(p => ({ ...p, company_name: e.target.value }))}
                 placeholder="例如：米爾斯股份有限公司"
               />
             </Field>
-            <Field label="公司地址">
-              <input
-                className="w-full px-3 py-1.5 border border-border rounded-md bg-background text-foreground text-sm focus:outline-none focus:border-primary"
+            <Field>
+              <FieldLabel>公司地址</FieldLabel>
+              <Input
                 value={newClient.address}
                 onChange={e => setNewClient(p => ({ ...p, address: e.target.value }))}
               />
             </Field>
-            <Field label="公司電話">
-              <input
-                className="w-full px-3 py-1.5 border border-border rounded-md bg-background text-foreground text-sm focus:outline-none focus:border-primary"
+            <Field>
+              <FieldLabel>公司電話</FieldLabel>
+              <Input
                 value={newClient.phone}
                 onChange={e => setNewClient(p => ({ ...p, phone: e.target.value }))}
               />
             </Field>
-            <Field label="傳真號碼">
-              <input
-                className="w-full px-3 py-1.5 border border-border rounded-md bg-background text-foreground text-sm focus:outline-none focus:border-primary"
+            <Field>
+              <FieldLabel>傳真號碼</FieldLabel>
+              <Input
                 value={newClient.fax}
                 onChange={e => setNewClient(p => ({ ...p, fax: e.target.value }))}
               />
             </Field>
-          </div>
+          </FieldGroup>
 
           <h3 className="text-sm font-semibold text-foreground border-b border-border pt-2 pb-1.5 flex items-center gap-1.5">
             <User className="size-4 shrink-0" aria-hidden="true" />
             聯絡人資料
           </h3>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field label="姓名">
-              <input
-                className="w-full px-3 py-1.5 border border-border rounded-md bg-background text-foreground text-sm focus:outline-none focus:border-primary"
+          <FieldGroup className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Field>
+              <FieldLabel>姓名</FieldLabel>
+              <Input
                 value={newContact.name}
                 onChange={e => setNewContact(p => ({ ...p, name: e.target.value }))}
               />
             </Field>
-            <Field label="行動電話">
-              <input
-                className="w-full px-3 py-1.5 border border-border rounded-md bg-background text-foreground text-sm focus:outline-none focus:border-primary"
+            <Field>
+              <FieldLabel>行動電話</FieldLabel>
+              <Input
                 value={newContact.mobile}
                 onChange={e => setNewContact(p => ({ ...p, mobile: e.target.value }))}
               />
             </Field>
-            <Field label="辦公室電話">
-              <input
-                className="w-full px-3 py-1.5 border border-border rounded-md bg-background text-foreground text-sm focus:outline-none focus:border-primary"
+            <Field>
+              <FieldLabel>辦公室電話</FieldLabel>
+              <Input
                 value={newContact.office_phone}
                 onChange={e => setNewContact(p => ({ ...p, office_phone: e.target.value }))}
               />
             </Field>
-            <Field label="電子郵件">
-              <input
-                className="w-full px-3 py-1.5 border border-border rounded-md bg-background text-foreground text-sm focus:outline-none focus:border-primary"
+            <Field>
+              <FieldLabel>電子郵件</FieldLabel>
+              <Input
                 type="email"
                 value={newContact.email}
                 onChange={e => setNewContact(p => ({ ...p, email: e.target.value }))}
               />
             </Field>
-          </div>
+          </FieldGroup>
 
           <div className="flex gap-2 pt-2">
             <Button
@@ -319,15 +326,6 @@ export default function ClientPicker({ value, onChange, disabled = false }) {
           </div>
         </div>
       )}
-    </div>
-  )
-}
-
-function Field({ label, children }) {
-  return (
-    <div className="flex flex-col gap-1">
-      <label className="text-xs font-medium text-muted-foreground">{label}</label>
-      {children}
     </div>
   )
 }

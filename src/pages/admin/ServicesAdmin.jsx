@@ -4,13 +4,16 @@ import { supabase } from '../../lib/supabase'
 import { useNotification } from '../../context/NotificationContext.jsx'
 import RichEditor from '../../components/RichEditor.jsx'
 import { Button } from '@/components/ui/button'
+import {
+  Field,
+  FieldGroup,
+  FieldLabel,
+} from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
 import { getIcon } from '@/lib/icons'
 
 const PlusIcon = getIcon('add')
 const CloseIcon = getIcon('close')
-
-const LABEL_CLS = 'block text-xs font-semibold text-foreground mb-1.5'
-const INPUT_CLS = 'w-full h-10 px-3 text-sm bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all'
 
 export default function ServicesAdmin() {
   const [services, setServices] = useState([])
@@ -123,23 +126,23 @@ export default function ServicesAdmin() {
         {showForm && (
           <div className="bg-card text-card-foreground border border-border rounded-xl p-6 shadow-sm">
             <p className="text-base font-semibold text-foreground mb-4">{selected ? '編輯服務' : '新增服務'}</p>
-            <div className="flex flex-col gap-4 mb-4">
-              <div>
-                <label className={LABEL_CLS}>服務名稱 *</label>
-                <input className={INPUT_CLS} value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
-              </div>
-              <div>
-                <label className={LABEL_CLS}>類別</label>
-                <input className={INPUT_CLS} value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} placeholder="例如：申報作業、勘驗作業" />
-              </div>
-              <div>
-                <label className={LABEL_CLS}>說明</label>
+            <FieldGroup className="gap-4 mb-4">
+              <Field>
+                <FieldLabel>服務名稱</FieldLabel>
+                <Input required value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+              </Field>
+              <Field>
+                <FieldLabel>類別</FieldLabel>
+                <Input value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} placeholder="例如：申報作業、勘驗作業" />
+              </Field>
+              <Field>
+                <FieldLabel>說明</FieldLabel>
                 <RichEditor
                   value={form.description}
                   onChange={html => setForm(f => ({ ...f, description: html }))}
                 />
-              </div>
-            </div>
+              </Field>
+            </FieldGroup>
 
             {/* Checklist items */}
             {selected && (
@@ -154,7 +157,7 @@ export default function ServicesAdmin() {
                 {checklistItems.map((item, idx) => (
                   <div key={item.id} className="flex gap-2 items-center mb-2">
                     <span className="text-muted-foreground text-sm w-6 text-right shrink-0">{idx + 1}.</span>
-                    <input className={`${INPUT_CLS} flex-1`} value={item.item_text} onChange={e => updateItem(idx, e.target.value)} placeholder="準備項目" />
+                    <Input className="flex-1" value={item.item_text} onChange={e => updateItem(idx, e.target.value)} placeholder="準備項目" />
                     <Button
                       variant="danger"
                       size="icon"

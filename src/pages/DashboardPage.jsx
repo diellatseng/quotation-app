@@ -19,6 +19,7 @@ import {
 import { QuotationStatusBadges } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { FileText } from 'lucide-react'
 import { getIcon } from '@/lib/icons'
 import {
@@ -224,9 +225,10 @@ export default function DashboardPage() {
 
         {/* Toolbar */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-          <input
+          <Input
             type="search"
-            className="w-full sm:max-w-xs rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
+            size="md"
+            className="w-full sm:max-w-xs bg-card"
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="搜尋報價編號、客戶名稱…"

@@ -5,14 +5,14 @@ import { useAuth } from '../hooks/useAuth'
 import { useNotification } from '../context/NotificationContext'
 import { ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { getIcon } from '@/lib/icons'
 
 const PlusIcon = getIcon('add')
 
 const fmt = (n) => `NT$ ${Number(n || 0).toLocaleString('zh-TW')}`
-
-const LABEL_CLS = 'block text-xs font-semibold text-foreground mb-1.5'
-const INPUT_CLS = 'w-full px-3 py-2 text-sm bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all'
 
 export default function NegotiationPanel({ quotationId, currentAmount, logs = [], onLogged }) {
   const [open, setOpen] = useState(false)
@@ -108,36 +108,38 @@ export default function NegotiationPanel({ quotationId, currentAmount, logs = []
       </div>
 
       {open && (
-        <form onSubmit={handleSubmit} className="mt-4 p-5 bg-muted rounded-md border border-border flex flex-col gap-4">
-          <div>
-            <label className={LABEL_CLS}>目前報價</label>
-            <p className="text-lg font-bold text-foreground">{fmt(currentAmount)}</p>
-          </div>
-          <div>
-            <label className={LABEL_CLS} htmlFor="neg-new-amount">議價後金額（未稅）*</label>
-            <input
-              id="neg-new-amount"
-              type="number"
-              min="0"
-              className={INPUT_CLS}
-              value={newAmount}
-              onChange={e => setNewAmount(e.target.value)}
-              placeholder="輸入新金額"
-              required
-            />
-          </div>
-          <div>
-            <label className={LABEL_CLS} htmlFor="neg-notes">議價備註</label>
-            <textarea
-              id="neg-notes"
-              className={`${INPUT_CLS} resize-y`}
-              value={notes}
-              onChange={e => setNotes(e.target.value)}
-              placeholder="例如：業主要求減10%，同意調整"
-              rows={3}
-            />
-          </div>
-          <div className="flex gap-3">
+        <form onSubmit={handleSubmit} className="mt-4 p-5 bg-muted rounded-md border border-border">
+          <FieldGroup className="gap-4">
+            <Field>
+              <FieldLabel>目前報價</FieldLabel>
+              <p className="text-lg font-bold text-foreground">{fmt(currentAmount)}</p>
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="neg-new-amount">議價後金額（未稅）</FieldLabel>
+              <Input
+                id="neg-new-amount"
+                type="number"
+                min="0"
+                size="md"
+                value={newAmount}
+                onChange={e => setNewAmount(e.target.value)}
+                placeholder="輸入新金額"
+                required
+              />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="neg-notes">議價備註</FieldLabel>
+              <Textarea
+                id="neg-notes"
+                className="resize-y"
+                value={notes}
+                onChange={e => setNotes(e.target.value)}
+                placeholder="例如：業主要求減10%，同意調整"
+                rows={3}
+              />
+            </Field>
+          </FieldGroup>
+          <div className="flex gap-3 mt-4">
             <Button type="submit" variant="default" size="md" className="font-semibold" disabled={saving}>
               {saving ? '儲存中…' : '確認議價'}
             </Button>

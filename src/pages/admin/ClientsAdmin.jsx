@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useNotification } from '../../context/NotificationContext.jsx'
 import { Button } from '@/components/ui/button'
+import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
 import { getIcon } from '@/lib/icons'
 
 const PlusIcon = getIcon('add')
@@ -119,7 +121,7 @@ export default function ClientsAdmin() {
           <div className="bg-card text-card-foreground border border-border rounded-xl p-6 shadow-sm">
             <p className="text-base font-semibold text-foreground mb-4">{selected ? '編輯客戶' : '新增客戶'}</p>
             <div className="grid grid-cols-2 gap-4 mb-4">
-              <F label="公司名稱 *" value={form.company_name} onChange={v => setForm(f => ({ ...f, company_name: v }))} />
+              <F label="公司名稱" required value={form.company_name} onChange={v => setForm(f => ({ ...f, company_name: v }))} />
               <F label="電子郵件" value={form.email} onChange={v => setForm(f => ({ ...f, email: v }))} />
               <F label="電話" value={form.phone} onChange={v => setForm(f => ({ ...f, phone: v }))} />
               <F label="傳真" value={form.fax} onChange={v => setForm(f => ({ ...f, fax: v }))} />
@@ -172,15 +174,15 @@ export default function ClientsAdmin() {
   )
 }
 
-function F({ label, value, onChange, compact }) {
+function F({ label, value, onChange, compact, required }) {
   return (
-    <div className={compact ? '' : 'mb-4'}>
-      <label className="block text-xs font-semibold text-foreground mb-1.5">{label}</label>
-      <input
-        className="w-full h-10 px-3 text-sm bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+    <Field className={compact ? '' : 'mb-4'}>
+      <FieldLabel>{label}</FieldLabel>
+      <Input
         value={value || ''}
         onChange={e => onChange(e.target.value)}
+        required={required}
       />
-    </div>
+    </Field>
   )
 }

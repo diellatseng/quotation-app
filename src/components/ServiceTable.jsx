@@ -5,6 +5,7 @@ import RichEditor from './RichEditor'
 import { ChevronsDown, ChevronsUp, GripVertical, ListChecks, Trash2, X } from 'lucide-react'
 import { DiffBadge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { getIcon } from '@/lib/icons'
 import { FEATURE_VERSIONING } from '../lib/featureFlags'
 
@@ -263,8 +264,8 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                     {svc.service_name}
                   </span>
                 ) : (
-                  <input
-                    className="flex-grow-[2] min-w-0 px-3 py-1.5 border border-border rounded-md bg-background text-foreground text-sm font-semibold focus:outline-none focus:border-primary"
+                  <Input
+                    className="min-w-0 flex-[2] font-semibold"
                     value={svc.service_name}
                     onChange={e => updateService(idx, 'service_name', e.target.value)}
                     placeholder="服務項目名稱"
@@ -278,8 +279,8 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                     <span className="inline-flex items-center flex-shrink-0 px-3 py-0.5 rounded-full text-xs bg-muted text-muted-foreground border border-border whitespace-nowrap">{svc.category}</span>
                   )
                 ) : (
-                  <input
-                    className="w-28 px-3 py-1.5 border border-border rounded-md bg-background text-foreground text-sm focus:outline-none focus:border-primary min-w-0"
+                  <Input
+                    className="w-28 min-w-0"
                     value={svc.category || ''}
                     onChange={e => updateService(idx, 'category', e.target.value)}
                     placeholder="類別"
@@ -489,8 +490,8 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                     {readOnly ? (
                       <span className="flex-1 text-sm text-foreground">{item.item_text}</span>
                     ) : (
-                      <input
-                        className="flex-1 px-3 py-1.5 border border-border rounded-md bg-background text-foreground text-sm focus:outline-none focus:border-primary"
+                      <Input
+                        className="flex-1"
                         value={item.item_text}
                         onChange={e => updateChecklistItem(checklistIdx, iIdx, e.target.value)}
                         placeholder="準備項目說明"

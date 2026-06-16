@@ -3,12 +3,11 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useNotification } from '../../context/NotificationContext.jsx'
 import { Button } from '@/components/ui/button'
+import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
 import { getIcon } from '@/lib/icons'
 
 const PlusIcon = getIcon('add')
-
-const LABEL_CLS = 'block text-xs font-semibold text-foreground mb-1.5'
-const INPUT_CLS = 'w-full h-10 px-3 text-sm bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all'
 
 export default function TemplatesAdmin() {
   const [templates, setTemplates] = useState([])
@@ -115,20 +114,20 @@ export default function TemplatesAdmin() {
         {showForm && (
           <div className="bg-card text-card-foreground border border-border rounded-xl p-6 shadow-sm">
             <p className="text-base font-semibold text-foreground mb-4">{selected ? '編輯範本' : '新增範本'}</p>
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div className="col-span-2">
-                <label className={LABEL_CLS}>範本名稱 *</label>
-                <input className={INPUT_CLS} value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="例如：住宅大樓跑照" />
-              </div>
-              <div>
-                <label className={LABEL_CLS}>類別</label>
-                <input className={INPUT_CLS} value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} placeholder="例如：住宅、商業" />
-              </div>
-              <div>
-                <label className={LABEL_CLS}>說明</label>
-                <input className={INPUT_CLS} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
-              </div>
-            </div>
+            <FieldGroup className="grid grid-cols-2 gap-4 mb-4">
+              <Field className="col-span-2">
+                <FieldLabel>範本名稱</FieldLabel>
+                <Input required value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="例如：住宅大樓跑照" />
+              </Field>
+              <Field>
+                <FieldLabel>類別</FieldLabel>
+                <Input value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} placeholder="例如：住宅、商業" />
+              </Field>
+              <Field>
+                <FieldLabel>說明</FieldLabel>
+                <Input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
+              </Field>
+            </FieldGroup>
 
             {/* Service linking */}
             <p className="text-base font-semibold text-foreground mb-1">連結服務項目</p>
