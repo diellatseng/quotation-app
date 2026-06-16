@@ -134,7 +134,7 @@ export default function Step2Project({ data, update }) {
                 {tmpl.description && (
                   <div className="text-xs text-muted-foreground mt-0.5 line-clamp-2 leading-relaxed">{tmpl.description}</div>
                 )}
-                <div className="inline-flex items-center text-[10px] font-semibold text-primary bg-primary/5 px-2 py-0.5 rounded mt-2 border border-primary/10">
+                <div className="inline-flex items-center text-xs font-semibold text-primary bg-primary/5 px-2 py-0.5 rounded mt-2 border border-primary/10">
                   {(tmpl.template_services || []).length} 項服務
                 </div>
               </div>

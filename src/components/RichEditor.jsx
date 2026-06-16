@@ -71,6 +71,9 @@ function getListNestingLevel(el, type) {
   return level
 }
 
+const TOOLBAR_BTN =
+  'inline-flex items-center justify-center size-7 shrink-0 rounded border border-border bg-background text-foreground cursor-pointer hover:bg-muted transition-colors'
+
 export default function RichEditor({ value, onChange, minHeight = 100, maxHeight = 260, placeholder }) {
   const editorRef = useRef(null)
 
@@ -110,7 +113,7 @@ export default function RichEditor({ value, onChange, minHeight = 100, maxHeight
   return (
     <div className="border border-zinc-200 rounded-lg overflow-hidden bg-white">
       {/* ── Toolbar ── */}
-      <div className="flex flex-wrap items-center gap-0.5 px-2 py-1.5 bg-muted border-b border-border">
+      <div className="flex flex-wrap items-center gap-1 px-2 py-1.5 bg-muted border-b border-border">
         <ToolBtn title="粗體" onClick={() => exec('bold')}><strong>B</strong></ToolBtn>
         <ToolBtn title="斜體" onClick={() => exec('italic')}><em>I</em></ToolBtn>
         <ToolBtn title="底線" onClick={() => exec('underline')}><u>U</u></ToolBtn>
@@ -130,7 +133,7 @@ export default function RichEditor({ value, onChange, minHeight = 100, maxHeight
           title="字型大小"
           onChange={e => exec('fontSize', e.target.value)}
           defaultValue=""
-          className="text-[11px] px-1 py-0.5 border border-border rounded cursor-pointer bg-background text-foreground"
+          className="h-7 min-w-[3.25rem] shrink-0 rounded border border-border bg-background px-1.5 text-xs text-foreground cursor-pointer"
         >
           <option value="" disabled>大小</option>
           {[1, 2, 3, 4, 5, 6].map((n, i) => (
@@ -140,14 +143,14 @@ export default function RichEditor({ value, onChange, minHeight = 100, maxHeight
         <Sep />
 
         {/* Color presets */}
-        <span className="text-[10px] text-muted-foreground mr-0.5">色：</span>
+        <span className="shrink-0 text-xs text-muted-foreground">字體顏色：</span>
         {COLOR_PRESETS.map(c => (
           <button
             key={c}
             type="button"
             title={c}
             onClick={() => exec('foreColor', c)}
-            className="w-4 h-4 rounded-full border-[1.5px] border-zinc-300 cursor-pointer shrink-0 p-0"
+            className="size-5 shrink-0 rounded-full border-[1.5px] border-zinc-300 cursor-pointer p-0"
             style={{ background: c }}
           />
         ))}
@@ -157,7 +160,7 @@ export default function RichEditor({ value, onChange, minHeight = 100, maxHeight
           type="color"
           title="自訂顏色"
           onChange={e => exec('foreColor', e.target.value)}
-          className="w-5 h-5 border-none p-0 cursor-pointer bg-none"
+          className="size-7 shrink-0 cursor-pointer rounded border border-border bg-background p-0.5"
         />
         <Sep />
         <ToolIconBtn title="清除格式" icon="format_clear" onClick={() => exec('removeFormat')} />
@@ -191,7 +194,7 @@ export default function RichEditor({ value, onChange, minHeight = 100, maxHeight
         [contenteditable] li { margin: 0.1em 0; }
       `}</style>
 
-      <div className="text-[10px] text-zinc-500 px-2 py-1 bg-zinc-50 border-t border-zinc-200">
+      <div className="border-t border-border bg-muted px-2 py-1 text-xs text-muted-foreground">
         提示：選取文字後套用格式；清單中按 Tab / Shift+Tab 調整縮排
       </div>
     </div>
@@ -204,7 +207,7 @@ function ToolBtn({ onClick, title, children }) {
       type="button"
       title={title}
       onClick={onClick}
-      className="px-1.5 py-0.5 text-[11px] leading-snug border border-border rounded bg-background text-foreground cursor-pointer hover:bg-muted transition-colors"
+      className={`${TOOLBAR_BTN} text-xs font-bold leading-none`}
     >
       {children}
     </button>
@@ -219,7 +222,7 @@ function ToolIconBtn({ onClick, title, icon }) {
       title={title}
       aria-label={title}
       onClick={onClick}
-      className="inline-flex items-center justify-center w-7 h-7 border border-border rounded bg-background text-foreground cursor-pointer hover:bg-muted transition-colors"
+      className={TOOLBAR_BTN}
     >
       {LucideIcon ? <LucideIcon className="size-4 shrink-0" aria-hidden="true" /> : null}
     </button>
@@ -227,5 +230,5 @@ function ToolIconBtn({ onClick, title, icon }) {
 }
 
 function Sep() {
-  return <div className="w-px h-4 bg-border mx-0.5" />
+  return <div className="mx-0.5 h-5 w-px shrink-0 self-center bg-border" />
 }

@@ -88,7 +88,7 @@ export default function Step1Client({ data, update, loading = false }) {
                       </div>
                     </div>
                     {c.is_primary && (
-                      <span className="shrink-0 text-[10px] font-bold text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full tracking-wider">
+                      <span className="shrink-0 text-xs font-bold text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full tracking-wider">
                         主要
                       </span>
                     )}
