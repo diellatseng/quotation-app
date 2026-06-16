@@ -32,18 +32,16 @@ const COMPANY_INFO = {
 export default function QuotationDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const quotationRef = useRef()
-  const servicesRef = useRef()
+  const previewRef = useRef(null)
 
   const [qt, setQt] = useState(null)
   const [services, setServices] = useState([])
   const [paymentStages, setPaymentStages] = useState([])
   const [loading, setLoading] = useState(true)
-  const [exporting, setExporting] = useState(false)
   // const [negDialog, setNegDialog] = useState(null) // inactive: negotiation / versioning
   const [activeTab, setActiveTab] = useState('quotation')
 
-  const { exportPDF } = useExportPDF()
+  const { exporting, exportPDF } = useExportPDF()
 
   const fetchData = async () => {
     setLoading(true)
@@ -60,7 +58,6 @@ export default function QuotationDetailPage() {
 
       if (qErr) throw qErr
       setQt(qData)
-      quotationRef.current = qData
 
       const { data: sData, error: sErr } = await supabase
         .from('quotation_services')
@@ -70,7 +67,6 @@ export default function QuotationDetailPage() {
 
       if (sErr) throw sErr
       setServices(sData)
-      servicesRef.current = sData
 
       const { data: stageData, error: stErr } = await supabase
         .from('payment_stages')
@@ -126,16 +122,15 @@ export default function QuotationDetailPage() {
   */
 
   const handleExport = async () => {
-    if (!quotationRef.current) return
-    setExporting(true)
+    if (!qt) return
     toast.info('正在準備 PDF 匯出資料，請稍候…')
     try {
-      await exportPDF(quotationRef.current, servicesRef.current, COMPANY_INFO)
-      toast.success('PDF 匯出成功')
+      await exportPDF(previewRef, {
+        filename: `報價單-${qt.quote_number}`,
+        onSuccess: () => toast.success('PDF 匯出成功'),
+      })
     } catch (err) {
       toast.error('匯出失敗: ' + err.message, { duration: 6000 })
-    } finally {
-      setExporting(false)
     }
   }
 
@@ -231,8 +226,12 @@ export default function QuotationDetailPage() {
         <div className="flex justify-center overflow-auto rounded-xl border border-border bg-muted/30 p-4 shadow-inner md:p-6">
           <div className="max-w-full origin-top scale-100 transform rounded-sm border border-border bg-white shadow-md">
             <A4Preview
+              ref={previewRef}
               quotation={qt}
               services={services}
+              stages={paymentStages}
+              client={qt.clients}
+              contactPerson={qt.contact_persons}
               companyInfo={COMPANY_INFO}
               mode={activeTab}
             />
