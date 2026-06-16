@@ -96,16 +96,21 @@ export function useExportPDF() {
     /* ── Extracted A4Preview styles ── */
     ${inlinedCss}
     /* ── PDF pagination ── */
-    /* .a4-page-break elements are removed from the DOM before serialisation,
-       so this rule is a safety net only. */
+    @page { size: 794px 1123px; margin: 0; }
     .a4-page-break { display: none !important; }
+    .a4-page {
+      width: 794px;
+      height: 1123px;
+      max-height: 1123px;
+      box-sizing: border-box;
+      page-break-inside: avoid;
+      break-inside: avoid-page;
+    }
     [data-page] {
       display: block;
       break-after: page;
       page-break-after: always;
-      break-inside: avoid;
     }
-    /* No trailing break after the final page */
     [data-page]:last-of-type {
       break-after: avoid;
       page-break-after: avoid;
