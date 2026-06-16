@@ -5,6 +5,16 @@ import { useNotification } from '../../context/NotificationContext.jsx'
 import RichEditor from '../../components/RichEditor.jsx'
 import { Button } from '@/components/ui/button'
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import {
   Field,
   FieldGroup,
   FieldLabel,
@@ -21,6 +31,7 @@ export default function ServicesAdmin() {
   const [checklistItems, setChecklistItems] = useState([])
   const [form, setForm] = useState({ name: '', category: '', description: '' })
   const [showForm, setShowForm] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [loading, setLoading] = useState(false)
   const { success, error } = useNotification()
 
@@ -52,9 +63,12 @@ export default function ServicesAdmin() {
   }
 
   const deleteSvc = async () => {
-    if (!window.confirm('確定刪除此服務？')) return
     await supabase.from('services').delete().eq('id', selected.id)
-    success('已刪除'); setShowForm(false); setSelected(null); load()
+    success('已刪除')
+    setShowDeleteDialog(false)
+    setShowForm(false)
+    setSelected(null)
+    load()
   }
 
   const addItem = async () => {
@@ -86,6 +100,21 @@ export default function ServicesAdmin() {
 
   return (
     <div>
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>刪除服務</AlertDialogTitle>
+            <AlertDialogDescription>確定刪除此服務？</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={deleteSvc}>
+              刪除
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold">服務資料庫</h2>
         <Button
@@ -174,7 +203,11 @@ export default function ServicesAdmin() {
 
             <div className="flex gap-3 mt-5">
               <Button variant="default" size="md" className="font-semibold" onClick={save} disabled={loading}>{loading ? '儲存中…' : '儲存'}</Button>
-              {selected && <Button variant="danger" size="md" className="font-semibold" onClick={deleteSvc}>刪除</Button>}
+              {selected && (
+                <Button variant="danger" size="md" className="font-semibold" onClick={() => setShowDeleteDialog(true)}>
+                  刪除
+                </Button>
+              )}
               <Button variant="ghost" size="md" className="font-semibold" onClick={() => { setShowForm(false); setSelected(null) }}>取消</Button>
             </div>
           </div>

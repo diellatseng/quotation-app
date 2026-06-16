@@ -1,10 +1,17 @@
 // src/components/ServiceTable.jsx
 import { useState, useRef, useEffect } from 'react'
-import { createPortal } from 'react-dom'
 import RichEditor from './RichEditor'
 import { ChevronsDown, ChevronsUp, GripVertical, ListChecks, Trash2, X } from 'lucide-react'
 import { DiffBadge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { getIcon } from '@/lib/icons'
 import { FEATURE_VERSIONING } from '../lib/featureFlags'
@@ -116,14 +123,6 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
   const openChecklist = (idx) => setChecklistIdx(idx)
   const closeChecklist = () => setChecklistIdx(null)
 
-  // Close the checklist modal with Escape
-  useEffect(() => {
-    if (checklistIdx == null) return
-    const onKey = (e) => { if (e.key === 'Escape') closeChecklist() }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [checklistIdx])
-
   // ── Empty state ───────────────────────────────────────────────────────────
   if (!services.length) return (
     <div className="text-center py-12 px-6 text-muted-foreground">
@@ -153,12 +152,14 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
           </span>
         )}
         {hasAnyDesc && (
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="sm"
             onClick={allCollapsed ? expandAll : collapseAll}
             title={allCollapsed ? '展開所有說明' : '折疊所有說明'}
             aria-label={allCollapsed ? '展開所有說明' : '折疊所有說明'}
-            className="ml-auto inline-flex items-center gap-1 h-7 px-2.5 text-xs font-medium rounded-md text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer transition-colors whitespace-nowrap"
+            className="ml-auto h-7 px-2.5 text-xs font-medium text-muted-foreground whitespace-nowrap"
           >
             {allCollapsed ? (
               <ChevronsDown className="size-4 shrink-0" aria-hidden="true" />
@@ -166,7 +167,7 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
               <ChevronsUp className="size-4 shrink-0" aria-hidden="true" />
             )}
             {allCollapsed ? '全部展開' : '全部折疊'}
-          </button>
+          </Button>
         )}
       </div>
 
@@ -298,19 +299,21 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
 
                     {/* Checklist indicator + one-click opener */}
                     {(!readOnly || checklistCount > 0) && (
-                      <button
+                      <Button
                         type="button"
+                        variant={checklistCount > 0 ? 'outline' : 'ghost'}
+                        size="sm"
                         onClick={() => openChecklist(idx)}
                         title={checklistCount > 0 ? `客戶準備清單（${checklistCount} 項）` : '新增客戶準備清單'}
                         aria-label={checklistCount > 0 ? `客戶準備清單，${checklistCount} 項` : '新增客戶準備清單'}
-                        className={`inline-flex items-center gap-1 h-7 px-2 rounded-md text-xs font-semibold border cursor-pointer transition-colors ${checklistCount > 0
-                          ? 'bg-primary/10 text-primary border-primary/20 hover:bg-primary/15'
-                          : 'bg-transparent text-muted-foreground border-transparent hover:bg-muted hover:text-foreground'
+                        className={`h-7 gap-1 px-2 text-xs font-semibold ${checklistCount > 0
+                          ? 'border-primary/20 bg-primary/10 text-primary hover:bg-primary/15'
+                          : 'text-muted-foreground'
                           }`}
                       >
                         <ListChecks className="size-4 shrink-0" aria-hidden="true" />
                         {checklistCount > 0 && <span>{checklistCount}</span>}
-                      </button>
+                      </Button>
                     )}
 
                     {/* Edit description */}
@@ -329,16 +332,18 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                     {/* Delete service — two-step inline confirm */}
                     {!readOnly && (
                       confirmDeleteIdx === idx ? (
-                        <button
+                        <Button
                           type="button"
+                          variant="destructive"
+                          size="sm"
                           onClick={() => requestDelete(idx)}
                           title="再次點擊以確認刪除"
                           aria-label="確認刪除服務項目"
-                          className="inline-flex items-center gap-1 h-8 px-2.5 rounded-md text-xs font-semibold border border-destructive-muted-border bg-destructive-muted text-destructive-muted-text hover:bg-destructive-muted-hover cursor-pointer transition-colors whitespace-nowrap animate-in fade-in zoom-in-95 duration-150"
+                          className="h-8 animate-in fade-in zoom-in-95 duration-150 whitespace-nowrap"
                         >
                           <Trash2 className="size-4 shrink-0" aria-hidden="true" />
                           確定刪除？
-                        </button>
+                        </Button>
                       ) : (
                         <Button
                           variant="ghost"
@@ -443,39 +448,34 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
         </Button>
       )}
 
-      {/* ── Checklist modal ─────────────────────────────────────────────── */}
-      {checklistIdx != null && services[checklistIdx] && createPortal(
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-4 animate-in fade-in duration-150"
-          onClick={closeChecklist}
-          role="dialog"
-          aria-modal="true"
-          aria-label="客戶準備清單"
-        >
-          <div
-            className="w-full max-w-lg max-h-[80vh] flex flex-col bg-card text-card-foreground rounded-xl border border-border shadow-xl animate-in zoom-in-95 duration-200"
-            onClick={e => e.stopPropagation()}
+      {/* ── Checklist dialog ────────────────────────────────────────────── */}
+      <Dialog
+        open={checklistIdx != null && !!services[checklistIdx]}
+        onOpenChange={(open) => { if (!open) closeChecklist() }}
+      >
+        {checklistIdx != null && services[checklistIdx] && (
+          <DialogContent
+            className="flex max-h-[80vh] w-full max-w-lg flex-col gap-0 overflow-hidden p-0 sm:max-w-lg"
+            showCloseButton={false}
           >
-            {/* Header */}
-            <div className="flex items-start justify-between gap-3 px-5 py-4 border-b border-border">
-              <div className="min-w-0">
-                <h3 className="text-base font-semibold text-foreground">客戶準備清單</h3>
-                <p className="text-xs text-muted-foreground truncate mt-0.5">
+            <DialogHeader className="flex-row items-start justify-between gap-3 border-b border-border px-5 py-4">
+              <div className="min-w-0 space-y-1">
+                <DialogTitle>客戶準備清單</DialogTitle>
+                <DialogDescription className="truncate">
                   {services[checklistIdx].service_name || '未命名服務'}
-                </p>
+                </DialogDescription>
               </div>
               <Button
                 variant="ghost"
-                size="icon"
+                size="icon-sm"
                 title="關閉"
                 aria-label="關閉"
                 onClick={closeChecklist}
               >
                 {CloseIcon && <CloseIcon />}
               </Button>
-            </div>
+            </DialogHeader>
 
-            {/* Body */}
             <div className="flex-1 overflow-auto px-5 py-4">
               {(services[checklistIdx].checklist_items || []).length === 0 && (
                 <p className="text-sm text-muted-foreground mb-3">尚無清單項目</p>
@@ -527,16 +527,14 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
               )}
             </div>
 
-            {/* Footer */}
-            <div className="flex justify-end gap-2 px-5 py-3 border-t border-border">
+            <DialogFooter className="border-t border-border px-5 py-3">
               <Button variant="accent" size="sm" className="font-semibold" onClick={closeChecklist}>
                 完成
               </Button>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
+            </DialogFooter>
+          </DialogContent>
+        )}
+      </Dialog>
     </div>
   )
 }

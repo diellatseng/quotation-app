@@ -112,13 +112,15 @@ export default function Step4Confirm({ data, update }) {
                   <span className="font-medium text-foreground">{dateDisplay}</span>
                 </span>
               </div>
-              <button
+              <Button
                 type="button"
+                variant="link"
+                size="sm"
+                className="h-auto shrink-0 p-0 font-semibold"
                 onClick={() => setEditingMeta(true)}
-                className="shrink-0 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
               >
                 編輯
-              </button>
+              </Button>
             </div>
           ) : (
             <div className="space-y-4">
@@ -161,13 +163,15 @@ export default function Step4Confirm({ data, update }) {
                 </div>
               </FieldGroup>
               <div className="flex justify-end">
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-auto p-0 font-semibold text-muted-foreground"
                   onClick={() => setEditingMeta(false)}
-                  className="text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
                 >
                   完成
-                </button>
+                </Button>
               </div>
             </div>
           )}
@@ -234,14 +238,16 @@ export default function Step4Confirm({ data, update }) {
 
         <div className="flex flex-wrap gap-1.5 mb-4">
           {PRESETS.map((p, idx) => (
-            <button
+            <Button
               key={idx}
               type="button"
+              variant="outline"
+              size="sm"
+              className="rounded-full px-3 font-medium"
               onClick={() => handleApplyPreset(p)}
-              className="px-3 py-1.5 text-xs font-medium border border-border bg-background text-foreground rounded-full hover:bg-muted transition-colors"
             >
               {p.label}
-            </button>
+            </Button>
           ))}
         </div>
 

@@ -1,5 +1,6 @@
 // src/components/NotificationCenter.jsx
 import { CircleCheck, CircleX, Info, TriangleAlert, X } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { useNotification } from '../context/NotificationContext'
 
 const TOAST_ICONS = {
@@ -45,14 +46,16 @@ export default function NotificationCenter() {
             <span className="flex-1 text-sm text-foreground leading-snug">
               {toast.message}
             </span>
-            <button
+            <Button
               type="button"
-              className="shrink-0 p-0.5 text-muted-foreground rounded-sm cursor-pointer hover:text-foreground transition-colors"
+              variant="ghost"
+              size="icon-sm"
+              className="shrink-0 text-muted-foreground"
               onClick={() => dismiss(toast.id)}
               aria-label="關閉通知"
             >
               <X className="size-4 shrink-0" aria-hidden="true" />
-            </button>
+            </Button>
           </div>
         )
       })}

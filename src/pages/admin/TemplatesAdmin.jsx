@@ -3,6 +3,16 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useNotification } from '../../context/NotificationContext.jsx'
 import { Button } from '@/components/ui/button'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
@@ -17,6 +27,7 @@ export default function TemplatesAdmin() {
   const [linkedServices, setLinkedServices] = useState([])
   const [form, setForm]           = useState({ name: '', description: '', category: '' })
   const [showForm, setShowForm]   = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [loading, setLoading]     = useState(false)
   const { success, error }        = useNotification()
 
@@ -62,9 +73,12 @@ export default function TemplatesAdmin() {
   }
 
   const deleteTmpl = async () => {
-    if (!window.confirm('確定刪除此範本？')) return
     await supabase.from('project_templates').delete().eq('id', selected.id)
-    success('已刪除'); setShowForm(false); setSelected(null); load()
+    success('已刪除')
+    setShowDeleteDialog(false)
+    setShowForm(false)
+    setSelected(null)
+    load()
   }
 
   const toggleService = (svcId) => {
@@ -80,6 +94,21 @@ export default function TemplatesAdmin() {
 
   return (
     <div>
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>刪除範本</AlertDialogTitle>
+            <AlertDialogDescription>確定刪除此範本？</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={deleteTmpl}>
+              刪除
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold">工程範本</h2>
         <Button
@@ -164,7 +193,11 @@ export default function TemplatesAdmin() {
 
             <div className="flex gap-3 mt-5">
               <Button variant="default" size="md" className="font-semibold" onClick={save} disabled={loading}>{loading ? '儲存中…' : '儲存範本'}</Button>
-              {selected && <Button variant="danger" size="md" className="font-semibold" onClick={deleteTmpl}>刪除</Button>}
+              {selected && (
+                <Button variant="danger" size="md" className="font-semibold" onClick={() => setShowDeleteDialog(true)}>
+                  刪除
+                </Button>
+              )}
               <Button variant="ghost" size="md" className="font-semibold" onClick={() => { setShowForm(false); setSelected(null) }}>取消</Button>
             </div>
           </div>

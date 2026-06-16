@@ -11,6 +11,7 @@ import { QuotationStatusBadges } from '@/components/ui/badge'
 import ServiceTable from '../components/ServiceTable'
 import A4Preview from '../components/A4Preview'
 import { Button } from '@/components/ui/button'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { getIcon } from '@/lib/icons'
 
 const ArrowBackIcon = getIcon('arrow_back')
@@ -215,36 +216,19 @@ export default function QuotationDetailPage() {
 
       {/* ── Main Layout Workspace ── */}
       <main className="mx-auto max-w-7xl px-4 py-6 md:px-8">
-        {/* Tab Navigation */}
-        <div className="flex gap-2 border-b border-border mb-6">
-          <button
-            onClick={() => setActiveTab('quotation')}
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'quotation'
-              ? 'border-primary text-primary'
-              : 'border-transparent text-muted-foreground hover:text-foreground'
-              }`}
-          >
-            報價單
-          </button>
-          <button
-            onClick={() => setActiveTab('services')}
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'services'
-              ? 'border-primary text-primary'
-              : 'border-transparent text-muted-foreground hover:text-foreground'
-              }`}
-          >
-            服務明細
-          </button>
-          <button
-            onClick={() => setActiveTab('checklist')}
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'checklist'
-              ? 'border-primary text-primary'
-              : 'border-transparent text-muted-foreground hover:text-foreground'
-              }`}
-          >
-            客戶準備清單
-          </button>
-        </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
+          <TabsList variant="line" className="h-auto w-full justify-start gap-1 rounded-none border-b border-border bg-transparent p-0">
+            <TabsTrigger value="quotation" className="rounded-none px-4 py-2">
+              報價單
+            </TabsTrigger>
+            <TabsTrigger value="services" className="rounded-none px-4 py-2">
+              服務明細
+            </TabsTrigger>
+            <TabsTrigger value="checklist" className="rounded-none px-4 py-2">
+              客戶準備清單
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
 
         {/* A4 Preview Container - Full Width */}
         <div className="bg-muted/30 rounded-xl border border-border p-4 md:p-6 flex justify-center overflow-auto shadow-inner">

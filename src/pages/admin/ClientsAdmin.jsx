@@ -3,6 +3,16 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useNotification } from '../../context/NotificationContext.jsx'
 import { Button } from '@/components/ui/button'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
@@ -18,6 +28,7 @@ export default function ClientsAdmin() {
   const [form, setForm] = useState(emptyClient())
   const [loading, setLoading] = useState(false)
   const [showForm, setShowForm] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const { success, error } = useNotification()
 
   function emptyClient() {
@@ -57,11 +68,13 @@ export default function ClientsAdmin() {
     setLoading(false)
   }
 
-  const deleteClient = async (id) => {
-    if (!window.confirm('確定刪除？相關報價單的客戶連結將被清除。')) return
-    await supabase.from('clients').delete().eq('id', id)
+  const deleteClient = async () => {
+    if (!selected) return
+    await supabase.from('clients').delete().eq('id', selected.id)
     success('已刪除')
-    setShowForm(false); setSelected(null)
+    setShowDeleteDialog(false)
+    setShowForm(false)
+    setSelected(null)
     load()
   }
 
@@ -85,6 +98,23 @@ export default function ClientsAdmin() {
 
   return (
     <div>
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>刪除客戶</AlertDialogTitle>
+            <AlertDialogDescription>
+              確定刪除？相關報價單的客戶連結將被清除。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={deleteClient}>
+              刪除
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold">客戶資料庫</h2>
         <Button
@@ -171,7 +201,11 @@ export default function ClientsAdmin() {
 
             <div className="flex gap-3 mt-5">
               <Button variant="default" size="md" className="font-semibold" onClick={saveClient} disabled={loading}>{loading ? '儲存中…' : '儲存'}</Button>
-              {selected && <Button variant="danger" size="md" className="font-semibold" onClick={() => deleteClient(selected.id)}>刪除客戶</Button>}
+              {selected && (
+                <Button variant="danger" size="md" className="font-semibold" onClick={() => setShowDeleteDialog(true)}>
+                  刪除客戶
+                </Button>
+              )}
               <Button variant="ghost" size="md" className="font-semibold" onClick={() => { setShowForm(false); setSelected(null) }}>取消</Button>
             </div>
           </div>
