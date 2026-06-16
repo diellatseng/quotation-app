@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 
 const NO_TEMPLATE = '__none__'
@@ -45,8 +46,11 @@ export default function Step2Project({ data, update }) {
         <p className="text-sm text-muted-foreground">請輸入本工程相關資訊，並選定預設服務項目範本。</p>
       </div>
 
-      <div className="bg-card text-card-foreground border border-border rounded-xl p-6 shadow-sm">
-        <p className="text-base font-semibold text-foreground mb-4">工程基本資料</p>
+      <Card className="shadow-sm">
+        <CardHeader>
+          <CardTitle className="font-semibold">工程基本資料</CardTitle>
+        </CardHeader>
+        <CardContent>
         <FieldGroup className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Field>
             <FieldLabel>工程名稱</FieldLabel>
@@ -95,10 +99,14 @@ export default function Step2Project({ data, update }) {
             />
           </Field>
         </FieldGroup>
-      </div>
+        </CardContent>
+      </Card>
 
-      <div className="bg-card text-card-foreground border border-border rounded-xl p-6 shadow-sm">
-        <p className="text-base font-semibold text-foreground mb-4">選擇服務範本</p>
+      <Card className="shadow-sm">
+        <CardHeader>
+          <CardTitle className="font-semibold">選擇服務範本</CardTitle>
+        </CardHeader>
+        <CardContent>
         <RadioGroup
           value={data.project_template_id ?? NO_TEMPLATE}
           onValueChange={(v) => {
@@ -146,7 +154,8 @@ export default function Step2Project({ data, update }) {
             </label>
           ))}
         </RadioGroup>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
-import { useNotification } from '../context/NotificationContext'
+import { toast } from 'sonner'
 import { ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
@@ -20,11 +20,10 @@ export default function NegotiationPanel({ quotationId, currentAmount, logs = []
   const [notes, setNotes] = useState('')
   const [saving, setSaving] = useState(false)
   const { user } = useAuth()
-  const { success, error } = useNotification()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!newAmount) { error('請輸入新報價金額'); return }
+    if (!newAmount) { toast.error('請輸入新報價金額', { duration: 6000 }); return }
     setSaving(true)
     const { error: err } = await supabase.from('negotiation_log').insert([{
       quotation_id: quotationId,
@@ -33,7 +32,7 @@ export default function NegotiationPanel({ quotationId, currentAmount, logs = []
       notes,
       logged_by: user.id,
     }])
-    if (err) { error('記錄失敗：' + err.message); setSaving(false); return }
+    if (err) { toast.error('記錄失敗：' + err.message, { duration: 6000 }); setSaving(false); return }
 
     // Update quotation amount + tag as negotiating
     await supabase.from('quotations').update({
@@ -41,7 +40,7 @@ export default function NegotiationPanel({ quotationId, currentAmount, logs = []
       is_negotiating: true,
     }).eq('id', quotationId)
 
-    success('議價記錄已儲存')
+    toast.success('議價記錄已儲存')
     const savedAmount = Number(newAmount)
     const savedNotes = notes
     setNewAmount('')

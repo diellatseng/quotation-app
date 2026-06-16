@@ -3,7 +3,7 @@
 // Smoke tests for the top-level <App /> component.
 //
 // App wraps the entire tree:
-//   AppearanceProvider → NotificationProvider → AuthProvider → BrowserRouter → Routes
+//   AppearanceProvider → AuthProvider → BrowserRouter → Routes
 //
 // What we test here:
 //  - The component tree mounts without throwing

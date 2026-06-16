@@ -1,7 +1,7 @@
 // src/pages/admin/ServicesAdmin.jsx
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
-import { useNotification } from '../../context/NotificationContext.jsx'
+import { toast } from 'sonner'
 import RichEditor from '../../components/RichEditor.jsx'
 import { Button } from '@/components/ui/button'
 import {
@@ -14,6 +14,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Field,
   FieldGroup,
@@ -33,7 +34,6 @@ export default function ServicesAdmin() {
   const [showForm, setShowForm] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [loading, setLoading] = useState(false)
-  const { success, error } = useNotification()
 
   const load = async () => {
     const { data } = await supabase.from('services').select('*').order('category').order('name')
@@ -54,17 +54,17 @@ export default function ServicesAdmin() {
     setLoading(true)
     if (selected) {
       await supabase.from('services').update(form).eq('id', selected.id)
-      success('已更新')
+      toast.success('已更新')
     } else {
       await supabase.from('services').insert([form])
-      success('已新增')
+      toast.success('已新增')
     }
     await load(); setShowForm(false); setSelected(null); setLoading(false)
   }
 
   const deleteSvc = async () => {
     await supabase.from('services').delete().eq('id', selected.id)
-    success('已刪除')
+    toast.success('已刪除')
     setShowDeleteDialog(false)
     setShowForm(false)
     setSelected(null)
@@ -130,7 +130,7 @@ export default function ServicesAdmin() {
 
       <div className={`grid gap-5 ${showForm ? 'grid-cols-[1fr_1.4fr]' : 'grid-cols-1'}`}>
         {/* List */}
-        <div className="bg-card text-card-foreground border border-border rounded-xl shadow-sm overflow-hidden">
+        <Card className="gap-0 py-0 shadow-sm">
           {Object.entries(grouped).map(([cat, svcs]) => (
             <div key={cat}>
               <div className="px-4 py-2 bg-muted text-xs font-bold text-muted-foreground uppercase tracking-wide">
@@ -149,12 +149,15 @@ export default function ServicesAdmin() {
           {services.length === 0 && (
             <p className="p-6 text-muted-foreground text-center">尚無服務項目</p>
           )}
-        </div>
+        </Card>
 
         {/* Form */}
         {showForm && (
-          <div className="bg-card text-card-foreground border border-border rounded-xl p-6 shadow-sm">
-            <p className="text-base font-semibold text-foreground mb-4">{selected ? '編輯服務' : '新增服務'}</p>
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle className="font-semibold">{selected ? '編輯服務' : '新增服務'}</CardTitle>
+            </CardHeader>
+            <CardContent>
             <FieldGroup className="gap-4 mb-4">
               <Field>
                 <FieldLabel>服務名稱</FieldLabel>
@@ -210,7 +213,8 @@ export default function ServicesAdmin() {
               )}
               <Button variant="ghost" size="md" className="font-semibold" onClick={() => { setShowForm(false); setSelected(null) }}>取消</Button>
             </div>
-          </div>
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>

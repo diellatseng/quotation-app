@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
-import { useNotification } from '../../context/NotificationContext.jsx'
+import { toast } from 'sonner'
 import { todayCe } from '../../lib/rocDate'
 import { FEATURE_NEGOTIATION, FEATURE_VERSIONING } from '../../lib/featureFlags'
 import WizardShell from '../../components/WizardShell'
@@ -71,7 +71,6 @@ export default function WizardPage() {
   const [quotationId, setQuotationId] = useState(null)
   const [showExitDialog, setShowExitDialog] = useState(false)
   const { user } = useAuth()
-  const { success, error, warning } = useNotification()
   const navigate = useNavigate()
 
 
@@ -97,7 +96,7 @@ export default function WizardPage() {
         .eq('id', editId)
         .single()
       if (qErr || !q) {
-        error('載入報價單失敗')
+        toast.error('載入報價單失敗', { duration: 6000 })
         setLoading(false)
         return
       }
@@ -117,7 +116,7 @@ export default function WizardPage() {
         .order('sort_order')
 
       if (sErr || pErr) {
-        error('載入資料失敗')
+        toast.error('載入資料失敗', { duration: 6000 })
         setLoading(false)
         return
       }
@@ -199,7 +198,7 @@ export default function WizardPage() {
         .single()
       console.log('📦 Project result:', { proj, projErr })
       if (projErr || !proj) {
-        error('建立專案失敗：' + (projErr?.message || '未知錯誤'))
+        toast.error('建立專案失敗：' + (projErr?.message || '未知錯誤'), { duration: 6000 })
         setSaving(false)
         return null
       }
@@ -232,9 +231,9 @@ export default function WizardPage() {
       if (!err && q) {
         qid = q.id           // local var available immediately
         setQuotationId(q.id) // also update React state for future calls
-        success('草稿已儲存')
+        toast.success('草稿已儲存')
       } else {
-        error('儲存草稿失敗：' + (err?.message || '未知錯誤'))
+        toast.error('儲存草稿失敗：' + (err?.message || '未知錯誤'), { duration: 6000 })
         setSaving(false)
         return null
       }
@@ -256,9 +255,9 @@ export default function WizardPage() {
         notes: data.notes,
       }).eq('id', qid)
       if (!err) {
-        success('草稿已儲存')
+        toast.success('草稿已儲存')
       } else {
-        error('儲存草稿失敗：' + err.message)
+        toast.error('儲存草稿失敗：' + err.message, { duration: 6000 })
         setSaving(false)
         return null
       }
@@ -320,8 +319,8 @@ export default function WizardPage() {
 
   const handleNext = async () => {
     if (!canGoNext()) {
-      if (step === 1) warning('請先選擇或建立客戶')
-      if (step === 4) warning('請填寫報價編號、金額，且付款階段百分比需合計100%')
+      if (step === 1) toast.warning('請先選擇或建立客戶')
+      if (step === 4) toast.warning('請填寫報價編號、金額，且付款階段百分比需合計100%')
       return
     }
     setStep(s => s + 1)

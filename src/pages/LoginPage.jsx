@@ -2,8 +2,9 @@
 import { useState, useEffect, useId } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
-import { useNotification } from '../context/NotificationContext'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
@@ -19,7 +20,6 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(false)
   const [loading, setLoading] = useState(false)
   const { user, loading: authLoading, signIn } = useAuth()
-  const { error } = useNotification()
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -49,7 +49,7 @@ export default function LoginPage() {
     setLoading(true)
     const { error: err } = await signIn(email, password)
     if (err) {
-      error('電子郵件或密碼錯誤，請再試一次。')
+      toast.error('電子郵件或密碼錯誤，請再試一次。', { duration: 6000 })
     } else {
       navigate('/dashboard')
     }
@@ -66,8 +66,8 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-6 rounded-xl border border-border bg-card p-8 shadow-sm text-card-foreground" role="main">
-
+      <Card className="w-full max-w-md shadow-sm [--card-spacing:--spacing(8)]" role="main">
+        <CardContent className="space-y-6">
         <div className="flex items-center gap-4">
           <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary text-xl font-bold text-primary-foreground" aria-hidden="true">
             報
@@ -135,7 +135,8 @@ export default function LoginPage() {
           <p className="text-xs text-muted-foreground">帳號由管理員建立，如需帳號請聯繫管理員。</p>
           <p className="text-xs text-muted-foreground/70">v{packageJson.version}</p>
         </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

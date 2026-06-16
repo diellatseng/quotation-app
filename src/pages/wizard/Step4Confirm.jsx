@@ -3,6 +3,15 @@ import { useState } from 'react'
 import ROCDateInput from '../../components/ROCDateInput'
 import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import {
@@ -96,9 +105,8 @@ export default function Step4Confirm({ data, update }) {
         <p className="text-sm text-muted-foreground">填寫報價費用總額，並設定各階段付款收款條件比率。</p>
       </div>
 
-      <div className="bg-card text-card-foreground border border-border rounded-xl shadow-sm overflow-hidden">
-        {/* Document meta — card header band */}
-        <div className="bg-muted/30 border-b border-border px-6 py-3">
+      <Card className="gap-0 py-0 shadow-sm">
+        <CardHeader className="border-b border-border bg-muted/30 px-6 py-3">
           {!editingMeta ? (
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm min-w-0">
@@ -175,9 +183,9 @@ export default function Step4Confirm({ data, update }) {
               </div>
             </div>
           )}
-        </div>
+        </CardHeader>
 
-        <div className="px-6 py-4">
+        <CardContent className="py-4">
           <div className="flex flex-col sm:flex-row sm:items-end gap-4 sm:gap-8">
             <Field className="w-full sm:max-w-xs">
               <FieldLabel htmlFor="fee_amount">報價金額 (未稅)</FieldLabel>
@@ -210,20 +218,19 @@ export default function Step4Confirm({ data, update }) {
               />
             </div>
           </div>
-        </div>
+        </CardContent>
 
-        <div className="px-6 py-3 border-t border-border bg-muted/10 flex justify-between items-center text-sm font-semibold">
+        <CardFooter className="justify-between text-sm font-semibold">
           <span className="text-muted-foreground">總計應收金額 ({data.tax_included ? '含稅' : '未稅'})</span>
           <span className="text-lg font-bold text-primary">{fmt(grandTotal)}</span>
-        </div>
-      </div>
+        </CardFooter>
+      </Card>
 
-      <div className="bg-card text-card-foreground border border-border rounded-xl p-6 shadow-sm">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-          <div>
-            <p className="text-base font-semibold text-foreground">付款階段</p>
-            <p className="text-xs text-muted-foreground mt-0.5">付款階段百分比總和必須等於 100%</p>
-          </div>
+      <Card className="shadow-sm">
+        <CardHeader>
+          <CardTitle className="font-semibold">付款階段</CardTitle>
+          <CardDescription>付款階段百分比總和必須等於 100%</CardDescription>
+          <CardAction>
           <Button
             type="button"
             variant="default"
@@ -234,9 +241,10 @@ export default function Step4Confirm({ data, update }) {
             {PlusIcon && <PlusIcon data-icon="inline-start" />}
             新增階段
           </Button>
-        </div>
-
-        <div className="flex flex-wrap gap-1.5 mb-4">
+          </CardAction>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-1.5 mb-4">
           {PRESETS.map((p, idx) => (
             <Button
               key={idx}
@@ -371,10 +379,14 @@ export default function Step4Confirm({ data, update }) {
           <span>目前設定百分比總和：</span>
           <span className="text-sm font-bold">{totalPercentage} % / 100 %</span>
         </div>
-      </div>
+        </CardContent>
+      </Card>
 
-      <div className="bg-card text-card-foreground border border-border rounded-xl p-6 shadow-sm">
-        <p className="text-base font-semibold text-foreground mb-3">報價單備註事項</p>
+      <Card className="shadow-sm">
+        <CardHeader>
+          <CardTitle className="font-semibold">報價單備註事項</CardTitle>
+        </CardHeader>
+        <CardContent>
         <Textarea
           value={data.notes || ''}
           onChange={e => update({ notes: e.target.value })}
@@ -382,7 +394,8 @@ export default function Step4Confirm({ data, update }) {
           rows={4}
           className="resize-y"
         />
-      </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useAppearance } from '../context/AppearanceContext'
-import { useNotification } from '../context/NotificationContext'
+import { toast } from 'sonner'
 import { formatRocDate } from '../lib/rocDate'
 import {
   AlertDialog,
@@ -19,6 +19,7 @@ import {
 import { QuotationStatusBadges } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { FileText } from 'lucide-react'
 import { getIcon } from '@/lib/icons'
@@ -50,7 +51,6 @@ export default function DashboardPage() {
   const [actionMenuId, setActionMenuId] = useState(null)
   const { user, signOut } = useAuth()
   const { baseFontSize, setFontSize, contrast, toggleContrast } = useAppearance()
-  const { success, error } = useNotification()
   const navigate = useNavigate()
 
   const fetchQuotations = async () => {
@@ -68,7 +68,7 @@ export default function DashboardPage() {
     if (!showArchived) q = q.neq('status', '已結案')
 
     const { data, error: err } = await q
-    if (err) { error('載入失敗：' + err.message); setLoading(false); return }
+    if (err) { toast.error('載入失敗：' + err.message, { duration: 6000 }); setLoading(false); return }
 
     if (FEATURE_VERSIONING) {
       const latestMap = {}
@@ -96,7 +96,7 @@ export default function DashboardPage() {
 
   const archive = async (id) => {
     await supabase.from('quotations').update({ status: '已結案' }).eq('id', id)
-    success('已結案')
+    toast.success('已結案')
     fetchQuotations()
   }
 
@@ -116,7 +116,7 @@ export default function DashboardPage() {
 
   const deleteQuotation = async () => {
     await supabase.from('quotations').update({ status: '已刪除' }).eq('id', quotationId)
-    success('已刪除')
+    toast.success('已刪除')
     fetchQuotations()
   }
 
@@ -286,7 +286,7 @@ export default function DashboardPage() {
             載入中…
           </div>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-border bg-card p-12 text-center text-card-foreground shadow-sm">
+          <Card className="flex flex-col items-center justify-center border-2 border-dashed border-border p-12 text-center shadow-sm ring-0">
             <div className="mb-3 text-muted-foreground/60" aria-hidden="true">
               <FileText className="size-12 text-muted-foreground/60" aria-hidden="true" />
             </div>
@@ -299,35 +299,38 @@ export default function DashboardPage() {
             >
               建立第一份報價單
             </Button>
-          </div>
+          </Card>
         ) : (
           <div className="space-y-4">
 
             {/* 📱 Mobile: Cards Layout */}
             <div className="block md:hidden space-y-3">
               {filtered.map(q => (
-                <div
+                <Card
                   key={q.id}
-                  className="p-4 bg-card text-card-foreground border border-border rounded-xl shadow-sm hover:border-muted-foreground/30 transition-all cursor-pointer space-y-3"
+                  size="sm"
+                  className="cursor-pointer gap-0 py-0 shadow-sm transition-all hover:ring-muted-foreground/30"
                   onClick={() => q.status === '草稿' ? navigate(`/quotation/new?edit=${q.id}`) : navigate(`/quotation/${q.id}`)}
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-mono font-medium text-muted-foreground border border-border">
-                      {q.quote_number}{FEATURE_VERSIONING && q.version > 1 ? ` v${q.version}` : ''}
-                    </span>
-                    <QuotationStatusBadges status={q.status} isNegotiating={FEATURE_NEGOTIATION && q.is_negotiating} />
-                  </div>
-                  <div className="text-sm font-medium text-foreground">{q.clients?.company_name || '—'}</div>
-                  <div className="flex justify-between items-center text-xs text-muted-foreground">
-                    <span>{formatRocDate(q.quote_date)}</span>
-                    <span className="font-semibold text-foreground">{fmt(q.fee_amount)}</span>
-                  </div>
-                </div>
+                  <CardContent className="space-y-3 py-4">
+                    <div className="flex items-center justify-between">
+                      <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-mono font-medium text-muted-foreground border border-border">
+                        {q.quote_number}{FEATURE_VERSIONING && q.version > 1 ? ` v${q.version}` : ''}
+                      </span>
+                      <QuotationStatusBadges status={q.status} isNegotiating={FEATURE_NEGOTIATION && q.is_negotiating} />
+                    </div>
+                    <div className="text-sm font-medium text-foreground">{q.clients?.company_name || '—'}</div>
+                    <div className="flex justify-between items-center text-xs text-muted-foreground">
+                      <span>{formatRocDate(q.quote_date)}</span>
+                      <span className="font-semibold text-foreground">{fmt(q.fee_amount)}</span>
+                    </div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
 
             {/* 🖥️ Desktop: Table Layout */}
-            <div className="hidden md:block overflow-x-auto border border-border rounded-xl bg-card shadow-sm">
+            <Card className="hidden md:block gap-0 overflow-x-auto py-0 shadow-sm">
               <table className="w-full text-left border-collapse text-sm text-card-foreground">
                 <thead>
                   <tr className="border-b border-border bg-muted/40 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -427,7 +430,7 @@ export default function DashboardPage() {
                   ))}
                 </tbody>
               </table>
-            </div>
+            </Card>
           </div>
         )}
       </main>

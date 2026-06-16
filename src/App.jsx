@@ -2,8 +2,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import { AppearanceProvider } from './context/AppearanceContext'
-import { NotificationProvider } from './context/NotificationContext'
-import NotificationCenter from './components/NotificationCenter'
+import { Toaster } from '@/components/ui/sonner'
 
 import LoginPage             from './pages/LoginPage'
 import DashboardPage         from './pages/DashboardPage'
@@ -27,7 +26,7 @@ function ProtectedRoute({ children }) {
 function AppRoutes() {
   return (
     <>
-      <NotificationCenter />
+      <Toaster richColors />
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
@@ -48,13 +47,11 @@ function AppRoutes() {
 export default function App() {
   return (
     <AppearanceProvider>
-      <NotificationProvider>
-        <AuthProvider>
-          <BrowserRouter basename={import.meta.env.BASE_URL}>
-            <AppRoutes />
-          </BrowserRouter>
-        </AuthProvider>
-      </NotificationProvider>
+      <AuthProvider>
+        <BrowserRouter basename={import.meta.env.BASE_URL}>
+          <AppRoutes />
+        </BrowserRouter>
+      </AuthProvider>
     </AppearanceProvider>
   )
 }

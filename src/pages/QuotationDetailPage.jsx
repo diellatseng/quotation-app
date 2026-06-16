@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import { useNotification } from '../context/NotificationContext'
+import { toast } from 'sonner'
 import { useExportPDF } from '../hooks/useExportPDF'
 import { formatRocDate } from '../lib/rocDate'
 import { FEATURE_NEGOTIATION, FEATURE_VERSIONING } from '../lib/featureFlags'
@@ -29,7 +29,6 @@ const COMPANY_INFO = {
 export default function QuotationDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { success, error, info } = useNotification()
   const quotationRef = useRef()
   const servicesRef = useRef()
 
@@ -69,7 +68,7 @@ export default function QuotationDetailPage() {
       setServices(sData)
       servicesRef.current = sData
     } catch (err) {
-      error('載入失敗: ' + err.message)
+      toast.error('載入失敗: ' + err.message, { duration: 6000 })
     } finally {
       setLoading(false)
     }
@@ -87,10 +86,10 @@ export default function QuotationDetailPage() {
         .eq('id', id)
 
       if (err) throw err
-      success(`狀態已更新為【${newStatus}】`)
+      toast.success(`狀態已更新為【${newStatus}】`)
       fetchData()
     } catch (err) {
-      error('更新失敗: ' + err.message)
+      toast.error('更新失敗: ' + err.message, { duration: 6000 })
     }
   }
 
@@ -107,12 +106,12 @@ export default function QuotationDetailPage() {
   const handleExport = async () => {
     if (!quotationRef.current) return
     setExporting(true)
-    info('正在準備 PDF 匯出資料，請稍候…')
+    toast.info('正在準備 PDF 匯出資料，請稍候…')
     try {
       await exportPDF(quotationRef.current, servicesRef.current, COMPANY_INFO)
-      success('PDF 匯出成功')
+      toast.success('PDF 匯出成功')
     } catch (err) {
-      error('匯出失敗: ' + err.message)
+      toast.error('匯出失敗: ' + err.message, { duration: 6000 })
     } finally {
       setExporting(false)
     }

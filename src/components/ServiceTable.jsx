@@ -13,6 +13,12 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import {
+  getServiceRowIndexBadgeClass,
+  getServiceRowState,
+  ServiceRowSection,
+  ServiceRowShell,
+} from './ServiceRowShell'
 import { getIcon } from '@/lib/icons'
 import { FEATURE_VERSIONING } from '../lib/featureFlags'
 
@@ -182,43 +188,27 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
           const diff = FEATURE_VERSIONING ? svc.diff_status : null
           const isRemoved = diff === 'removed'
           const checklistCount = (svc.checklist_items || []).filter(i => i.item_text?.trim()).length
-
-          // Dynamic border/bg depend on runtime state
-          const cardClasses = `
-            ${isOver ? 'border-2 border-dashed border-accent' : ''}
-            ${diff === 'added' ? 'border-2 border-diff-added-border' : ''}
-            ${diff === 'modified' ? 'border-2 border-diff-modified-border' : ''}
-            ${diff === 'removed' ? 'border-2 border-diff-removed-border' : ''}
-            ${!isOver && !diff && svc.is_added ? 'border-2 border-highlight-border' : ''}
-            ${!isOver && !diff && !svc.is_added ? 'border border-border' : ''}
-            rounded-md
-            overflow-hidden
-            ${isDragging ? 'opacity-40' : isRemoved ? 'opacity-70' : 'opacity-100'}
-            transition-opacity
-            ${isDragging ? 'cursor-grabbing' : 'cursor-default'}
-          `
-
-          const cardBgClasses = `
-            ${isDragging ? 'bg-muted' : ''}
-            ${diff === 'added' ? 'bg-diff-added' : ''}
-            ${diff === 'modified' ? 'bg-diff-modified' : ''}
-            ${diff === 'removed' ? 'bg-diff-removed' : ''}
-            ${svc.is_added && !diff ? 'bg-highlight' : ''}
-            ${!isDragging && !diff && !svc.is_added ? 'bg-card' : ''}
-          `
+          const rowState = getServiceRowState({
+            isOver,
+            diff,
+            isAdded: svc.is_added,
+            isDragging,
+          })
 
           return (
-            <div
+            <ServiceRowShell
               key={svc.service_id || idx}
+              state={rowState}
+              isDragging={isDragging}
+              isRemoved={isRemoved}
               draggable={!readOnly && !isRemoved && !isEditing}
               onDragStart={() => !isRemoved && handleDragStart(idx)}
               onDragEnter={() => handleDragEnter(idx)}
               onDragOver={e => e.preventDefault()}
               onDragEnd={handleDragEnd}
-              className={cardClasses + ' ' + cardBgClasses}
             >
               {/* ── Header row ─────────────────────────────────────────── */}
-              <div className="flex items-center gap-2 px-3 py-2 min-h-[52px]">
+              <ServiceRowSection className="flex min-h-[52px] items-center gap-2 py-2">
 
                 {/* Drag handle */}
                 {!readOnly && (
@@ -246,10 +236,7 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                 })()}
 
                 {/* Number badge — dynamic colours */}
-                <div className={`
-                  w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0
-                  ${isRemoved ? 'bg-diff-removed-badge text-diff-removed-badge-text' : svc.is_added ? 'bg-highlight-border text-primary-foreground' : 'bg-muted text-muted-foreground'}
-                `}>
+                <div className={getServiceRowIndexBadgeClass({ isRemoved, isAdded: svc.is_added })}>
                   {isRemoved ? (
                     <X className="size-3.5 shrink-0" aria-hidden="true" />
                   ) : (
@@ -360,11 +347,11 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                   </div>
                 )}
                 {isRemoved && <div className="ml-auto" />}
-              </div>
+              </ServiceRowSection>
 
               {/* ── Description section (expanded) ───────────────────────── */}
               {!isRemoved && !collapsed && (
-                <div className="border-t border-border px-3 py-3">
+                <ServiceRowSection className="border-t border-border py-3">
                   <div className={`
                     flex justify-between items-center
                     ${(isEditing || hasDesc) ? 'mb-2' : ''}
@@ -415,12 +402,15 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                       placeholder="輸入服務說明，可使用粗體、顏色等格式…"
                     />
                   )}
-                </div>
+                </ServiceRowSection>
               )}
 
               {/* ── Description stub (collapsed, has content) ────────────── */}
               {!isRemoved && collapsed && hasDesc && (
-                <div className="border-t border-border px-3 py-1.5 text-xs text-muted-foreground cursor-pointer bg-muted flex items-center gap-2" onClick={() => toggleCollapse(idx)}>
+                <ServiceRowSection
+                  className="flex cursor-pointer items-center gap-2 border-t border-border bg-muted py-1.5 text-xs text-muted-foreground"
+                  onClick={() => toggleCollapse(idx)}
+                >
                   <span
                     className="flex-1 overflow-hidden whitespace-nowrap text-ellipsis italic"
                     dangerouslySetInnerHTML={{
@@ -428,10 +418,10 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                         (svc.description || '').replace(/<[^>]*>/g, ' ').trim().slice(0, 80) + '…'
                     }}
                   />
-                </div>
+                </ServiceRowSection>
               )}
 
-            </div>
+            </ServiceRowShell>
           )
         })}
       </div>

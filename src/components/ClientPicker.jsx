@@ -1,7 +1,7 @@
 // src/components/ClientPicker.jsx
 import { useState, useEffect, useId } from 'react'
 import { supabase } from '../lib/supabase'
-import { useNotification } from '../context/NotificationContext'
+import { toast } from 'sonner'
 import { Building2, Mail, Phone, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -43,7 +43,6 @@ export default function ClientPicker({ value, onChange, disabled = false }) {
     responsible_person_name: '', responsible_person_mobile: '', responsible_person_title: '',
   })
   const [newContact, setNewContact] = useState({ name: '', mobile: '', office_phone: '', fax: '', email: '' })
-  const { success: notifySuccess, error: notifyError } = useNotification()
 
   useEffect(() => {
     supabase.from('clients').select('id, company_name, phone, email')
@@ -82,14 +81,14 @@ export default function ClientPicker({ value, onChange, disabled = false }) {
 
         onChange?.({ client: fullClient, contacts: contacts || [] })
       } catch (err) {
-        notifyError?.(err.message || '載入客戶資料失敗')
+        toast.error(err.message || '載入客戶資料失敗', { duration: 6000 })
       }
     })()
   }
 
   const createClient = async () => {
     if (!newClient.company_name.trim()) {
-      notifyError?.('請輸入公司名稱')
+      toast.error('請輸入公司名稱', { duration: 6000 })
       return
     }
     setLoading(true)
@@ -110,7 +109,7 @@ export default function ClientPicker({ value, onChange, disabled = false }) {
         if (contactErr) throw contactErr
       }
 
-      notifySuccess?.('成功建立客戶與聯絡人')
+      toast.success('成功建立客戶與聯絡人')
 
       const { data: updatedClients } = await supabase
         .from('clients')
@@ -125,7 +124,7 @@ export default function ClientPicker({ value, onChange, disabled = false }) {
       })
       setShowCreate(false)
     } catch (err) {
-      notifyError?.(err.message || '建立失敗')
+      toast.error(err.message || '建立失敗', { duration: 6000 })
     } finally {
       setLoading(false)
     }

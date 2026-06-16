@@ -2,6 +2,7 @@
 import { useEffect } from 'react'
 import { MessageSquare } from 'lucide-react'
 import { DiffBadge } from '@/components/ui/badge'
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import ServiceTable from '../../components/ServiceTable'
 import { FEATURE_NEGOTIATION, FEATURE_VERSIONING } from '../../lib/featureFlags'
 
@@ -89,18 +90,22 @@ export default function Step3Services({ data, update, parentServices = null, neg
         </div>
       )}
 
-      <div className="bg-card text-card-foreground border border-border rounded-xl p-6 shadow-sm">
-        <div className="flex items-center justify-between mb-4">
-          <p className="text-base font-semibold text-foreground">服務項目列表</p>
-          <span className="text-xs font-medium bg-muted text-muted-foreground px-2.5 py-0.5 rounded-full border border-border">
-            已加入 {data.services.filter(s => !s._removed).length} 項
-          </span>
-        </div>
+      <Card className="shadow-sm">
+        <CardHeader>
+          <CardTitle className="font-semibold">服務項目列表</CardTitle>
+          <CardAction>
+            <span className="text-xs font-medium bg-muted text-muted-foreground px-2.5 py-0.5 rounded-full border border-border">
+              已加入 {data.services.filter(s => !s._removed).length} 項
+            </span>
+          </CardAction>
+        </CardHeader>
+        <CardContent>
         <ServiceTable
           services={data.services}
           onChange={handleChange}
         />
-      </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

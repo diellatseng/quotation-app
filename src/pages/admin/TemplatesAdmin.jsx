@@ -1,7 +1,7 @@
 // src/pages/admin/TemplatesAdmin.jsx
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
-import { useNotification } from '../../context/NotificationContext.jsx'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
   AlertDialog,
@@ -13,6 +13,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
@@ -29,7 +30,6 @@ export default function TemplatesAdmin() {
   const [showForm, setShowForm]   = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [loading, setLoading]     = useState(false)
-  const { success, error }        = useNotification()
 
   const load = async () => {
     const [{ data: tmpl }, { data: svcs }] = await Promise.all([
@@ -67,14 +67,14 @@ export default function TemplatesAdmin() {
         linkedServices.map((sid, i) => ({ template_id: tmplId, service_id: sid, sort_order: i }))
       )
     }
-    success(selected ? '範本已更新' : '範本已新增')
+    toast.success(selected ? '範本已更新' : '範本已新增')
     await load()
     setShowForm(false); setSelected(null); setLoading(false)
   }
 
   const deleteTmpl = async () => {
     await supabase.from('project_templates').delete().eq('id', selected.id)
-    success('已刪除')
+    toast.success('已刪除')
     setShowDeleteDialog(false)
     setShowForm(false)
     setSelected(null)
@@ -124,7 +124,7 @@ export default function TemplatesAdmin() {
 
       <div className={`grid gap-5 ${showForm ? 'grid-cols-[1fr_1.6fr]' : 'grid-cols-1'}`}>
         {/* Template list */}
-        <div className="bg-card text-card-foreground border border-border rounded-xl shadow-sm overflow-hidden">
+        <Card className="gap-0 py-0 shadow-sm">
           {templates.length === 0 ? (
             <p className="p-6 text-muted-foreground text-center">尚無工程範本</p>
           ) : templates.map(t => (
@@ -138,12 +138,15 @@ export default function TemplatesAdmin() {
               </div>
             </div>
           ))}
-        </div>
+        </Card>
 
         {/* Edit form */}
         {showForm && (
-          <div className="bg-card text-card-foreground border border-border rounded-xl p-6 shadow-sm">
-            <p className="text-base font-semibold text-foreground mb-4">{selected ? '編輯範本' : '新增範本'}</p>
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle className="font-semibold">{selected ? '編輯範本' : '新增範本'}</CardTitle>
+            </CardHeader>
+            <CardContent>
             <FieldGroup className="grid grid-cols-2 gap-4 mb-4">
               <Field className="col-span-2">
                 <FieldLabel>範本名稱</FieldLabel>
@@ -200,7 +203,8 @@ export default function TemplatesAdmin() {
               )}
               <Button variant="ghost" size="md" className="font-semibold" onClick={() => { setShowForm(false); setSelected(null) }}>取消</Button>
             </div>
-          </div>
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>

@@ -1,7 +1,7 @@
 // src/pages/admin/ClientsAdmin.jsx
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
-import { useNotification } from '../../context/NotificationContext.jsx'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
   AlertDialog,
@@ -13,6 +13,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
@@ -29,7 +30,6 @@ export default function ClientsAdmin() {
   const [loading, setLoading] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const { success, error } = useNotification()
 
   function emptyClient() {
     return { company_name: '', address: '', phone: '', fax: '', email: '', responsible_person_name: '', responsible_person_mobile: '', responsible_person_title: '' }
@@ -54,12 +54,12 @@ export default function ClientsAdmin() {
     setLoading(true)
     if (selected) {
       const { error: e } = await supabase.from('clients').update(form).eq('id', selected.id)
-      if (e) { error('儲存失敗：' + e.message); setLoading(false); return }
-      success('客戶資料已更新')
+      if (e) { toast.error('儲存失敗：' + e.message, { duration: 6000 }); setLoading(false); return }
+      toast.success('客戶資料已更新')
     } else {
       const { error: e } = await supabase.from('clients').insert([form])
-      if (e) { error('新增失敗：' + e.message); setLoading(false); return }
-      success('客戶已新增')
+      if (e) { toast.error('新增失敗：' + e.message, { duration: 6000 }); setLoading(false); return }
+      toast.success('客戶已新增')
     }
     await load()
     setShowForm(false)
@@ -71,7 +71,7 @@ export default function ClientsAdmin() {
   const deleteClient = async () => {
     if (!selected) return
     await supabase.from('clients').delete().eq('id', selected.id)
-    success('已刪除')
+    toast.success('已刪除')
     setShowDeleteDialog(false)
     setShowForm(false)
     setSelected(null)
@@ -130,7 +130,7 @@ export default function ClientsAdmin() {
 
       <div className={`grid gap-5 ${showForm ? 'grid-cols-[1fr_1.4fr]' : 'grid-cols-1'}`}>
         {/* List */}
-        <div className="bg-card text-card-foreground border border-border rounded-xl shadow-sm overflow-hidden">
+        <Card className="gap-0 py-0 shadow-sm">
           {clients.length === 0 ? (
             <p className="p-6 text-muted-foreground text-center">尚無客戶</p>
           ) : (
@@ -146,12 +146,15 @@ export default function ClientsAdmin() {
               </div>
             ))
           )}
-        </div>
+        </Card>
 
         {/* Form */}
         {showForm && (
-          <div className="bg-card text-card-foreground border border-border rounded-xl p-6 shadow-sm">
-            <p className="text-base font-semibold text-foreground mb-4">{selected ? '編輯客戶' : '新增客戶'}</p>
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle className="font-semibold">{selected ? '編輯客戶' : '新增客戶'}</CardTitle>
+            </CardHeader>
+            <CardContent>
             <div className="grid grid-cols-2 gap-4 mb-4">
               <F label="公司名稱" required value={form.company_name} onChange={v => setForm(f => ({ ...f, company_name: v }))} />
               <F label="電子郵件" value={form.email} onChange={v => setForm(f => ({ ...f, email: v }))} />
@@ -208,7 +211,8 @@ export default function ClientsAdmin() {
               )}
               <Button variant="ghost" size="md" className="font-semibold" onClick={() => { setShowForm(false); setSelected(null) }}>取消</Button>
             </div>
-          </div>
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>
