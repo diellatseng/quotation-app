@@ -95,7 +95,7 @@ export function useExportPDF() {
     }
     /* ── Extracted A4Preview styles ── */
     ${inlinedCss}
-    /* ── PDF pagination ── */
+    /* ── PDF pagination (export-only; does not change preview CSS) ── */
     @page { size: 794px 1123px; margin: 0; }
     .a4-page-break { display: none !important; }
     .a4-page {

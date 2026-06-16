@@ -121,28 +121,6 @@ export function AppBreadcrumbBar({
   )
 }
 
-/** @deprecated Use AppBreadcrumbBar back link instead. */
-export function AppBackButton({ to, onClick, label = '返回', disabled, className }) {
-  const navigate = useNavigate()
-  const handleClick = onClick ?? (to ? () => navigate(to) : undefined)
-
-  return (
-    <button
-      type="button"
-      onClick={handleClick}
-      disabled={disabled || !handleClick}
-      aria-label={label}
-      className={cn(
-        'inline-flex items-center gap-0.5 rounded-md px-1 py-1 text-sm text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground disabled:opacity-40',
-        className,
-      )}
-    >
-      <ChevronLeft className="size-4 shrink-0" aria-hidden="true" />
-      {label}
-    </button>
-  )
-}
-
 export function AppShellHeader({
   children,
   className,

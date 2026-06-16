@@ -32,6 +32,7 @@ export default function ServicesAdmin() {
   const [form, setForm] = useState({ name: '', category: '', description: '' })
   const [showForm, setShowForm] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [checklistDeleteId, setChecklistDeleteId] = useState(null)
   const [loading, setLoading] = useState(false)
   const [fetchLoading, setFetchLoading] = useState(true)
 
@@ -90,6 +91,7 @@ export default function ServicesAdmin() {
   const deleteItem = async (id) => {
     await supabase.from('service_checklist_items').delete().eq('id', id)
     setChecklistItems(prev => prev.filter(i => i.id !== id))
+    setChecklistDeleteId(null)
   }
 
   // Group by category
@@ -102,6 +104,31 @@ export default function ServicesAdmin() {
 
   return (
     <div>
+      <AlertDialog
+        open={checklistDeleteId !== null}
+        onOpenChange={open => {
+          if (!open) setChecklistDeleteId(null)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>刪除清單項目</AlertDialogTitle>
+            <AlertDialogDescription>
+              確定要刪除此準備項目嗎？此操作無法復原。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={() => checklistDeleteId && deleteItem(checklistDeleteId)}
+            >
+              刪除
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -199,7 +226,7 @@ export default function ServicesAdmin() {
                         variant="destructive"
                         size="icon"
                         aria-label="刪除"
-                        onClick={() => deleteItem(item.id)}
+                        onClick={() => setChecklistDeleteId(item.id)}
                       >
                         <X />
                       </Button>

@@ -17,7 +17,7 @@ import A4Preview from '../components/A4Preview'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { QuotationDetailSkeleton } from '@/components/skeletons'
-import { AppBackButton, AppBreadcrumbBar } from '@/components/AppShellHeader'
+import { AppBreadcrumbBar } from '@/components/AppShellHeader'
 import { Pencil, Printer } from 'lucide-react'
 
 
@@ -140,9 +140,11 @@ export default function QuotationDetailPage() {
 
   if (!qt) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-background text-center px-4">
-        <p className="text-sm font-medium text-muted-foreground">找不到該報價單</p>
-        <AppBackButton to="/dashboard" label="報價單列表" className="mt-4" />
+      <div className="min-h-screen bg-background text-foreground">
+        <AppBreadcrumbBar backTo="/dashboard" segments={['找不到報價單']} />
+        <main className="mx-auto max-w-7xl px-4 py-12 text-center md:px-8">
+          <p className="text-sm font-medium text-muted-foreground">找不到該報價單</p>
+        </main>
       </div>
     )
   }
