@@ -19,7 +19,7 @@ import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { AppEmptyState } from '@/components/AppEmptyState'
 import { AdminListSkeleton } from '@/components/skeletons'
-import { LayoutTemplate, Plus } from 'lucide-react'
+import { Layers, LayoutTemplate, Plus } from 'lucide-react'
 
 export default function TemplatesAdmin() {
   const [templates, setTemplates] = useState([])
@@ -198,9 +198,13 @@ export default function TemplatesAdmin() {
                 </div>
               ))}
               {allServices.length === 0 && (
-                <p className="p-4 text-muted-foreground text-center text-sm">
-                  請先在「服務資料庫」新增服務項目
-                </p>
+                <AppEmptyState
+                  compact
+                  embedded
+                  icon={Layers}
+                  title="尚無可連結的服務"
+                  description="請先在「服務資料庫」新增服務項目"
+                />
               )}
             </div>
 

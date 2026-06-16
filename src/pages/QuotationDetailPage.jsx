@@ -4,15 +4,12 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { toast } from 'sonner'
 import { useExportPDF } from '../hooks/useExportPDF'
-import { formatRocDate } from '../lib/rocDate'
 import {
   formatQuotationValidationMessage,
   validateQuotationRecordForSend,
 } from '../lib/validateQuotation'
 import { FEATURE_NEGOTIATION, FEATURE_VERSIONING } from '../lib/featureFlags'
 import { QuotationStatusBadges, Badge } from '@/components/ui/badge'
-// import NegotiationPanel from '../components/NegotiationPanel' // inactive: negotiation
-import ServiceTable from '../components/ServiceTable'
 import A4Preview from '../components/A4Preview'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'

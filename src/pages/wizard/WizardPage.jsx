@@ -192,7 +192,6 @@ export default function WizardPage() {
 
     if (!qid) {
       // 1. Create project first
-      console.log('📦 Creating project with user:', user?.id, 'project_name:', data.project_name)
       const { data: proj, error: projErr } = await supabase
         .from('projects')
         .insert([{
@@ -210,14 +209,12 @@ export default function WizardPage() {
         }])
         .select()
         .single()
-      console.log('📦 Project result:', { proj, projErr })
       if (projErr || !proj) {
         toast.error('建立專案失敗：' + (projErr?.message || '未知錯誤'), { duration: 6000 })
         setSaving(false)
         return null
       }
       projectId = proj.id
-      console.log('✅ Project created:', projectId)
 
       // 2. Insert new draft quotation with project_id
       const { data: q, error: err } = await supabase
