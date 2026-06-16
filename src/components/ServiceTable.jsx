@@ -2,6 +2,7 @@
 import { useState, useRef } from 'react'
 import RichEditor from './RichEditor'
 import { ChevronsDown, ChevronsUp, ChevronDown, ChevronRight, GripVertical, ListChecks, Pencil, Plus, Trash2, X } from 'lucide-react'
+import { AppEmptyState } from '@/components/AppEmptyState'
 import IconTooltip from '@/components/IconTooltip'
 import { Badge, DiffBadge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -127,20 +128,24 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
 
   // ── Empty state ───────────────────────────────────────────────────────────
   if (!services.length) return (
-    <div className="text-center py-12 px-6 text-muted-foreground">
-      <p className="text-base mb-4">尚無服務項目。請從工程範本載入或手動新增。</p>
-      {!readOnly && (
-        <Button
-          variant="accent"
-          size="md"
-          className="font-semibold"
-          onClick={addService}
-        >
-          <Plus data-icon="inline-start" />
-          新增服務項目
-        </Button>
-      )}
-    </div>
+    <AppEmptyState
+      icon={ListChecks}
+      title="尚無服務項目"
+      description="請從工程範本載入或手動新增"
+      action={
+        !readOnly ? (
+          <Button
+            variant="accent"
+            size="md"
+            className="font-semibold"
+            onClick={addService}
+          >
+            <Plus data-icon="inline-start" />
+            新增服務項目
+          </Button>
+        ) : null
+      }
+    />
   )
 
   return (
@@ -482,7 +487,14 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
 
             <div className="flex-1 overflow-auto px-5 py-4">
               {(services[checklistIdx].checklist_items || []).length === 0 && (
-                <p className="text-sm text-muted-foreground mb-3">尚無清單項目</p>
+                <AppEmptyState
+                  compact
+                  embedded
+                  icon={ListChecks}
+                  title="尚無清單項目"
+                  description={readOnly ? undefined : '點選下方按鈕新增第一項'}
+                  className="mb-3"
+                />
               )}
 
               <div className="flex flex-col gap-2">

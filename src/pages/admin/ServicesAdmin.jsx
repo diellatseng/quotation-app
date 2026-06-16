@@ -21,9 +21,10 @@ import {
   FieldLabel,
 } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { AppEmptyState } from '@/components/AppEmptyState'
 import { AdminListSkeleton } from '@/components/skeletons'
 import IconTooltip from '@/components/IconTooltip'
-import { Plus, X } from 'lucide-react'
+import { Layers, Plus, X } from 'lucide-react'
 
 export default function ServicesAdmin() {
   const [services, setServices] = useState([])
@@ -162,7 +163,13 @@ export default function ServicesAdmin() {
           {fetchLoading ? (
             <AdminListSkeleton rows={8} />
           ) : services.length === 0 ? (
-            <p className="p-6 text-muted-foreground text-center">尚無服務項目</p>
+            <AppEmptyState
+              compact
+              embedded
+              icon={Layers}
+              title="尚無服務項目"
+              description="點選上方「新增服務」建立第一筆資料"
+            />
           ) : (
             Object.entries(grouped).map(([cat, svcs]) => (
             <div key={cat}>

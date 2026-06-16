@@ -18,8 +18,9 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { AppEmptyState } from '@/components/AppEmptyState'
 import { AdminListSkeleton } from '@/components/skeletons'
-import { Plus } from 'lucide-react'
+import { Building2, Plus } from 'lucide-react'
 
 function emptyClient() {
   return { company_name: '', address: '', phone: '', fax: '', email: '', responsible_person_name: '', responsible_person_mobile: '', responsible_person_title: '' }
@@ -162,7 +163,13 @@ export default function ClientsAdmin() {
           {fetchLoading ? (
             <AdminListSkeleton rows={8} />
           ) : clients.length === 0 ? (
-            <p className="p-6 text-muted-foreground text-center">尚無客戶</p>
+            <AppEmptyState
+              compact
+              embedded
+              icon={Building2}
+              title="尚無客戶"
+              description="點選上方「新增客戶」建立第一筆資料"
+            />
           ) : (
             clients.map(c => (
               <div key={c.id}

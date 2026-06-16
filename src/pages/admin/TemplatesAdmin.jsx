@@ -17,8 +17,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { AppEmptyState } from '@/components/AppEmptyState'
 import { AdminListSkeleton } from '@/components/skeletons'
-import { Plus } from 'lucide-react'
+import { LayoutTemplate, Plus } from 'lucide-react'
 
 export default function TemplatesAdmin() {
   const [templates, setTemplates] = useState([])
@@ -129,7 +130,13 @@ export default function TemplatesAdmin() {
           {fetchLoading ? (
             <AdminListSkeleton rows={8} />
           ) : templates.length === 0 ? (
-            <p className="p-6 text-muted-foreground text-center">尚無工程範本</p>
+            <AppEmptyState
+              compact
+              embedded
+              icon={LayoutTemplate}
+              title="尚無工程範本"
+              description="點選上方「新增範本」建立第一筆資料"
+            />
           ) : templates.map(t => (
             <div key={t.id} onClick={() => select(t)} className={`p-4 border-b border-border cursor-pointer transition-colors ${selected?.id === t.id
               ? 'bg-primary/10 border-l-4 border-l-primary'

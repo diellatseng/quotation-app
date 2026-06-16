@@ -46,6 +46,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { AppEmptyState } from '@/components/AppEmptyState'
 import { DashboardQuotationsSkeleton } from '@/components/skeletons'
 import IconTooltip from '@/components/IconTooltip'
 import { AppBrandTitle, AppShellHeader } from '@/components/AppShellHeader'
@@ -321,20 +322,28 @@ export default function DashboardPage() {
         {loading ? (
           <DashboardQuotationsSkeleton />
         ) : filtered.length === 0 ? (
-          <Card className="flex flex-col items-center justify-center border-2 border-dashed border-border p-12 text-center shadow-sm ring-0">
-            <div className="mb-3 text-muted-foreground/60" aria-hidden="true">
-              <FileText className="size-12 text-muted-foreground/60" aria-hidden="true" />
-            </div>
-            <p className="text-sm font-medium text-muted-foreground">尚無報價單</p>
-            <Button
-              variant="default"
-              size="md"
-              className="mt-4 font-semibold"
-              onClick={() => navigate('/quotation/new')}
-            >
-              建立第一份報價單
-            </Button>
-          </Card>
+          <AppEmptyState
+            icon={FileText}
+            title={quotations.length === 0 ? '尚無報價單' : '找不到符合條件的報價單'}
+            description={
+              quotations.length === 0
+                ? '建立第一份報價開始吧'
+                : '試試調整搜尋或篩選條件'
+            }
+            action={
+              quotations.length === 0 ? (
+                <Button
+                  variant="default"
+                  size="md"
+                  className="font-semibold"
+                  onClick={() => navigate('/quotation/new')}
+                >
+                  建立第一份報價單
+                </Button>
+              ) : null
+            }
+            className="shadow-sm"
+          />
         ) : (
           <div className="space-y-4">
 
