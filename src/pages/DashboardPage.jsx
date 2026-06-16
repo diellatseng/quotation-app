@@ -21,12 +21,14 @@ import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { FileText } from 'lucide-react'
+import { Archive, Eye, FileText, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
 import { getIcon } from '@/lib/icons'
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { FEATURE_NEGOTIATION, FEATURE_VERSIONING } from '../lib/featureFlags'
@@ -35,9 +37,6 @@ import packageJson from '../../package.json'
 const STATUS_FILTERS = ['全部', '草稿', '已報價', '已確認', '已結案']
 const fmt = (n) => n ? `NT$ ${Number(n).toLocaleString('zh-TW')}` : '—'
 const PlusIcon = getIcon('add')
-const MoreIcon = getIcon('more_horiz')
-const ArchiveIcon = getIcon('done_outline')
-const DeleteIcon = getIcon('delete')
 
 export default function DashboardPage() {
   const [quotations, setQuotations] = useState([])
@@ -361,46 +360,48 @@ export default function DashboardPage() {
                         <QuotationStatusBadges status={q.status} isNegotiating={FEATURE_NEGOTIATION && q.is_negotiating} />
                       </td>
                       <td className="p-4 align-middle text-right" onClick={e => e.stopPropagation()}>
-                        <div className="flex items-center justify-end gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="font-semibold"
-                            onClick={() => navigate(`/quotation/${q.id}`)}
-                          >
-                            檢視
-                          </Button>
-                          {q.status === '草稿' && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="font-semibold"
-                              onClick={() => navigate(`/quotation/new?edit=${q.id}`)}
-                            >
-                              編輯
-                            </Button>
-                          )}
-                          <DropdownMenu
-                            open={actionMenuId === q.id}
-                            onOpenChange={open => {
-                              if (open) setActionMenuId(q.id)
-                              else setActionMenuId(null)
-                            }}
-                          >
-                            <DropdownMenuTrigger
-                              render={
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  title="更多操作"
-                                  aria-label="更多操作"
-                                  onClick={e => e.stopPropagation()}
+                        <DropdownMenu
+                          open={actionMenuId === q.id}
+                          onOpenChange={open => {
+                            if (open) setActionMenuId(q.id)
+                            else setActionMenuId(null)
+                          }}
+                        >
+                          <DropdownMenuTrigger
+                            render={
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                title="操作"
+                                aria-label="操作"
+                                onClick={e => e.stopPropagation()}
+                              >
+                                <MoreHorizontal className="size-4 shrink-0" aria-hidden="true" />
+                              </Button>
+                            }
+                          />
+                          <DropdownMenuContent align="end" className="min-w-[140px]">
+                            <DropdownMenuGroup>
+                              <DropdownMenuItem
+                                onClick={e => {
+                                  e.stopPropagation()
+                                  navigate(`/quotation/${q.id}`)
+                                }}
+                              >
+                                <Eye />
+                                檢視
+                              </DropdownMenuItem>
+                              {q.status === '草稿' && (
+                                <DropdownMenuItem
+                                  onClick={e => {
+                                    e.stopPropagation()
+                                    navigate(`/quotation/new?edit=${q.id}`)
+                                  }}
                                 >
-                                  {MoreIcon && <MoreIcon />}
-                                </Button>
-                              }
-                            />
-                            <DropdownMenuContent align="end" className="min-w-[140px]">
+                                  <Pencil />
+                                  編輯
+                                </DropdownMenuItem>
+                              )}
                               {q.status !== '已結案' && (
                                 <DropdownMenuItem
                                   onClick={e => {
@@ -408,10 +409,13 @@ export default function DashboardPage() {
                                     archive(q.id)
                                   }}
                                 >
-                                  {ArchiveIcon && <ArchiveIcon />}
+                                  <Archive />
                                   結案
                                 </DropdownMenuItem>
                               )}
+                            </DropdownMenuGroup>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuGroup>
                               <DropdownMenuItem
                                 variant="destructive"
                                 onClick={e => {
@@ -419,12 +423,12 @@ export default function DashboardPage() {
                                   handleDelete(q.id)
                                 }}
                               >
-                                {DeleteIcon && <DeleteIcon />}
+                                <Trash2 />
                                 刪除
                               </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
+                            </DropdownMenuGroup>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </td>
                     </tr>
                   ))}

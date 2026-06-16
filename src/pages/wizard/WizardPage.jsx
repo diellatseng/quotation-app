@@ -90,8 +90,7 @@ export default function WizardPage() {
         .from('quotations')
         .select(`
           *,
-          clients(id, company_name),
-          contact_persons(id, name)
+          clients(*)
         `)
         .eq('id', editId)
         .single()
@@ -121,10 +120,25 @@ export default function WizardPage() {
         return
       }
 
+      let contacts = []
+      if (q.client_id) {
+        const { data: contactList, error: cErr } = await supabase
+          .from('contact_persons')
+          .select('*')
+          .eq('client_id', q.client_id)
+          .order('is_primary', { ascending: false })
+        if (cErr) {
+          toast.error('載入聯絡人失敗', { duration: 6000 })
+          setLoading(false)
+          return
+        }
+        contacts = contactList || []
+      }
+
       // Set data
       setData({
         client: q.clients,
-        contacts: [], // TODO: load contacts if needed
+        contacts,
         selectedContactId: q.contact_person_id,
         project_template_id: q.project_template_id,
         building_permit: q.building_permit || '',
@@ -167,7 +181,7 @@ export default function WizardPage() {
       setLoading(false)
     }
     loadQuotation()
-  }, [editId, error])
+  }, [editId])
 
   const saveDraft = async () => {
     setSaving(true)

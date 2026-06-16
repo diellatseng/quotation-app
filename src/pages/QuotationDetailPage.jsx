@@ -5,6 +5,10 @@ import { supabase } from '../lib/supabase'
 import { toast } from 'sonner'
 import { useExportPDF } from '../hooks/useExportPDF'
 import { formatRocDate } from '../lib/rocDate'
+import {
+  formatQuotationValidationMessage,
+  validateQuotationRecordForSend,
+} from '../lib/validateQuotation'
 import { FEATURE_NEGOTIATION, FEATURE_VERSIONING } from '../lib/featureFlags'
 import { QuotationStatusBadges } from '@/components/ui/badge'
 // import NegotiationPanel from '../components/NegotiationPanel' // inactive: negotiation
@@ -34,6 +38,7 @@ export default function QuotationDetailPage() {
 
   const [qt, setQt] = useState(null)
   const [services, setServices] = useState([])
+  const [paymentStages, setPaymentStages] = useState([])
   const [loading, setLoading] = useState(true)
   const [exporting, setExporting] = useState(false)
   // const [negDialog, setNegDialog] = useState(null) // inactive: negotiation / versioning
@@ -67,6 +72,15 @@ export default function QuotationDetailPage() {
       if (sErr) throw sErr
       setServices(sData)
       servicesRef.current = sData
+
+      const { data: stageData, error: stErr } = await supabase
+        .from('payment_stages')
+        .select('stage_name, percentage')
+        .eq('quotation_id', id)
+        .order('sort_order')
+
+      if (stErr) throw stErr
+      setPaymentStages(stageData || [])
     } catch (err) {
       toast.error('載入失敗: ' + err.message, { duration: 6000 })
     } finally {
@@ -77,6 +91,15 @@ export default function QuotationDetailPage() {
   useEffect(() => {
     fetchData()
   }, [id]) // eslint-disable-line
+
+  const handleSendQuotation = () => {
+    const { valid, missing } = validateQuotationRecordForSend(qt, paymentStages)
+    if (!valid) {
+      toast.error(formatQuotationValidationMessage(missing), { duration: 8000 })
+      return
+    }
+    updateStatus('已報價')
+  }
 
   const updateStatus = async (newStatus) => {
     try {
@@ -198,7 +221,7 @@ export default function QuotationDetailPage() {
                   {EditIcon && <EditIcon data-icon="inline-start" />}
                   編輯草稿
                 </Button>
-                <Button variant="default" size="sm" className="font-semibold" onClick={() => updateStatus('已報價')}>
+                <Button variant="default" size="sm" className="font-semibold" onClick={handleSendQuotation}>
                   發送報價 (置為已報價)
                 </Button>
               </>
