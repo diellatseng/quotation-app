@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useAppearance } from '../context/AppearanceContext'
+import { APP_THEMES, getThemeLabel } from '@/lib/themes'
 import { toast } from 'sonner'
 import { formatRocDate } from '../lib/rocDate'
 import {
@@ -46,11 +47,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+} from '@/components/ui/select'
 import { AppEmptyState } from '@/components/AppEmptyState'
 import { DashboardQuotationsSkeleton } from '@/components/skeletons'
 import IconTooltip from '@/components/IconTooltip'
 import { AppBrandTitle, AppShellHeader } from '@/components/AppShellHeader'
-import { Archive, Eye, FileText, MoreHorizontal, Pencil, Plus, Search, Trash2 } from 'lucide-react'
+import { Archive, Eye, FileText, MoreHorizontal, Palette, Pencil, Plus, Search, Trash2 } from 'lucide-react'
 import { FEATURE_NEGOTIATION, FEATURE_VERSIONING } from '../lib/featureFlags'
 
 const STATUS_FILTERS = ['全部', '草稿', '已報價', '已確認', '已結案']
@@ -67,7 +74,7 @@ export default function DashboardPage() {
   const [showExitDialog, setShowExitDialog] = useState(false)
   const [actionMenuId, setActionMenuId] = useState(null)
   const { user, signOut } = useAuth()
-  const { baseFontSize, setFontSize, contrast, toggleContrast } = useAppearance()
+  const { baseFontSize, setFontSize, theme, setTheme } = useAppearance()
   const navigate = useNavigate()
 
   const fetchQuotations = async () => {
@@ -217,17 +224,25 @@ export default function DashboardPage() {
               </Button>
             </IconTooltip>
           </div>
-          <IconTooltip label={contrast === 'high' ? '關閉高對比' : '開啟高對比'}>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="font-semibold"
-              onClick={toggleContrast}
-              aria-label={contrast === 'high' ? '關閉高對比' : '開啟高對比'}
-            >
-              {contrast === 'high' ? '標準' : '高對比'}
-            </Button>
-          </IconTooltip>
+          <div className="flex items-center rounded-md border border-border bg-muted px-1.5 py-0.5">
+            <Select value={theme} onValueChange={setTheme}>
+              <SelectTrigger
+                size="sm"
+                className="h-7 min-w-[5.5rem] gap-1 border-0 bg-transparent px-1.5 font-semibold shadow-none focus-visible:ring-2"
+                aria-label="切換主題色彩"
+              >
+                <Palette className="size-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
+                <span className="truncate">{getThemeLabel(theme)}</span>
+              </SelectTrigger>
+              <SelectContent align="end" side="bottom" alignItemWithTrigger={false}>
+                {APP_THEMES.map(({ value, label }) => (
+                  <SelectItem key={value} value={value}>
+                    {label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <IconTooltip label="管理介面">
             <Button
               variant="ghost"
