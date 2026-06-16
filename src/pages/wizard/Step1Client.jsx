@@ -1,6 +1,8 @@
 // src/pages/wizard/Step1Client.jsx
 import ClientPicker from '../../components/ClientPicker'
+import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Step1ClientSkeleton } from '@/components/skeletons'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 
 export default function Step1Client({ data, update, loading = false }) {
@@ -37,10 +39,7 @@ export default function Step1Client({ data, update, loading = false }) {
         </CardHeader>
         <CardContent>
           {loading && !data.client ? (
-            <div className="text-center py-8 space-y-3">
-              <div className="text-sm font-medium text-muted-foreground animate-pulse">載入中…</div>
-              <div className="w-8 h-8 border-2 border-muted border-t-primary rounded-full animate-spin mx-auto"></div>
-            </div>
+            <Step1ClientSkeleton />
           ) : (
             <ClientPicker
               value={data.client?.id}
@@ -94,9 +93,9 @@ export default function Step1Client({ data, update, loading = false }) {
                         </div>
                       </div>
                       {c.is_primary && (
-                        <span className="shrink-0 text-xs font-bold text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full tracking-wider">
+                        <Badge className="shrink-0 rounded-full tracking-wider">
                           主要
-                        </span>
+                        </Badge>
                       )}
                     </label>
                   ))}

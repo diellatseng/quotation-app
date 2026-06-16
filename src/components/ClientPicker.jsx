@@ -2,7 +2,7 @@
 import { useState, useEffect, useId } from 'react'
 import { supabase } from '../lib/supabase'
 import { toast } from 'sonner'
-import { Building2, Mail, Phone, User } from 'lucide-react'
+import { Building2, Mail, Phone, Plus, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Field,
@@ -18,9 +18,6 @@ import {
   ComboboxItem,
   ComboboxList,
 } from '@/components/ui/combobox'
-import { getIcon } from '@/lib/icons'
-
-const PlusIcon = getIcon('add')
 
 function matchesClient(client, query) {
   const q = query.toLowerCase()
@@ -217,7 +214,7 @@ export default function ClientPicker({ value, onChange, disabled = false }) {
               onClick={() => setShowCreate(true)}
               disabled={disabled}
             >
-              {PlusIcon && <PlusIcon data-icon="inline-start" />}
+              <Plus data-icon="inline-start" />
               新增客戶
             </Button>
           )}

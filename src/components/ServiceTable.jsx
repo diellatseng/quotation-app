@@ -1,8 +1,9 @@
 // src/components/ServiceTable.jsx
 import { useState, useRef, useEffect } from 'react'
 import RichEditor from './RichEditor'
-import { ChevronsDown, ChevronsUp, GripVertical, ListChecks, Trash2, X } from 'lucide-react'
-import { DiffBadge } from '@/components/ui/badge'
+import { ChevronsDown, ChevronsUp, ChevronDown, ChevronRight, GripVertical, ListChecks, Pencil, Plus, Trash2, X } from 'lucide-react'
+import IconTooltip from '@/components/IconTooltip'
+import { Badge, DiffBadge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -19,15 +20,7 @@ import {
   ServiceRowSection,
   ServiceRowShell,
 } from './ServiceRowShell'
-import { getIcon } from '@/lib/icons'
 import { FEATURE_VERSIONING } from '../lib/featureFlags'
-
-const PlusIcon = getIcon('add')
-const ChevronRightIcon = getIcon('keyboard_arrow_right')
-const ChevronDownIcon = getIcon('keyboard_arrow_down')
-const EditIcon = getIcon('edit')
-const DeleteIcon = getIcon('delete')
-const CloseIcon = getIcon('close')
 
 export default function ServiceTable({ services, onChange, readOnly = false }) {
   const [checklistIdx, setChecklistIdx] = useState(null)
@@ -140,7 +133,7 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
           className="font-semibold"
           onClick={addService}
         >
-          {PlusIcon && <PlusIcon data-icon="inline-start" />}
+          <Plus data-icon="inline-start" />
           新增服務項目
         </Button>
       )}
@@ -212,26 +205,34 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
 
                 {/* Drag handle */}
                 {!readOnly && (
-                  <div title="拖曳調整順序" className="cursor-grab flex-shrink-0 user-select-none grid grid-cols-2 gap-1">
-                    {[0, 1, 2, 3, 4, 5].map(i => (
-                      <span key={i} className="w-1 h-1 rounded-full bg-muted-foreground" />
-                    ))}
-                  </div>
+                  <IconTooltip label="拖曳調整順序">
+                    <div
+                      className="grid shrink-0 cursor-grab grid-cols-2 gap-1 user-select-none"
+                      tabIndex={0}
+                      role="button"
+                      aria-label="拖曳調整順序"
+                    >
+                      {[0, 1, 2, 3, 4, 5].map(i => (
+                        <span key={i} className="h-1 w-1 rounded-full bg-muted-foreground" />
+                      ))}
+                    </div>
+                  </IconTooltip>
                 )}
 
                 {/* Disclosure chevron (leading) */}
                 {!isRemoved && (() => {
-                  const CollapseIcon = collapsed ? ChevronRightIcon : ChevronDownIcon
+                  const CollapseIcon = collapsed ? ChevronRight : ChevronDown
                   return (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      title={collapsed ? '展開說明' : '摺疊說明'}
-                      aria-label={collapsed ? '展開說明' : '摺疊說明'}
-                      onClick={() => toggleCollapse(idx)}
-                    >
-                      {CollapseIcon && <CollapseIcon />}
-                    </Button>
+                    <IconTooltip label={collapsed ? '展開說明' : '摺疊說明'}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label={collapsed ? '展開說明' : '摺疊說明'}
+                        onClick={() => toggleCollapse(idx)}
+                      >
+                        <CollapseIcon />
+                      </Button>
+                    </IconTooltip>
                   )
                 })()}
 
@@ -264,7 +265,7 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                 {/* Category */}
                 {readOnly ? (
                   svc.category && (
-                    <span className="inline-flex items-center flex-shrink-0 px-3 py-0.5 rounded-full text-xs bg-muted text-muted-foreground border border-border whitespace-nowrap">{svc.category}</span>
+                    <Badge variant="secondary" className="shrink-0 rounded-full whitespace-nowrap">{svc.category}</Badge>
                   )
                 ) : (
                   <Input
@@ -277,7 +278,7 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                 )}
 
                 {svc.is_added && !diff && (
-                  <span className="inline-flex items-center flex-shrink-0 px-2 py-0.5 rounded-full text-xs font-bold bg-highlight text-highlight-text border border-highlight-border whitespace-nowrap">新增</span>
+                  <Badge className="shrink-0 rounded-full border-highlight-border bg-highlight font-bold text-highlight-text whitespace-nowrap">新增</Badge>
                 )}
 
                 {/* Right action cluster */}
@@ -305,15 +306,16 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
 
                     {/* Edit description */}
                     {!readOnly && !isEditing && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        title={hasDesc ? '編輯說明' : '新增說明'}
-                        aria-label={hasDesc ? '編輯說明' : '新增說明'}
-                        onClick={() => startEditFromMenu(idx)}
-                      >
-                        {EditIcon && <EditIcon />}
-                      </Button>
+                      <IconTooltip label={hasDesc ? '編輯說明' : '新增說明'}>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label={hasDesc ? '編輯說明' : '新增說明'}
+                          onClick={() => startEditFromMenu(idx)}
+                        >
+                          <Pencil />
+                        </Button>
+                      </IconTooltip>
                     )}
 
                     {/* Delete service — two-step inline confirm */}
@@ -332,16 +334,17 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                           確定刪除？
                         </Button>
                       ) : (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          title="刪除服務項目"
-                          aria-label="刪除服務項目"
-                          onClick={() => requestDelete(idx)}
-                          className="text-muted-foreground hover:bg-destructive-muted hover:text-destructive-muted-text"
-                        >
-                          {DeleteIcon && <DeleteIcon />}
-                        </Button>
+                        <IconTooltip label="刪除服務項目">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            aria-label="刪除服務項目"
+                            onClick={() => requestDelete(idx)}
+                            className="text-muted-foreground hover:bg-destructive-muted hover:text-destructive-muted-text"
+                          >
+                            <Trash2 />
+                          </Button>
+                        </IconTooltip>
                       )
                     )}
                   </div>
@@ -433,7 +436,7 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
           className="mt-4 w-full font-semibold"
           onClick={addService}
         >
-          {PlusIcon && <PlusIcon data-icon="inline-start" />}
+          <Plus data-icon="inline-start" />
           新增服務項目
         </Button>
       )}
@@ -455,15 +458,16 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                   {services[checklistIdx].service_name || '未命名服務'}
                 </DialogDescription>
               </div>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                title="關閉"
-                aria-label="關閉"
-                onClick={closeChecklist}
-              >
-                {CloseIcon && <CloseIcon />}
-              </Button>
+              <IconTooltip label="關閉">
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label="關閉"
+                  onClick={closeChecklist}
+                >
+                  <X />
+                </Button>
+              </IconTooltip>
             </DialogHeader>
 
             <div className="flex-1 overflow-auto px-5 py-4">
@@ -489,16 +493,17 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                       />
                     )}
                     {!readOnly && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        title="刪除此清單項目"
-                        aria-label="刪除此清單項目"
-                        onClick={() => removeChecklistItem(checklistIdx, iIdx)}
-                        className="text-destructive-muted-text hover:bg-destructive-muted shrink-0"
-                      >
-                        {CloseIcon && <CloseIcon />}
-                      </Button>
+                      <IconTooltip label="刪除此清單項目">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label="刪除此清單項目"
+                          onClick={() => removeChecklistItem(checklistIdx, iIdx)}
+                          className="shrink-0 text-destructive-muted-text hover:bg-destructive-muted"
+                        >
+                          <X />
+                        </Button>
+                      </IconTooltip>
                     )}
                   </div>
                 ))}
@@ -511,7 +516,7 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                   className="mt-3 font-semibold"
                   onClick={() => addChecklistItem(checklistIdx)}
                 >
-                  {PlusIcon && <PlusIcon data-icon="inline-start" />}
+                  <Plus data-icon="inline-start" />
                   新增清單項目
                 </Button>
               )}

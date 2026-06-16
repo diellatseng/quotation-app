@@ -16,13 +16,20 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { QuotationStatusBadges } from '@/components/ui/badge'
-import { Switch } from '@/components/ui/switch'
+import { Badge, QuotationStatusBadges } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Archive, Eye, FileText, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
-import { getIcon } from '@/lib/icons'
+import { Field, FieldLabel } from '@/components/ui/field'
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from '@/components/ui/input-group'
+import { Switch } from '@/components/ui/switch'
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from '@/components/ui/toggle-group'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,12 +38,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { DashboardQuotationsSkeleton } from '@/components/skeletons'
+import IconTooltip from '@/components/IconTooltip'
+import { AppBrandTitle, AppShellHeader } from '@/components/AppShellHeader'
+import { Archive, Eye, FileText, MoreHorizontal, Pencil, Plus, Search, Trash2 } from 'lucide-react'
 import { FEATURE_NEGOTIATION, FEATURE_VERSIONING } from '../lib/featureFlags'
-import packageJson from '../../package.json'
 
 const STATUS_FILTERS = ['全部', '草稿', '已報價', '已確認', '已結案']
 const fmt = (n) => n ? `NT$ ${Number(n).toLocaleString('zh-TW')}` : '—'
-const PlusIcon = getIcon('add')
 
 export default function DashboardPage() {
   const [quotations, setQuotations] = useState([])
@@ -63,8 +72,7 @@ export default function DashboardPage() {
         contact_persons(name)
       `)
       .order('created_at', { ascending: false })
-
-    if (!showArchived) q = q.neq('status', '已結案')
+      .neq('status', '已刪除')
 
     const { data, error: err } = await q
     if (err) { toast.error('載入失敗：' + err.message, { duration: 6000 }); setLoading(false); return }
@@ -91,7 +99,7 @@ export default function DashboardPage() {
     return parent ? getRootId(parent, all) : qt.id
   }
 
-  useEffect(() => { fetchQuotations() }, [showArchived]) // eslint-disable-line
+  useEffect(() => { fetchQuotations() }, []) // eslint-disable-line
 
   const archive = async (id) => {
     await supabase.from('quotations').update({ status: '已結案' }).eq('id', id)
@@ -119,15 +127,32 @@ export default function DashboardPage() {
     fetchQuotations()
   }
 
-  const filtered = quotations.filter(q => {
-    const matchSearch =
-      (q.quote_number || '').includes(search) ||
-      (q.clients?.company_name || '').includes(search)
-    const matchStatus = statusFilter === '全部' || q.status === statusFilter
+  const matchesSearch = (q) =>
+    (q.quote_number || '').includes(search) ||
+    (q.clients?.company_name || '').includes(search)
+
+  const poolQuotations = quotations.filter(q => {
+    const matchStatus =
+      statusFilter === '全部'
+        ? showArchived || q.status !== '已結案'
+        : q.status === statusFilter
     const matchNeg = !FEATURE_NEGOTIATION || !showNegotiating || q.is_negotiating
-    const matchDelete = q.status !== '已刪除'
-    return matchSearch && matchStatus && matchNeg && matchDelete
+    return matchStatus && matchNeg
   })
+
+  const filtered = poolQuotations.filter(matchesSearch)
+
+  const listSummary = (() => {
+    if (loading) return null
+    const hasFilters = search.trim() !== '' || statusFilter !== '全部'
+    if (filtered.length === 0) {
+      return quotations.length === 0
+        ? '尚無報價單，建立第一份報價開始吧'
+        : '找不到符合條件的報價單'
+    }
+    const totalSuffix = hasFilters && filtered.length !== poolQuotations.length ? ` / ${poolQuotations.length}` : ''
+    return `共 ${filtered.length}${totalSuffix} 筆`
+  })()
 
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors duration-200">
@@ -151,139 +176,142 @@ export default function DashboardPage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* ── Top Bar / Navigation ── */}
-      <header className="sticky top-0 z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-800 bg-zinc-950 px-4 py-4 md:px-8 text-zinc-50 shadow-md">
-        <div className="flex items-center gap-4">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-100 text-lg font-bold text-zinc-950" aria-hidden="true">
-            報
-          </div>
-          <div>
-            <div className="flex items-baseline gap-2">
-              <h1 className="text-lg font-bold tracking-tight">報價管理系統</h1>
-              <p className="text-xs text-zinc-400 font-mono">v{packageJson.version}</p>
-            </div>
-            <p className="text-xs text-zinc-400">{user?.email}</p>
-          </div>
-        </div>
+      <AppShellHeader>
+        <AppBrandTitle subtitle={user?.email} showVersion />
 
         {/* Action controls / Accessibility items */}
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-1 rounded-md bg-zinc-900 border border-zinc-800 px-2 py-0.5 text-xs">
-            <Button
-              variant="ghost-inverse"
-              size="sm"
-              className="font-semibold"
-              onClick={() => setFontSize(baseFontSize - 1)}
-              aria-label="縮小字體"
-            >
-              A-
-            </Button>
-            <span className="px-1.5 font-mono min-w-[36px] text-center text-zinc-200">
+          <div className="flex items-center gap-1 rounded-md border border-border bg-muted px-2 py-0.5 text-xs">
+            <IconTooltip label="縮小字體">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="font-semibold"
+                onClick={() => setFontSize(baseFontSize - 1)}
+                aria-label="縮小字體"
+              >
+                A-
+              </Button>
+            </IconTooltip>
+            <span className="min-w-[36px] px-1.5 text-center font-mono text-foreground">
               {baseFontSize}px
             </span>
+            <IconTooltip label="放大字體">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="font-semibold"
+                onClick={() => setFontSize(baseFontSize + 1)}
+                aria-label="放大字體"
+              >
+                A+
+              </Button>
+            </IconTooltip>
+          </div>
+          <IconTooltip label={contrast === 'high' ? '關閉高對比' : '開啟高對比'}>
             <Button
-              variant="ghost-inverse"
+              variant="ghost"
               size="sm"
               className="font-semibold"
-              onClick={() => setFontSize(baseFontSize + 1)}
-              aria-label="放大字體"
+              onClick={toggleContrast}
+              aria-label={contrast === 'high' ? '關閉高對比' : '開啟高對比'}
             >
-              A+
+              {contrast === 'high' ? '標準' : '高對比'}
             </Button>
-          </div>
-          <Button
-            variant="ghost-inverse"
-            size="sm"
-            className="font-semibold"
-            onClick={toggleContrast}
-            aria-label={contrast === 'high' ? '關閉高對比' : '開啟高對比'}
-          >
-            {contrast === 'high' ? '標準' : '高對比'}
-          </Button>
-          <Button
-            variant="ghost-inverse"
-            size="sm"
-            className="font-semibold"
-            onClick={() => navigate('/admin/clients')}
-          >
-            管理
-          </Button>
-          <Button
-            variant="ghost-inverse"
-            size="sm"
-            className="font-semibold"
-            onClick={signOut}
-          >
-            登出
-          </Button>
+          </IconTooltip>
+          <IconTooltip label="管理介面">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="font-semibold"
+              onClick={() => navigate('/admin/clients')}
+              aria-label="管理介面"
+            >
+              管理
+            </Button>
+          </IconTooltip>
+          <IconTooltip label="登出">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="font-semibold"
+              onClick={signOut}
+              aria-label="登出"
+            >
+              登出
+            </Button>
+          </IconTooltip>
         </div>
-      </header>
+      </AppShellHeader>
 
       {/* ── Main Application Workspace ── */}
-      <main className="mx-auto max-w-7xl px-4 py-6 md:px-8 space-y-6">
+      <main className="mx-auto max-w-7xl space-y-6 px-4 py-6 pb-24 sm:pb-6 md:px-8">
+        {/* Page title */}
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">報價單列表</h1>
+          {listSummary && (
+            <p className="mt-1 text-sm text-muted-foreground">{listSummary}</p>
+          )}
+        </div>
 
-        {/* Toolbar */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-          <Input
-            type="search"
-            size="md"
-            className="w-full sm:max-w-xs bg-card"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="搜尋報價編號、客戶名稱…"
-            aria-label="搜尋報價單"
-          />
+        {/* Search + primary action — same row for a natural scan path */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <InputGroup className="h-11 flex-1 bg-card sm:max-w-md">
+            <InputGroupAddon>
+              <Search className="size-4 text-muted-foreground" aria-hidden="true" />
+            </InputGroupAddon>
+            <InputGroupInput
+              type="search"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="搜尋報價編號、客戶名稱…"
+              aria-label="搜尋報價單"
+            />
+          </InputGroup>
           <Button
             variant="default"
             size="md"
-            className="font-semibold"
+            className="hidden h-11 shrink-0 px-5 font-semibold sm:inline-flex"
             onClick={() => navigate('/quotation/new')}
             aria-label="新增報價單"
           >
-            {PlusIcon && <PlusIcon data-icon="inline-start" />}
+            <Plus data-icon="inline-start" />
             新增報價單
           </Button>
         </div>
 
-        {/* Filter Area */}
+        {/* Filters */}
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-4">
-          <div className="flex flex-wrap gap-2">
+          <ToggleGroup
+            value={[statusFilter]}
+            onValueChange={(values) => {
+              setStatusFilter(values[0] ?? '全部')
+            }}
+            variant="outline"
+            size="sm"
+            className="flex-wrap"
+          >
             {STATUS_FILTERS.map(f => (
-              <Button
-                key={f}
-                variant={statusFilter === f ? 'default' : 'outline'}
-                size="sm"
-                className="rounded-full px-4"
-                aria-pressed={statusFilter === f}
-                onClick={() => {
-                  setStatusFilter(f)
-                  setShowArchived(f === '已結案')
-                }}
-              >
+              <ToggleGroupItem key={f} value={f} className="rounded-full px-4">
                 {f}
-              </Button>
+              </ToggleGroupItem>
             ))}
-          </div>
-          <div className="inline-flex items-center gap-3">
-            <label
-              htmlFor="archiveToggle"
-              className="text-sm font-medium text-foreground select-none cursor-pointer"
-            >
+          </ToggleGroup>
+          <Field orientation="horizontal" className="w-auto items-center gap-3">
+            <FieldLabel htmlFor="archiveToggle" className="cursor-pointer">
               顯示已結案
-            </label>
+            </FieldLabel>
             <Switch
               id="archiveToggle"
               checked={showArchived}
               onCheckedChange={setShowArchived}
             />
-          </div>
+          </Field>
         </div>
 
         {/* Data View States */}
         {loading ? (
-          <div className="flex items-center justify-center p-12 text-sm text-muted-foreground">
-            載入中…
-          </div>
+          <DashboardQuotationsSkeleton />
         ) : filtered.length === 0 ? (
           <Card className="flex flex-col items-center justify-center border-2 border-dashed border-border p-12 text-center shadow-sm ring-0">
             <div className="mb-3 text-muted-foreground/60" aria-hidden="true">
@@ -313,9 +341,9 @@ export default function DashboardPage() {
                 >
                   <CardContent className="space-y-3 py-4">
                     <div className="flex items-center justify-between">
-                      <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-mono font-medium text-muted-foreground border border-border">
+                      <Badge variant="secondary" className="font-mono font-medium">
                         {q.quote_number}{FEATURE_VERSIONING && q.version > 1 ? ` v${q.version}` : ''}
-                      </span>
+                      </Badge>
                       <QuotationStatusBadges status={q.status} isNegotiating={FEATURE_NEGOTIATION && q.is_negotiating} />
                     </div>
                     <div className="text-sm font-medium text-foreground">{q.clients?.company_name || '—'}</div>
@@ -349,9 +377,9 @@ export default function DashboardPage() {
                       onClick={() => q.status === '草稿' ? navigate(`/quotation/new?edit=${q.id}`) : navigate(`/quotation/${q.id}`)}
                     >
                       <td className="p-4 align-middle">
-                        <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-mono font-medium text-muted-foreground border border-border">
+                        <Badge variant="secondary" className="font-mono font-medium">
                           {q.quote_number}{FEATURE_VERSIONING && q.version > 1 ? ` v${q.version}` : ''}
-                        </span>
+                        </Badge>
                       </td>
                       <td className="p-4 align-middle font-medium text-foreground">{q.clients?.company_name || '—'}</td>
                       <td className="p-4 align-middle text-muted-foreground">{formatRocDate(q.quote_date)}</td>
@@ -372,8 +400,8 @@ export default function DashboardPage() {
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                title="操作"
                                 aria-label="操作"
+                                title="操作"
                                 onClick={e => e.stopPropagation()}
                               >
                                 <MoreHorizontal className="size-4 shrink-0" aria-hidden="true" />
@@ -438,6 +466,23 @@ export default function DashboardPage() {
           </div>
         )}
       </main>
+
+      {/* Mobile FAB — thumb-friendly while scrolling the list */}
+      {!loading && (
+        <div className="fixed bottom-6 right-6 z-40 sm:hidden">
+          <IconTooltip label="新增報價單" side="left">
+            <Button
+              variant="default"
+              size="icon-lg"
+              className="size-14 rounded-full shadow-lg"
+              onClick={() => navigate('/quotation/new')}
+              aria-label="新增報價單"
+            >
+              <Plus className="size-6" aria-hidden="true" />
+            </Button>
+          </IconTooltip>
+        </div>
+      )}
     </div>
   )
 }

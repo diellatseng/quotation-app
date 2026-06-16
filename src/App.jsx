@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import { AppearanceProvider } from './context/AppearanceContext'
 import { Toaster } from '@/components/ui/sonner'
+import { TooltipProvider } from '@/components/ui/tooltip'
+import { AppLoadingSkeleton } from '@/components/skeletons'
 
 import LoginPage             from './pages/LoginPage'
 import DashboardPage         from './pages/DashboardPage'
@@ -15,11 +17,7 @@ import ServicesAdmin         from './pages/admin/ServicesAdmin'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
-  if (loading) return (
-    <div className="flex items-center justify-center min-h-screen text-base text-muted-foreground">
-      載入中…
-    </div>
-  )
+  if (loading) return <AppLoadingSkeleton />
   return user ? children : <Navigate to="/login" replace />
 }
 
@@ -47,11 +45,13 @@ function AppRoutes() {
 export default function App() {
   return (
     <AppearanceProvider>
-      <AuthProvider>
-        <BrowserRouter basename={import.meta.env.BASE_URL}>
-          <AppRoutes />
-        </BrowserRouter>
-      </AuthProvider>
+      <TooltipProvider>
+        <AuthProvider>
+          <BrowserRouter basename={import.meta.env.BASE_URL}>
+            <AppRoutes />
+          </BrowserRouter>
+        </AuthProvider>
+      </TooltipProvider>
     </AppearanceProvider>
   )
 }

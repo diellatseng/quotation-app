@@ -3,14 +3,11 @@ import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { toast } from 'sonner'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { getIcon } from '@/lib/icons'
-
-const PlusIcon = getIcon('add')
 
 const fmt = (n) => `NT$ ${Number(n || 0).toLocaleString('zh-TW')}`
 
@@ -100,7 +97,7 @@ export default function NegotiationPanel({ quotationId, currentAmount, logs = []
             onClick={() => setOpen(true)}
             aria-expanded={false}
           >
-            {PlusIcon && <PlusIcon data-icon="inline-start" />}
+            <Plus data-icon="inline-start" />
             新增議價記錄
           </Button>
         )}

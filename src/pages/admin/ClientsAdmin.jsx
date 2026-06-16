@@ -18,9 +18,12 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { getIcon } from '@/lib/icons'
+import { AdminListSkeleton } from '@/components/skeletons'
+import { Plus } from 'lucide-react'
 
-const PlusIcon = getIcon('add')
+function emptyClient() {
+  return { company_name: '', address: '', phone: '', fax: '', email: '', responsible_person_name: '', responsible_person_mobile: '', responsible_person_title: '' }
+}
 
 export default function ClientsAdmin() {
   const [clients, setClients] = useState([])
@@ -28,16 +31,15 @@ export default function ClientsAdmin() {
   const [contacts, setContacts] = useState([])
   const [form, setForm] = useState(emptyClient())
   const [loading, setLoading] = useState(false)
+  const [fetchLoading, setFetchLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
-  function emptyClient() {
-    return { company_name: '', address: '', phone: '', fax: '', email: '', responsible_person_name: '', responsible_person_mobile: '', responsible_person_title: '' }
-  }
-
   const load = async () => {
+    setFetchLoading(true)
     const { data } = await supabase.from('clients').select('*').order('company_name')
     setClients(data || [])
+    setFetchLoading(false)
   }
 
   useEffect(() => { load() }, [])
@@ -115,15 +117,14 @@ export default function ClientsAdmin() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-bold">客戶資料庫</h2>
+      <div className="mb-6 flex justify-end">
         <Button
           variant="default"
           size="md"
           className="font-semibold"
           onClick={() => { setSelected(null); setForm(emptyClient()); setContacts([]); setShowForm(true) }}
         >
-          {PlusIcon && <PlusIcon data-icon="inline-start" />}
+          <Plus data-icon="inline-start" />
           新增客戶
         </Button>
       </div>
@@ -131,7 +132,9 @@ export default function ClientsAdmin() {
       <div className={`grid gap-5 ${showForm ? 'grid-cols-[1fr_1.4fr]' : 'grid-cols-1'}`}>
         {/* List */}
         <Card className="gap-0 py-0 shadow-sm">
-          {clients.length === 0 ? (
+          {fetchLoading ? (
+            <AdminListSkeleton rows={8} />
+          ) : clients.length === 0 ? (
             <p className="p-6 text-muted-foreground text-center">尚無客戶</p>
           ) : (
             clients.map(c => (
@@ -172,7 +175,7 @@ export default function ClientsAdmin() {
                 <div className="flex justify-between items-center mb-3">
                   <p className="text-base font-semibold text-foreground">聯絡人</p>
                   <Button variant="ghost" size="sm" className="font-semibold" onClick={addContact}>
-                    {PlusIcon && <PlusIcon data-icon="inline-start" />}
+                    <Plus data-icon="inline-start" />
                     新增
                   </Button>
                 </div>

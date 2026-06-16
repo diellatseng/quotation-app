@@ -3,6 +3,7 @@ import { useState, useEffect, useId } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { toast } from 'sonner'
+import { AppBrandMark } from '@/components/AppShellHeader'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -69,9 +70,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-md shadow-sm [--card-spacing:--spacing(8)]" role="main">
         <CardContent className="space-y-6">
         <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary text-xl font-bold text-primary-foreground" aria-hidden="true">
-            報
-          </div>
+          <AppBrandMark size="lg" />
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-foreground">報價管理系統</h1>
             <p className="text-sm text-muted-foreground">Quotation Management</p>

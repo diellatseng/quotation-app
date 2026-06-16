@@ -21,10 +21,9 @@ import {
   FieldLabel,
 } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { getIcon } from '@/lib/icons'
-
-const PlusIcon = getIcon('add')
-const CloseIcon = getIcon('close')
+import { AdminListSkeleton } from '@/components/skeletons'
+import IconTooltip from '@/components/IconTooltip'
+import { Plus, X } from 'lucide-react'
 
 export default function ServicesAdmin() {
   const [services, setServices] = useState([])
@@ -34,10 +33,13 @@ export default function ServicesAdmin() {
   const [showForm, setShowForm] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [fetchLoading, setFetchLoading] = useState(true)
 
   const load = async () => {
+    setFetchLoading(true)
     const { data } = await supabase.from('services').select('*').order('category').order('name')
     setServices(data || [])
+    setFetchLoading(false)
   }
 
   useEffect(() => { load() }, [])
@@ -115,15 +117,14 @@ export default function ServicesAdmin() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-bold">服務資料庫</h2>
+      <div className="mb-6 flex justify-end">
         <Button
           variant="default"
           size="md"
           className="font-semibold"
           onClick={() => { setSelected(null); setForm({ name: '', category: '', description: '' }); setChecklistItems([]); setShowForm(true) }}
         >
-          {PlusIcon && <PlusIcon data-icon="inline-start" />}
+          <Plus data-icon="inline-start" />
           新增服務
         </Button>
       </div>
@@ -131,7 +132,12 @@ export default function ServicesAdmin() {
       <div className={`grid gap-5 ${showForm ? 'grid-cols-[1fr_1.4fr]' : 'grid-cols-1'}`}>
         {/* List */}
         <Card className="gap-0 py-0 shadow-sm">
-          {Object.entries(grouped).map(([cat, svcs]) => (
+          {fetchLoading ? (
+            <AdminListSkeleton rows={8} />
+          ) : services.length === 0 ? (
+            <p className="p-6 text-muted-foreground text-center">尚無服務項目</p>
+          ) : (
+            Object.entries(grouped).map(([cat, svcs]) => (
             <div key={cat}>
               <div className="px-4 py-2 bg-muted text-xs font-bold text-muted-foreground uppercase tracking-wide">
                 {cat}
@@ -145,9 +151,7 @@ export default function ServicesAdmin() {
                 </div>
               ))}
             </div>
-          ))}
-          {services.length === 0 && (
-            <p className="p-6 text-muted-foreground text-center">尚無服務項目</p>
+          ))
           )}
         </Card>
 
@@ -182,7 +186,7 @@ export default function ServicesAdmin() {
                 <div className="flex justify-between items-center mb-3">
                   <p className="text-base font-semibold text-foreground">客戶準備清單</p>
                   <Button variant="ghost" size="sm" className="font-semibold" onClick={addItem}>
-                    {PlusIcon && <PlusIcon data-icon="inline-start" />}
+                    <Plus data-icon="inline-start" />
                     新增
                   </Button>
                 </div>
@@ -190,15 +194,16 @@ export default function ServicesAdmin() {
                   <div key={item.id} className="flex gap-2 items-center mb-2">
                     <span className="text-muted-foreground text-sm w-6 text-right shrink-0">{idx + 1}.</span>
                     <Input className="flex-1" value={item.item_text} onChange={e => updateItem(idx, e.target.value)} placeholder="準備項目" />
-                    <Button
-                      variant="danger"
-                      size="icon"
-                      title="刪除"
-                      aria-label="刪除"
-                      onClick={() => deleteItem(item.id)}
-                    >
-                      {CloseIcon && <CloseIcon />}
-                    </Button>
+                    <IconTooltip label="刪除">
+                      <Button
+                        variant="danger"
+                        size="icon"
+                        aria-label="刪除"
+                        onClick={() => deleteItem(item.id)}
+                      >
+                        <X />
+                      </Button>
+                    </IconTooltip>
                   </div>
                 ))}
               </div>

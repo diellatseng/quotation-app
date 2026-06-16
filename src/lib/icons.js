@@ -35,7 +35,7 @@ import {
   X,
 } from 'lucide-react'
 
-/** Legacy Material Symbol names → Lucide components (tree-shaken imports). */
+/** Legacy Material Symbol names → Lucide components (RichEditor toolbar). */
 export const ICONS = {
   arrow_back: ArrowLeft,
   arrow_forward: ArrowRight,
@@ -73,6 +73,7 @@ export const ICONS = {
   done_outline: CheckCircle2,
 }
 
+/** @deprecated Import Lucide icons directly in new code. */
 export function getIcon(name) {
   return ICONS[name] ?? null
 }

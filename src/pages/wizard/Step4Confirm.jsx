@@ -21,11 +21,10 @@ import {
   InputGroupText,
 } from '@/components/ui/input-group'
 import { Textarea } from '@/components/ui/textarea'
-import { getIcon } from '@/lib/icons'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import IconTooltip from '@/components/IconTooltip'
+import { Plus, X } from 'lucide-react'
 import { formatRocDate, formatCeDisplay } from '../../lib/rocDate'
-
-const PlusIcon = getIcon('add')
-const CloseIcon = getIcon('close')
 
 const fmt = (n) => `NT$ ${Number(n || 0).toLocaleString('zh-TW')}`
 
@@ -155,19 +154,16 @@ export default function Step4Confirm({ data, update }) {
                     useRoc={useRoc}
                     required
                   />
-                  <div className="inline-flex items-center gap-3">
-                    <label
-                      htmlFor="date_format"
-                      className="text-sm font-medium text-foreground select-none cursor-pointer"
-                    >
+                  <Field orientation="horizontal" className="w-auto items-center gap-3">
+                    <FieldLabel htmlFor="date_format" className="cursor-pointer">
                       使用民國曆顯示
-                    </label>
+                    </FieldLabel>
                     <Switch
                       id="date_format"
                       checked={useRoc}
                       onCheckedChange={setUseRoc}
                     />
-                  </div>
+                  </Field>
                 </div>
               </FieldGroup>
               <div className="flex justify-end">
@@ -204,19 +200,16 @@ export default function Step4Confirm({ data, update }) {
                 />
               </InputGroup>
             </Field>
-            <div className="inline-flex items-center gap-3 sm:pb-1">
-              <label
-                htmlFor="tax_included"
-                className="text-sm font-medium text-foreground select-none cursor-pointer"
-              >
+            <Field orientation="horizontal" className="w-auto items-center gap-3 sm:pb-1">
+              <FieldLabel htmlFor="tax_included" className="cursor-pointer">
                 外加 5% 營業稅金
-              </label>
+              </FieldLabel>
               <Switch
                 id="tax_included"
                 checked={data.tax_included}
                 onCheckedChange={val => update({ tax_included: val })}
               />
-            </div>
+            </Field>
           </div>
         </CardContent>
 
@@ -238,7 +231,7 @@ export default function Step4Confirm({ data, update }) {
             className="self-start font-semibold shadow-sm"
             onClick={handleAddStage}
           >
-            {PlusIcon && <PlusIcon data-icon="inline-start" />}
+            <Plus data-icon="inline-start" />
             新增階段
           </Button>
           </CardAction>
@@ -306,18 +299,19 @@ export default function Step4Confirm({ data, update }) {
                       {fmt(stageShare)}
                     </td>
                     <td className="px-2 py-2 text-center align-middle">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        title="刪除此階段"
-                        aria-label="刪除此階段"
-                        onClick={() => handleRemoveStage(stage.id)}
-                        disabled={data.payment_stages.length <= 1}
-                        className="text-muted-foreground hover:text-rose-600 disabled:opacity-30 disabled:hover:text-muted-foreground"
-                      >
-                        {CloseIcon && <CloseIcon />}
-                      </Button>
+                      <IconTooltip label="刪除此階段">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          aria-label="刪除此階段"
+                          onClick={() => handleRemoveStage(stage.id)}
+                          disabled={data.payment_stages.length <= 1}
+                          className="text-muted-foreground hover:text-rose-600 disabled:opacity-30 disabled:hover:text-muted-foreground"
+                        >
+                          <X />
+                        </Button>
+                      </IconTooltip>
                     </td>
                   </tr>
                 )
@@ -355,30 +349,30 @@ export default function Step4Confirm({ data, update }) {
                 <div className="text-xs font-semibold text-muted-foreground w-28 text-right shrink-0">
                   {fmt(stageShare)}
                 </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  title="刪除此階段"
-                  aria-label="刪除此階段"
-                  onClick={() => handleRemoveStage(stage.id)}
-                  disabled={data.payment_stages.length <= 1}
-                  className="ml-auto text-muted-foreground hover:text-rose-600 disabled:opacity-30 disabled:hover:text-muted-foreground"
-                >
-                  {CloseIcon && <CloseIcon />}
-                </Button>
+                <IconTooltip label="刪除此階段">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    aria-label="刪除此階段"
+                    onClick={() => handleRemoveStage(stage.id)}
+                    disabled={data.payment_stages.length <= 1}
+                    className="ml-auto text-muted-foreground hover:text-rose-600 disabled:opacity-30 disabled:hover:text-muted-foreground"
+                  >
+                    <X />
+                  </Button>
+                </IconTooltip>
               </div>
             )
           })}
         </div>
 
-        <div className={`mt-4 p-3 rounded-lg text-xs font-medium flex items-center justify-between border ${isBalanced
-            ? 'bg-emerald-500/5 text-emerald-600 border-emerald-500/10'
-            : 'bg-amber-500/5 text-amber-600 border-amber-500/10'
-          }`}>
-          <span>目前設定百分比總和：</span>
-          <span className="text-sm font-bold">{totalPercentage} % / 100 %</span>
-        </div>
+        <Alert variant={isBalanced ? 'success' : 'warning'} className="mt-4">
+          <AlertDescription className="flex items-center justify-between text-xs font-medium text-current">
+            <span>目前設定百分比總和：</span>
+            <span className="text-sm font-bold">{totalPercentage} % / 100 %</span>
+          </AlertDescription>
+        </Alert>
         </CardContent>
       </Card>
 

@@ -406,6 +406,7 @@ export default function WizardPage() {
         saving={saving}
         canNext={canGoNext()}
         nextLabel={step === 4 ? '完成並儲存' : undefined}
+        headerSubtitle={editId ? '編輯草稿' : '新增報價'}
       >
         {step === 1 && <Step1Client  {...stepProps} />}
         {step === 2 && <Step2Project {...stepProps} />}

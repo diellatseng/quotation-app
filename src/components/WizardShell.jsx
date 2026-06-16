@@ -1,16 +1,15 @@
 // src/components/WizardShell.jsx
+import { ArrowLeft, ArrowRight } from 'lucide-react'
+import { AppBreadcrumbBar } from '@/components/AppShellHeader'
+import WizardStepNav from '@/components/WizardStepNav'
 import { Button } from '@/components/ui/button'
-import { getIcon } from '@/lib/icons'
 
 const STEPS = [
   { num: 1, label: '客戶資料' },
   { num: 2, label: '工程資料' },
   { num: 3, label: '服務內容' },
-  { num: 4, label: '報價與付款' }
+  { num: 4, label: '報價與付款' },
 ]
-
-const ArrowBackIcon = getIcon('arrow_back')
-const ArrowForwardIcon = getIcon('arrow_forward')
 
 export default function WizardShell({
   currentStep,
@@ -23,74 +22,36 @@ export default function WizardShell({
   canNext = true,
   nextLabel,
   backLabel,
+  headerSubtitle = '新增報價',
   children,
 }) {
   const isFirst = currentStep === 1
   const isLast = currentStep === 4
+  const currentStepMeta = STEPS[currentStep - 1]
+  const wizardLabel = headerSubtitle === '編輯草稿' ? '編輯報價' : '新增報價'
 
   return (
-    <div className="flex flex-col min-h-screen bg-background text-foreground">
+    <div className="flex min-h-screen flex-col bg-background text-foreground">
+      <AppBreadcrumbBar
+        maxWidth="max-w-5xl"
+        backLabel="報價單列表"
+        onBack={onBackToDashboard}
+        backDisabled={saving}
+        segments={[wizardLabel, currentStepMeta?.label].filter(Boolean)}
+      />
 
-      {/* ── Sticky step indicator ── */}
-      <nav
-        aria-label="報價單建立步驟"
-        className="sticky top-0 z-50 bg-card/90 backdrop-blur-md border-b border-border"
-      >
-        <div className="max-w-5xl mx-auto px-4 py-3 flex justify-between items-center">
-          {STEPS.map((step) => {
-            const isActive = currentStep === step.num
-            const isCompleted = currentStep > step.num
-            return (
-              <div
-                key={step.num}
-                onClick={() => onStepClick?.(step.num)}
-                className={`flex items-center gap-2 cursor-pointer select-none transition-colors duration-200 ${isActive
-                    ? 'text-foreground font-semibold'
-                    : isCompleted
-                      ? 'text-foreground hover:text-primary'
-                      : 'text-muted-foreground'
-                  }`}
-              >
-                <span
-                  className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold transition-colors duration-200 ${isActive
-                      ? 'bg-primary text-primary-foreground'
-                      : isCompleted
-                        ? 'bg-accent text-accent-foreground'
-                        : 'bg-muted text-muted-foreground border border-border'
-                    }`}
-                >
-                  {step.num}
-                </span>
-                <span className="text-sm hidden sm:inline">{step.label}</span>
-              </div>
-            )
-          })}
-        </div>
-      </nav>
-
-      {/* ── Main content area ── */}
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 py-6">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 md:px-6">
+        <WizardStepNav
+          steps={STEPS}
+          currentStep={currentStep}
+          onStepClick={onStepClick}
+        />
         {children}
       </main>
 
-      {/* ── Sticky footer ── */}
-      <footer className="sticky bottom-0 bg-card border-t border-border py-4 px-6 shadow-md mt-auto z-40">
-        <div className="max-w-5xl mx-auto flex justify-between items-center">
-          {/* Left: actions */}
-          <div className="flex gap-3 items-center">
-            {onBackToDashboard && (
-              <Button
-                variant="outline"
-                size="md"
-                className="font-semibold"
-                onClick={onBackToDashboard}
-                disabled={saving}
-                aria-label="返回清單頁"
-              >
-                {ArrowBackIcon && <ArrowBackIcon data-icon="inline-start" />}
-                返回清單
-              </Button>
-            )}
+      <footer className="sticky bottom-0 z-40 mt-auto border-t border-border bg-card/95 py-4 px-6 shadow-[0_-1px_0_0_var(--border)] backdrop-blur-sm">
+        <div className="mx-auto flex max-w-5xl items-center justify-between">
+          <div className="flex items-center gap-3">
             {!isFirst && (
               <Button
                 variant="outline"
@@ -99,14 +60,13 @@ export default function WizardShell({
                 onClick={onBack}
                 aria-label="上一步"
               >
-                {ArrowBackIcon && <ArrowBackIcon data-icon="inline-start" />}
+                <ArrowLeft data-icon="inline-start" />
                 {backLabel || '上一步'}
               </Button>
             )}
           </div>
 
-          {/* Right: save + next */}
-          <div className="flex gap-3 items-center">
+          <div className="flex items-center gap-3">
             {onSaveDraft && (
               <Button
                 variant="ghost"
@@ -129,7 +89,7 @@ export default function WizardShell({
                 aria-label="下一步"
               >
                 {nextLabel || '下一步'}
-                {ArrowForwardIcon && <ArrowForwardIcon data-icon="inline-end" />}
+                <ArrowRight data-icon="inline-end" />
               </Button>
             )}
           </div>

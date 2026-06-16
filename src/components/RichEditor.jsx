@@ -1,8 +1,26 @@
 // src/components/RichEditor.jsx
 import { useRef, useEffect, useCallback } from 'react'
-import { getIcon } from '@/lib/icons'
+import { ICONS } from '@/lib/icons'
+import IconTooltip from '@/components/IconTooltip'
+import { Button } from '@/components/ui/button'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 const COLOR_PRESETS = ['#1a1916', '#c0392b', '#1a5fad', '#27ae60', '#e67e22', '#8e44ad', '#888888']
+
+const FONT_SIZES = [
+  { value: '1', label: '8px' },
+  { value: '2', label: '10px' },
+  { value: '3', label: '12px' },
+  { value: '4', label: '14px' },
+  { value: '5', label: '18px' },
+  { value: '6', label: '24px' },
+]
 
 /**
  * RichEditor — lightweight contentEditable rich-text editor.
@@ -71,9 +89,6 @@ function getListNestingLevel(el, type) {
   return level
 }
 
-const TOOLBAR_BTN =
-  'inline-flex items-center justify-center size-7 shrink-0 rounded border border-border bg-background text-foreground cursor-pointer hover:bg-muted transition-colors'
-
 export default function RichEditor({ value, onChange, minHeight = 100, maxHeight = 260, placeholder }) {
   const editorRef = useRef(null)
 
@@ -111,9 +126,9 @@ export default function RichEditor({ value, onChange, minHeight = 100, maxHeight
   }
 
   return (
-    <div className="border border-zinc-200 rounded-lg overflow-hidden bg-white">
+    <div className="overflow-hidden rounded-lg border border-border bg-card">
       {/* ── Toolbar ── */}
-      <div className="flex flex-wrap items-center gap-1 px-2 py-1.5 bg-muted border-b border-border">
+      <div className="flex flex-wrap items-center gap-1 border-b border-border bg-muted px-2 py-1.5">
         <ToolBtn title="粗體" onClick={() => exec('bold')}><strong>B</strong></ToolBtn>
         <ToolBtn title="斜體" onClick={() => exec('italic')}><em>I</em></ToolBtn>
         <ToolBtn title="底線" onClick={() => exec('underline')}><u>U</u></ToolBtn>
@@ -128,18 +143,16 @@ export default function RichEditor({ value, onChange, minHeight = 100, maxHeight
         <ToolIconBtn title="減少縮排" icon="format_indent_decrease" onClick={() => exec('outdent')} />
         <Sep />
 
-        {/* Font size */}
-        <select
-          title="字型大小"
-          onChange={e => exec('fontSize', e.target.value)}
-          defaultValue=""
-          className="h-7 min-w-[3.25rem] shrink-0 rounded border border-border bg-background px-1.5 text-xs text-foreground cursor-pointer"
-        >
-          <option value="" disabled>大小</option>
-          {[1, 2, 3, 4, 5, 6].map((n, i) => (
-            <option key={n} value={n}>{['8', '10', '12', '14', '18', '24'][i]}px</option>
-          ))}
-        </select>
+        <Select onValueChange={(val) => exec('fontSize', val)}>
+          <SelectTrigger size="sm" className="h-7 min-w-[3.25rem]" aria-label="字型大小">
+            <SelectValue placeholder="大小" />
+          </SelectTrigger>
+          <SelectContent>
+            {FONT_SIZES.map(({ value: sizeValue, label }) => (
+              <SelectItem key={sizeValue} value={sizeValue}>{label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <Sep />
 
         {/* Color presets */}
@@ -150,7 +163,7 @@ export default function RichEditor({ value, onChange, minHeight = 100, maxHeight
             type="button"
             title={c}
             onClick={() => exec('foreColor', c)}
-            className="size-5 shrink-0 rounded-full border-[1.5px] border-zinc-300 cursor-pointer p-0"
+            className="size-5 shrink-0 cursor-pointer rounded-full border-[1.5px] border-border p-0"
             style={{ background: c }}
           />
         ))}
@@ -175,7 +188,7 @@ export default function RichEditor({ value, onChange, minHeight = 100, maxHeight
         onInput={handleInput}
         onBlur={handleInput}
         onKeyDown={handleKeyDown}
-        className="p-4 outline-none overflow-y-auto cursor-text"
+        className="cursor-text overflow-y-auto bg-card p-4 outline-none"
         style={{ minHeight: `${minHeight}px`, maxHeight: `${maxHeight}px` }}
       />
 
@@ -203,29 +216,35 @@ export default function RichEditor({ value, onChange, minHeight = 100, maxHeight
 
 function ToolBtn({ onClick, title, children }) {
   return (
-    <button
-      type="button"
-      title={title}
-      onClick={onClick}
-      className={`${TOOLBAR_BTN} text-xs font-bold leading-none`}
-    >
-      {children}
-    </button>
+    <IconTooltip label={title}>
+      <Button
+        type="button"
+        variant="outline"
+        size="icon-sm"
+        aria-label={title}
+        onClick={onClick}
+        className="text-xs font-bold leading-none"
+      >
+        {children}
+      </Button>
+    </IconTooltip>
   )
 }
 
 function ToolIconBtn({ onClick, title, icon }) {
-  const LucideIcon = getIcon(icon)
+  const LucideIcon = ICONS[icon]
   return (
-    <button
-      type="button"
-      title={title}
-      aria-label={title}
-      onClick={onClick}
-      className={TOOLBAR_BTN}
-    >
-      {LucideIcon ? <LucideIcon className="size-4 shrink-0" aria-hidden="true" /> : null}
-    </button>
+    <IconTooltip label={title}>
+      <Button
+        type="button"
+        variant="outline"
+        size="icon-sm"
+        aria-label={title}
+        onClick={onClick}
+      >
+        {LucideIcon ? <LucideIcon className="size-4 shrink-0" aria-hidden="true" /> : null}
+      </Button>
+    </IconTooltip>
   )
 }
 

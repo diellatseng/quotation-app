@@ -1,46 +1,41 @@
 // src/pages/admin/AdminLayout.jsx
-import { ArrowLeft } from 'lucide-react'
-import { NavLink, Outlet } from 'react-router-dom'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { AppBreadcrumbBar } from '@/components/AppShellHeader'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
-const NAV_LINKS = [
-  { to: '/admin/clients', label: '客戶資料庫' },
-  { to: '/admin/templates', label: '工程範本' },
-  { to: '/admin/services', label: '服務資料庫' },
+const ADMIN_TABS = [
+  { value: 'clients', to: '/admin/clients', label: '客戶資料庫' },
+  { value: 'templates', to: '/admin/templates', label: '工程範本' },
+  { value: 'services', to: '/admin/services', label: '服務資料庫' },
 ]
 
 export default function AdminLayout() {
+  const location = useLocation()
+  const navigate = useNavigate()
+  const activeTab = ADMIN_TABS.find(tab => location.pathname.startsWith(tab.to))?.value ?? 'clients'
+
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="border-b border-border bg-card shadow-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-4 md:px-6 flex items-center justify-between gap-6">
-          <span className="text-lg font-bold">管理介面</span>
-          <nav className="flex items-center gap-6">
-            {NAV_LINKS.map(({ to, label }) => (
-              <NavLink
-                key={to}
-                to={to}
-                className={({ isActive }) =>
-                  `text-sm font-medium transition-colors ${isActive
-                    ? 'text-primary border-b-2 border-primary'
-                    : 'text-muted-foreground hover:text-foreground'}`
-                }
-              >
+      <AppBreadcrumbBar backTo="/dashboard" segments={['管理']} />
+
+      <main className="mx-auto max-w-7xl px-4 py-6 md:px-6">
+        <Tabs
+          value={activeTab}
+          onValueChange={(value) => {
+            const tab = ADMIN_TABS.find(item => item.value === value)
+            if (tab) navigate(tab.to)
+          }}
+          className="mb-6"
+        >
+          <TabsList variant="line" className="h-auto w-full justify-start rounded-none border-b border-border bg-transparent p-0">
+            {ADMIN_TABS.map(({ value, label }) => (
+              <TabsTrigger key={value} value={value} className="rounded-none px-4 py-2.5">
                 {label}
-              </NavLink>
+              </TabsTrigger>
             ))}
-          </nav>
-          <NavLink
-            to="/dashboard"
-            className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors ml-auto"
-          >
-            <span aria-hidden="true">
-              <ArrowLeft className="size-4 shrink-0" aria-hidden="true" />
-            </span>
-            返回
-          </NavLink>
-        </div>
-      </header>
-      <main className="mx-auto max-w-7xl px-4 py-8 md:px-6">
+          </TabsList>
+        </Tabs>
+
         <Outlet />
       </main>
     </div>

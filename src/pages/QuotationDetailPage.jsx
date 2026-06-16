@@ -10,17 +10,16 @@ import {
   validateQuotationRecordForSend,
 } from '../lib/validateQuotation'
 import { FEATURE_NEGOTIATION, FEATURE_VERSIONING } from '../lib/featureFlags'
-import { QuotationStatusBadges } from '@/components/ui/badge'
+import { QuotationStatusBadges, Badge } from '@/components/ui/badge'
 // import NegotiationPanel from '../components/NegotiationPanel' // inactive: negotiation
 import ServiceTable from '../components/ServiceTable'
 import A4Preview from '../components/A4Preview'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { getIcon } from '@/lib/icons'
+import { QuotationDetailSkeleton } from '@/components/skeletons'
+import { AppBackButton, AppBreadcrumbBar } from '@/components/AppShellHeader'
+import { Pencil, Printer } from 'lucide-react'
 
-const ArrowBackIcon = getIcon('arrow_back')
-const PrintIcon = getIcon('print')
-const EditIcon = getIcon('edit')
 
 const COMPANY_INFO = {
   name: import.meta.env.VITE_COMPANY_NAME || '公司名稱',
@@ -141,64 +140,38 @@ export default function QuotationDetailPage() {
   }
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background text-sm text-muted-foreground">
-        載入中…
-      </div>
-    )
+    return <QuotationDetailSkeleton />
   }
 
   if (!qt) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background text-center px-4">
         <p className="text-sm font-medium text-muted-foreground">找不到該報價單</p>
-        <Button variant="outline" size="md" className="mt-4 font-semibold" onClick={() => navigate('/dashboard')}>
-          返回儀表板
-        </Button>
+        <AppBackButton to="/dashboard" label="報價單列表" className="mt-4" />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground pb-12 transition-colors duration-200">
-
-      {/* ── Top Header Navigation Bar ── */}
-      <header className="sticky top-0 z-10 border-b border-border bg-card/80 backdrop-blur-md px-4 py-4 md:px-8 shadow-sm">
-        <div className="mx-auto max-w-7xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="sm"
-              className="font-semibold"
-              onClick={() => navigate('/dashboard')}
-              aria-label="返回儀表板"
-            >
-              {ArrowBackIcon && <ArrowBackIcon data-icon="inline-start" />}
-              返回
-            </Button>
-            <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-xl font-bold tracking-tight text-foreground">
-                  {qt.quote_number}
-                </h1>
-                {FEATURE_VERSIONING && (
-                  <span className="text-xs font-mono bg-muted text-muted-foreground border border-border rounded px-1.5 py-0.5">
-                    v{qt.version}
-                  </span>
-                )}
-                <QuotationStatusBadges
-                  status={qt.status}
-                  isNegotiating={FEATURE_NEGOTIATION && qt.is_negotiating}
-                />
-              </div>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                客戶：{qt.clients?.company_name || '—'}
-              </p>
-            </div>
-          </div>
-
-          {/* Core System Actions Trigger */}
-          <div className="flex flex-wrap items-center gap-2">
+    <div className="min-h-screen bg-background pb-12 text-foreground transition-colors duration-200">
+      <AppBreadcrumbBar
+        backTo="/dashboard"
+        segments={[
+          <span key="quote" className="inline-flex flex-wrap items-center gap-2">
+            <span>{qt.quote_number}</span>
+            {FEATURE_VERSIONING && (
+              <Badge variant="secondary" className="font-mono font-medium">
+                v{qt.version}
+              </Badge>
+            )}
+            <QuotationStatusBadges
+              status={qt.status}
+              isNegotiating={FEATURE_NEGOTIATION && qt.is_negotiating}
+            />
+          </span>,
+        ]}
+        actions={
+          <>
             <Button
               variant="outline"
               size="sm"
@@ -206,7 +179,7 @@ export default function QuotationDetailPage() {
               onClick={handleExport}
               disabled={exporting}
             >
-              {PrintIcon && <PrintIcon data-icon="inline-start" />}
+              <Printer data-icon="inline-start" />
               {exporting ? '匯出中…' : '匯出 PDF'}
             </Button>
 
@@ -218,7 +191,7 @@ export default function QuotationDetailPage() {
                   className="font-semibold"
                   onClick={() => navigate(`/quotation/new?edit=${qt.id}`)}
                 >
-                  {EditIcon && <EditIcon data-icon="inline-start" />}
+                  <Pencil data-icon="inline-start" />
                   編輯草稿
                 </Button>
                 <Button variant="default" size="sm" className="font-semibold" onClick={handleSendQuotation}>
@@ -232,12 +205,15 @@ export default function QuotationDetailPage() {
                 客戶確認簽回
               </Button>
             )}
-          </div>
-        </div>
-      </header>
+          </>
+        }
+      />
 
-      {/* ── Main Layout Workspace ── */}
       <main className="mx-auto max-w-7xl px-4 py-6 md:px-8">
+        <p className="mb-4 text-sm text-muted-foreground">
+          客戶：{qt.clients?.company_name || '—'}
+        </p>
+
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
           <TabsList variant="line" className="h-auto w-full justify-start gap-1 rounded-none border-b border-border bg-transparent p-0">
             <TabsTrigger value="quotation" className="rounded-none px-4 py-2">
@@ -252,9 +228,8 @@ export default function QuotationDetailPage() {
           </TabsList>
         </Tabs>
 
-        {/* A4 Preview Container - Full Width */}
-        <div className="bg-muted/30 rounded-xl border border-border p-4 md:p-6 flex justify-center overflow-auto shadow-inner">
-          <div className="bg-white shadow-md rounded-sm border border-zinc-200 origin-top transform scale-100 max-w-full">
+        <div className="flex justify-center overflow-auto rounded-xl border border-border bg-muted/30 p-4 shadow-inner md:p-6">
+          <div className="max-w-full origin-top scale-100 transform rounded-sm border border-border bg-white shadow-md">
             <A4Preview
               quotation={qt}
               services={services}

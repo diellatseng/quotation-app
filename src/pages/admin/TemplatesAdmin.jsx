@@ -17,9 +17,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { getIcon } from '@/lib/icons'
-
-const PlusIcon = getIcon('add')
+import { AdminListSkeleton } from '@/components/skeletons'
+import { Plus } from 'lucide-react'
 
 export default function TemplatesAdmin() {
   const [templates, setTemplates] = useState([])
@@ -30,14 +29,17 @@ export default function TemplatesAdmin() {
   const [showForm, setShowForm]   = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [loading, setLoading]     = useState(false)
+  const [fetchLoading, setFetchLoading] = useState(true)
 
   const load = async () => {
+    setFetchLoading(true)
     const [{ data: tmpl }, { data: svcs }] = await Promise.all([
       supabase.from('project_templates').select('*, template_services(service_id)').order('name'),
       supabase.from('services').select('id, name, category').order('category').order('name'),
     ])
     setTemplates(tmpl || [])
     setAllServices(svcs || [])
+    setFetchLoading(false)
   }
 
   useEffect(() => { load() }, [])
@@ -109,15 +111,14 @@ export default function TemplatesAdmin() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-bold">工程範本</h2>
+      <div className="mb-6 flex justify-end">
         <Button
           variant="default"
           size="md"
           className="font-semibold"
           onClick={() => { setSelected(null); setForm({ name: '', description: '', category: '' }); setLinkedServices([]); setShowForm(true) }}
         >
-          {PlusIcon && <PlusIcon data-icon="inline-start" />}
+          <Plus data-icon="inline-start" />
           新增範本
         </Button>
       </div>
@@ -125,7 +126,9 @@ export default function TemplatesAdmin() {
       <div className={`grid gap-5 ${showForm ? 'grid-cols-[1fr_1.6fr]' : 'grid-cols-1'}`}>
         {/* Template list */}
         <Card className="gap-0 py-0 shadow-sm">
-          {templates.length === 0 ? (
+          {fetchLoading ? (
+            <AdminListSkeleton rows={8} />
+          ) : templates.length === 0 ? (
             <p className="p-6 text-muted-foreground text-center">尚無工程範本</p>
           ) : templates.map(t => (
             <div key={t.id} onClick={() => select(t)} className={`p-4 border-b border-border cursor-pointer transition-colors ${selected?.id === t.id

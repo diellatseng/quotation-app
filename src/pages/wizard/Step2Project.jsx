@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 
@@ -142,14 +143,14 @@ export default function Step2Project({ data, update }) {
                 {tmpl.description && (
                   <div className="text-xs text-muted-foreground mt-0.5 line-clamp-2 leading-relaxed">{tmpl.description}</div>
                 )}
-                <div className="inline-flex items-center text-xs font-semibold text-primary bg-primary/5 px-2 py-0.5 rounded mt-2 border border-primary/10">
+                <Badge variant="outline" className="mt-2 rounded-md border-primary/10 bg-primary/5 font-semibold text-primary">
                   {(tmpl.template_services || []).length} 項服務
-                </div>
+                </Badge>
               </div>
               {tmpl.category && (
-                <span className="shrink-0 text-xs font-medium px-2.5 py-0.5 bg-muted text-muted-foreground border border-border rounded-full">
+                <Badge variant="secondary" className="shrink-0 rounded-full">
                   {tmpl.category}
-                </span>
+                </Badge>
               )}
             </label>
           ))}
