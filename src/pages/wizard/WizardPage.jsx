@@ -3,11 +3,20 @@ import { useState, useEffect, useCallback } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
-import { useNotification } from '../../context/NotificationContext.jsx'
+import { toast } from 'sonner'
 import { todayCe } from '../../lib/rocDate'
 import { FEATURE_NEGOTIATION, FEATURE_VERSIONING } from '../../lib/featureFlags'
 import WizardShell from '../../components/WizardShell'
-import Dialog from '../../components/Dialog'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import Step1Client from './Step1Client'
 import Step2Project from './Step2Project'
 import Step3Services from './Step3Services'
@@ -62,7 +71,6 @@ export default function WizardPage() {
   const [quotationId, setQuotationId] = useState(null)
   const [showExitDialog, setShowExitDialog] = useState(false)
   const { user } = useAuth()
-  const { success, error, warning } = useNotification()
   const navigate = useNavigate()
 
 
@@ -82,13 +90,12 @@ export default function WizardPage() {
         .from('quotations')
         .select(`
           *,
-          clients(id, company_name),
-          contact_persons(id, name)
+          clients(*)
         `)
         .eq('id', editId)
         .single()
       if (qErr || !q) {
-        error('載入報價單失敗')
+        toast.error('載入報價單失敗', { duration: 6000 })
         setLoading(false)
         return
       }
@@ -108,15 +115,30 @@ export default function WizardPage() {
         .order('sort_order')
 
       if (sErr || pErr) {
-        error('載入資料失敗')
+        toast.error('載入資料失敗', { duration: 6000 })
         setLoading(false)
         return
+      }
+
+      let contacts = []
+      if (q.client_id) {
+        const { data: contactList, error: cErr } = await supabase
+          .from('contact_persons')
+          .select('*')
+          .eq('client_id', q.client_id)
+          .order('is_primary', { ascending: false })
+        if (cErr) {
+          toast.error('載入聯絡人失敗', { duration: 6000 })
+          setLoading(false)
+          return
+        }
+        contacts = contactList || []
       }
 
       // Set data
       setData({
         client: q.clients,
-        contacts: [], // TODO: load contacts if needed
+        contacts,
         selectedContactId: q.contact_person_id,
         project_template_id: q.project_template_id,
         building_permit: q.building_permit || '',
@@ -159,7 +181,7 @@ export default function WizardPage() {
       setLoading(false)
     }
     loadQuotation()
-  }, [editId, error])
+  }, [editId])
 
   const saveDraft = async () => {
     setSaving(true)
@@ -170,7 +192,6 @@ export default function WizardPage() {
 
     if (!qid) {
       // 1. Create project first
-      console.log('📦 Creating project with user:', user?.id, 'project_name:', data.project_name)
       const { data: proj, error: projErr } = await supabase
         .from('projects')
         .insert([{
@@ -188,14 +209,12 @@ export default function WizardPage() {
         }])
         .select()
         .single()
-      console.log('📦 Project result:', { proj, projErr })
       if (projErr || !proj) {
-        error('建立專案失敗：' + (projErr?.message || '未知錯誤'))
+        toast.error('建立專案失敗：' + (projErr?.message || '未知錯誤'), { duration: 6000 })
         setSaving(false)
         return null
       }
       projectId = proj.id
-      console.log('✅ Project created:', projectId)
 
       // 2. Insert new draft quotation with project_id
       const { data: q, error: err } = await supabase
@@ -223,9 +242,9 @@ export default function WizardPage() {
       if (!err && q) {
         qid = q.id           // local var available immediately
         setQuotationId(q.id) // also update React state for future calls
-        success('草稿已儲存')
+        toast.success('草稿已儲存')
       } else {
-        error('儲存草稿失敗：' + (err?.message || '未知錯誤'))
+        toast.error('儲存草稿失敗：' + (err?.message || '未知錯誤'), { duration: 6000 })
         setSaving(false)
         return null
       }
@@ -247,9 +266,9 @@ export default function WizardPage() {
         notes: data.notes,
       }).eq('id', qid)
       if (!err) {
-        success('草稿已儲存')
+        toast.success('草稿已儲存')
       } else {
-        error('儲存草稿失敗：' + err.message)
+        toast.error('儲存草稿失敗：' + err.message, { duration: 6000 })
         setSaving(false)
         return null
       }
@@ -311,8 +330,8 @@ export default function WizardPage() {
 
   const handleNext = async () => {
     if (!canGoNext()) {
-      if (step === 1) warning('請先選擇或建立客戶')
-      if (step === 4) warning('請填寫報價編號、金額，且付款階段百分比需合計100%')
+      if (step === 1) toast.warning('請先選擇或建立客戶')
+      if (step === 4) toast.warning('請填寫報價編號、金額，且付款階段百分比需合計100%')
       return
     }
     setStep(s => s + 1)
@@ -357,15 +376,23 @@ export default function WizardPage() {
 
   return (
     <>
-      <Dialog
-        isOpen={showExitDialog}
-        title="返回清單"
-        message="是否儲存目前的草稿？"
-        confirmText="儲存"
-        cancelText="不儲存"
-        onConfirm={handleExitConfirm}
-        onCancel={handleExitCancel}
-      />
+      <AlertDialog
+        open={showExitDialog}
+        onOpenChange={open => {
+          if (!open) handleExitCancel()
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>返回清單</AlertDialogTitle>
+            <AlertDialogDescription>是否儲存目前的草稿？</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>不儲存</AlertDialogCancel>
+            <AlertDialogAction onClick={handleExitConfirm}>儲存</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <WizardShell
         currentStep={step}
         onNext={step === 4 ? handleFinish : handleNext}
@@ -376,6 +403,7 @@ export default function WizardPage() {
         saving={saving}
         canNext={canGoNext()}
         nextLabel={step === 4 ? '完成並儲存' : undefined}
+        headerSubtitle={editId ? '編輯草稿' : '新增報價'}
       >
         {step === 1 && <Step1Client  {...stepProps} />}
         {step === 2 && <Step2Project {...stepProps} />}

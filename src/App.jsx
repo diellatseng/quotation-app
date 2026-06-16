@@ -2,8 +2,9 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import { AppearanceProvider } from './context/AppearanceContext'
-import { NotificationProvider } from './context/NotificationContext'
-import NotificationCenter from './components/NotificationCenter'
+import { Toaster } from '@/components/ui/sonner'
+import { TooltipProvider } from '@/components/ui/tooltip'
+import { AppLoadingSkeleton } from '@/components/skeletons'
 
 import LoginPage             from './pages/LoginPage'
 import DashboardPage         from './pages/DashboardPage'
@@ -16,18 +17,14 @@ import ServicesAdmin         from './pages/admin/ServicesAdmin'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
-  if (loading) return (
-    <div className="flex items-center justify-center min-h-screen text-base text-muted-foreground">
-      載入中…
-    </div>
-  )
+  if (loading) return <AppLoadingSkeleton />
   return user ? children : <Navigate to="/login" replace />
 }
 
 function AppRoutes() {
   return (
     <>
-      <NotificationCenter />
+      <Toaster richColors />
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
@@ -48,13 +45,13 @@ function AppRoutes() {
 export default function App() {
   return (
     <AppearanceProvider>
-      <NotificationProvider>
+      <TooltipProvider>
         <AuthProvider>
           <BrowserRouter basename={import.meta.env.BASE_URL}>
             <AppRoutes />
           </BrowserRouter>
         </AuthProvider>
-      </NotificationProvider>
+      </TooltipProvider>
     </AppearanceProvider>
   )
 }

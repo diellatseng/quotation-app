@@ -1,8 +1,37 @@
 // src/pages/wizard/Step4Confirm.jsx
 import { useState } from 'react'
 import ROCDateInput from '../../components/ROCDateInput'
-import Switch from '../../components/Switch'
-import IconButton from '../../components/IconButton'
+import { Switch } from '@/components/ui/switch'
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupText,
+} from '@/components/ui/input-group'
+import { Textarea } from '@/components/ui/textarea'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import IconTooltip from '@/components/IconTooltip'
+import { Plus, X } from 'lucide-react'
 import { formatRocDate, formatCeDisplay } from '../../lib/rocDate'
 
 const fmt = (n) => `NT$ ${Number(n || 0).toLocaleString('zh-TW')}`
@@ -83,9 +112,8 @@ export default function Step4Confirm({ data, update }) {
         <p className="text-sm text-muted-foreground">填寫報價費用總額，並設定各階段付款收款條件比率。</p>
       </div>
 
-      <div className="bg-card text-card-foreground border border-border rounded-xl shadow-sm overflow-hidden">
-        {/* Document meta — card header band */}
-        <div className="bg-muted/30 border-b border-border px-6 py-3">
+      <Card className="gap-0 py-0 shadow-sm">
+        <CardHeader className="border-b border-border bg-muted/30 px-6 py-3">
           {!editingMeta ? (
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm min-w-0">
@@ -99,187 +127,205 @@ export default function Step4Confirm({ data, update }) {
                   <span className="font-medium text-foreground">{dateDisplay}</span>
                 </span>
               </div>
-              <button
+              <Button
                 type="button"
+                variant="link"
+                size="sm"
+                className="h-auto shrink-0 p-0 font-semibold"
                 onClick={() => setEditingMeta(true)}
-                className="shrink-0 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
               >
                 編輯
-              </button>
+              </Button>
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-                <div className="space-y-1.5">
-                  <label htmlFor="quote_number" className="block text-xs font-semibold text-foreground">報價編號 *</label>
-                  <input
+              <FieldGroup className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                <Field>
+                  <FieldLabel htmlFor="quote_number">報價編號</FieldLabel>
+                  <Input
                     id="quote_number"
                     type="text"
-                    className="w-full h-10 px-3 text-sm bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
+                    size="md"
+                    className="font-medium"
                     value={data.quote_number}
                     onChange={e => update({ quote_number: e.target.value })}
                     placeholder="QT-2025-00001"
                     required
                   />
-                </div>
+                </Field>
                 <div className="space-y-2">
                   <ROCDateInput
                     id="quote_date"
-                    label="報價日期 *"
+                    label="報價日期"
                     value={data.quote_date}
                     onChange={v => update({ quote_date: v })}
                     useRoc={useRoc}
                     required
                   />
-                  <Switch
-                    id="date_format"
-                    checked={useRoc}
-                    onChange={setUseRoc}
-                    size="sm"
-                    label="使用民國曆顯示"
-                  />
+                  <Field orientation="horizontal" className="w-auto items-center gap-3">
+                    <FieldLabel htmlFor="date_format" className="cursor-pointer">
+                      使用民國曆顯示
+                    </FieldLabel>
+                    <Switch
+                      id="date_format"
+                      checked={useRoc}
+                      onCheckedChange={setUseRoc}
+                    />
+                  </Field>
                 </div>
-              </div>
+              </FieldGroup>
               <div className="flex justify-end">
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-auto p-0 font-semibold text-muted-foreground"
                   onClick={() => setEditingMeta(false)}
-                  className="text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
                 >
                   完成
-                </button>
+                </Button>
               </div>
             </div>
           )}
-        </div>
+        </CardHeader>
 
-        <div className="px-6 py-4">
+        <CardContent className="py-4">
           <div className="flex flex-col sm:flex-row sm:items-end gap-4 sm:gap-8">
-            <div className="space-y-1.5 w-full sm:max-w-xs">
-              <label htmlFor="fee_amount" className="block text-xs font-semibold text-foreground">報價金額 (未稅) *</label>
-              <div className="relative">
-                <span className="absolute left-3 top-2.5 text-sm text-muted-foreground font-medium">NT$</span>
-                <input
+            <Field className="w-full sm:max-w-xs">
+              <FieldLabel htmlFor="fee_amount">報價金額 (未稅)</FieldLabel>
+              <InputGroup className="h-10">
+                <InputGroupAddon>
+                  <InputGroupText className="font-medium">NT$</InputGroupText>
+                </InputGroupAddon>
+                <InputGroupInput
                   id="fee_amount"
                   type="number"
-                  className="w-full h-10 pl-11 pr-3 text-sm bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
+                  className="h-10 font-medium"
                   value={data.fee_amount || ''}
                   onChange={e => update({ fee_amount: e.target.value })}
                   placeholder="0"
                   required
                 />
-              </div>
-            </div>
-            <Switch
-              id="tax_included"
-              checked={data.tax_included}
-              onChange={val => update({ tax_included: val })}
-              size="sm"
-              label="外加 5% 營業稅金"
-            />
+              </InputGroup>
+            </Field>
+            <Field orientation="horizontal" className="w-auto items-center gap-3 sm:pb-1">
+              <FieldLabel htmlFor="tax_included" className="cursor-pointer">
+                外加 5% 營業稅金
+              </FieldLabel>
+              <Switch
+                id="tax_included"
+                checked={data.tax_included}
+                onCheckedChange={val => update({ tax_included: val })}
+              />
+            </Field>
           </div>
-        </div>
+        </CardContent>
 
-        <div className="px-6 py-3 border-t border-border bg-muted/10 flex justify-between items-center text-sm font-semibold">
+        <CardFooter className="justify-between text-sm font-semibold">
           <span className="text-muted-foreground">總計應收金額 ({data.tax_included ? '含稅' : '未稅'})</span>
           <span className="text-lg font-bold text-primary">{fmt(grandTotal)}</span>
-        </div>
-      </div>
+        </CardFooter>
+      </Card>
 
-      <div className="bg-card text-card-foreground border border-border rounded-xl p-6 shadow-sm">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-          <div>
-            <p className="text-base font-semibold text-foreground">付款階段</p>
-            <p className="text-xs text-muted-foreground mt-0.5">付款階段百分比總和必須等於 100%</p>
-          </div>
-          <IconButton
+      <Card className="shadow-sm">
+        <CardHeader>
+          <CardTitle className="font-semibold">付款階段</CardTitle>
+          <CardDescription>付款階段百分比總和必須等於 100%</CardDescription>
+          <CardAction>
+          <Button
             type="button"
-            icon="add"
-            label="新增階段"
-            variant="primary"
+            variant="default"
             size="sm"
+            className="self-start font-semibold shadow-sm"
             onClick={handleAddStage}
-            className="self-start text-xs font-semibold shadow-sm"
-          />
-        </div>
-
-        <div className="flex flex-wrap gap-1.5 mb-4">
+          >
+            <Plus data-icon="inline-start" />
+            新增階段
+          </Button>
+          </CardAction>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-1.5 mb-4">
           {PRESETS.map((p, idx) => (
-            <button
+            <Button
               key={idx}
               type="button"
+              variant="outline"
+              size="sm"
+              className="rounded-full px-3 font-medium"
               onClick={() => handleApplyPreset(p)}
-              className="px-3 py-1.5 text-xs font-medium border border-border bg-background text-foreground rounded-full hover:bg-muted transition-colors"
             >
               {p.label}
-            </button>
+            </Button>
           ))}
         </div>
 
-        <div className="hidden md:block overflow-x-auto border border-border rounded-lg">
-          <table className="w-full text-left border-collapse text-sm">
-            <thead>
-              <tr className="border-b border-border bg-muted/30">
-                <th className="w-10 px-3 py-2 text-xs font-semibold text-muted-foreground text-center">#</th>
-                <th className="px-3 py-2 text-xs font-semibold text-muted-foreground">階段名稱</th>
-                <th className="w-32 px-3 py-2 text-xs font-semibold text-muted-foreground text-right">百分比</th>
-                <th className="w-36 px-3 py-2 text-xs font-semibold text-muted-foreground text-right">金額</th>
-                <th className="w-10 px-2 py-2" aria-label="操作" />
-              </tr>
-            </thead>
-            <tbody>
+        <div className="hidden md:block overflow-hidden rounded-lg border border-border">
+          <Table>
+            <TableHeader>
+              <TableRow className="border-border bg-muted/30 hover:bg-muted/30">
+                <TableHead className="h-auto w-10 px-3 py-2 text-center text-xs font-semibold text-muted-foreground">#</TableHead>
+                <TableHead className="h-auto px-3 py-2 text-xs font-semibold text-muted-foreground">階段名稱</TableHead>
+                <TableHead className="h-auto w-32 px-3 py-2 text-right text-xs font-semibold text-muted-foreground">百分比</TableHead>
+                <TableHead className="h-auto w-36 px-3 py-2 text-right text-xs font-semibold text-muted-foreground">金額</TableHead>
+                <TableHead className="h-auto w-10 px-2 py-2" aria-label="操作" />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {data.payment_stages.map((stage, sIdx) => {
                 const stageShare = Math.round(grandTotal * (Number(stage.percentage || 0) / 100))
                 return (
-                  <tr key={stage.id} className="border-b border-border last:border-b-0">
-                    <td className="px-3 py-2 text-xs font-bold text-muted-foreground text-center align-middle">
+                  <TableRow key={stage.id} className="border-border">
+                    <TableCell className="px-3 py-2 text-center text-xs font-bold text-muted-foreground">
                       {sIdx + 1}
-                    </td>
-                    <td className="px-3 py-2 align-middle">
-                      <input
+                    </TableCell>
+                    <TableCell className="px-3 py-2">
+                      <Input
                         type="text"
                         placeholder="請輸入階段名稱（例：開工前）"
-                        className="w-full h-9 px-3 text-sm bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+                        className="w-full"
                         value={stage.stage_name}
                         onChange={e => handleStageChange(stage.id, { stage_name: e.target.value })}
                         required
                       />
-                    </td>
-                    <td className="px-3 py-2 align-middle">
+                    </TableCell>
+                    <TableCell className="px-3 py-2">
                       <div className="flex items-center justify-end gap-1.5">
-                        <input
+                        <Input
                           type="number"
                           placeholder="0"
-                          className="w-20 h-9 px-2 text-right text-sm bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary font-medium"
+                          className="w-20 text-right font-medium"
                           value={stage.percentage || ''}
                           onChange={e => handleStageChange(stage.id, { percentage: e.target.value })}
                           max="100"
                           required
                         />
-                        <span className="text-sm text-muted-foreground font-medium">%</span>
+                        <span className="text-sm font-medium text-muted-foreground">%</span>
                       </div>
-                    </td>
-                    <td className="px-3 py-2 text-xs font-semibold text-muted-foreground text-right align-middle whitespace-nowrap">
+                    </TableCell>
+                    <TableCell className="px-3 py-2 text-right text-xs font-semibold whitespace-nowrap text-muted-foreground">
                       {fmt(stageShare)}
-                    </td>
-                    <td className="px-2 py-2 text-center align-middle">
-                      <IconButton
-                        type="button"
-                        icon="close"
-                        tooltip="刪除此階段"
-                        aria-label="刪除此階段"
-                        onClick={() => handleRemoveStage(stage.id)}
-                        disabled={data.payment_stages.length <= 1}
-                        variant="ghost"
-                        size="sm"
-                        className="text-muted-foreground hover:text-rose-600 disabled:opacity-30 disabled:hover:text-muted-foreground"
-                      />
-                    </td>
-                  </tr>
+                    </TableCell>
+                    <TableCell className="px-2 py-2 text-center">
+                      <IconTooltip label="刪除此階段">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          aria-label="刪除此階段"
+                          onClick={() => handleRemoveStage(stage.id)}
+                          disabled={data.payment_stages.length <= 1}
+                          className="text-muted-foreground hover:text-rose-600 disabled:opacity-30 disabled:hover:text-muted-foreground"
+                        >
+                          <X />
+                        </Button>
+                      </IconTooltip>
+                    </TableCell>
+                  </TableRow>
                 )
               })}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
 
         <div className="md:hidden space-y-2">
@@ -288,19 +334,19 @@ export default function Step4Confirm({ data, update }) {
             return (
               <div key={stage.id} className="flex flex-wrap items-center gap-3 p-3 bg-muted/20 border border-border rounded-xl">
                 <span className="text-xs font-bold text-muted-foreground w-5 text-center">{sIdx + 1}</span>
-                <input
+                <Input
                   type="text"
                   placeholder="請輸入階段名稱（例：開工前）"
-                  className="flex-1 min-w-[160px] h-9 px-3 text-sm bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+                  className="flex-1 min-w-[160px]"
                   value={stage.stage_name}
                   onChange={e => handleStageChange(stage.id, { stage_name: e.target.value })}
                   required
                 />
                 <div className="flex items-center gap-2 w-28 shrink-0">
-                  <input
+                  <Input
                     type="number"
                     placeholder="0"
-                    className="w-full h-9 px-2 text-right text-sm bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary font-medium"
+                    className="w-full text-right font-medium"
                     value={stage.percentage || ''}
                     onChange={e => handleStageChange(stage.id, { percentage: e.target.value })}
                     max="100"
@@ -311,41 +357,47 @@ export default function Step4Confirm({ data, update }) {
                 <div className="text-xs font-semibold text-muted-foreground w-28 text-right shrink-0">
                   {fmt(stageShare)}
                 </div>
-                <IconButton
-                  type="button"
-                  icon="close"
-                  tooltip="刪除此階段"
-                  aria-label="刪除此階段"
-                  onClick={() => handleRemoveStage(stage.id)}
-                  disabled={data.payment_stages.length <= 1}
-                  variant="ghost"
-                  size="sm"
-                  className="ml-auto text-muted-foreground hover:text-rose-600 disabled:opacity-30 disabled:hover:text-muted-foreground"
-                />
+                <IconTooltip label="刪除此階段">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    aria-label="刪除此階段"
+                    onClick={() => handleRemoveStage(stage.id)}
+                    disabled={data.payment_stages.length <= 1}
+                    className="ml-auto text-muted-foreground hover:text-rose-600 disabled:opacity-30 disabled:hover:text-muted-foreground"
+                  >
+                    <X />
+                  </Button>
+                </IconTooltip>
               </div>
             )
           })}
         </div>
 
-        <div className={`mt-4 p-3 rounded-lg text-xs font-medium flex items-center justify-between border ${isBalanced
-            ? 'bg-emerald-500/5 text-emerald-600 border-emerald-500/10'
-            : 'bg-amber-500/5 text-amber-600 border-amber-500/10'
-          }`}>
-          <span>目前設定百分比總和：</span>
-          <span className="text-sm font-bold">{totalPercentage} % / 100 %</span>
-        </div>
-      </div>
+        <Alert variant={isBalanced ? 'success' : 'warning'} className="mt-4">
+          <AlertDescription className="flex items-center justify-between text-xs font-medium text-current">
+            <span>目前設定百分比總和：</span>
+            <span className="text-sm font-bold">{totalPercentage} % / 100 %</span>
+          </AlertDescription>
+        </Alert>
+        </CardContent>
+      </Card>
 
-      <div className="bg-card text-card-foreground border border-border rounded-xl p-6 shadow-sm">
-        <p className="text-base font-semibold text-foreground mb-3">報價單備註事項</p>
-        <textarea
-          className="w-full p-3 text-sm bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-y"
+      <Card className="shadow-sm">
+        <CardHeader>
+          <CardTitle className="font-semibold">報價單備註事項</CardTitle>
+        </CardHeader>
+        <CardContent>
+        <Textarea
           value={data.notes || ''}
           onChange={e => update({ notes: e.target.value })}
           placeholder="此處內容將顯示於印刷報價單底部（例如：本報價有效期限、付款流程細則說明、其他特定條款等…）"
           rows={4}
+          className="resize-y"
         />
-      </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

@@ -1,13 +1,30 @@
 // src/pages/admin/ServicesAdmin.jsx
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
-import { useNotification } from '../../context/NotificationContext.jsx'
+import { toast } from 'sonner'
 import RichEditor from '../../components/RichEditor.jsx'
-import Button from '../../components/Button'
-import IconButton from '../../components/IconButton'
-
-const LABEL_CLS = 'block text-xs font-semibold text-foreground mb-1.5'
-const INPUT_CLS = 'w-full h-10 px-3 text-sm bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all'
+import { Button } from '@/components/ui/button'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Field,
+  FieldGroup,
+  FieldLabel,
+} from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
+import { AppEmptyState } from '@/components/AppEmptyState'
+import { AdminListSkeleton } from '@/components/skeletons'
+import IconTooltip from '@/components/IconTooltip'
+import { Layers, Plus, X } from 'lucide-react'
 
 export default function ServicesAdmin() {
   const [services, setServices] = useState([])
@@ -15,12 +32,16 @@ export default function ServicesAdmin() {
   const [checklistItems, setChecklistItems] = useState([])
   const [form, setForm] = useState({ name: '', category: '', description: '' })
   const [showForm, setShowForm] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [checklistDeleteId, setChecklistDeleteId] = useState(null)
   const [loading, setLoading] = useState(false)
-  const { success, error } = useNotification()
+  const [fetchLoading, setFetchLoading] = useState(true)
 
   const load = async () => {
+    setFetchLoading(true)
     const { data } = await supabase.from('services').select('*').order('category').order('name')
     setServices(data || [])
+    setFetchLoading(false)
   }
 
   useEffect(() => { load() }, [])
@@ -37,18 +58,21 @@ export default function ServicesAdmin() {
     setLoading(true)
     if (selected) {
       await supabase.from('services').update(form).eq('id', selected.id)
-      success('已更新')
+      toast.success('已更新')
     } else {
       await supabase.from('services').insert([form])
-      success('已新增')
+      toast.success('已新增')
     }
     await load(); setShowForm(false); setSelected(null); setLoading(false)
   }
 
   const deleteSvc = async () => {
-    if (!window.confirm('確定刪除此服務？')) return
     await supabase.from('services').delete().eq('id', selected.id)
-    success('已刪除'); setShowForm(false); setSelected(null); load()
+    toast.success('已刪除')
+    setShowDeleteDialog(false)
+    setShowForm(false)
+    setSelected(null)
+    load()
   }
 
   const addItem = async () => {
@@ -68,6 +92,7 @@ export default function ServicesAdmin() {
   const deleteItem = async (id) => {
     await supabase.from('service_checklist_items').delete().eq('id', id)
     setChecklistItems(prev => prev.filter(i => i.id !== id))
+    setChecklistDeleteId(null)
   }
 
   // Group by category
@@ -80,20 +105,73 @@ export default function ServicesAdmin() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-bold">服務資料庫</h2>
-        <IconButton
-          variant="primary"
-          icon="add"
-          label="新增服務"
+      <AlertDialog
+        open={checklistDeleteId !== null}
+        onOpenChange={open => {
+          if (!open) setChecklistDeleteId(null)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>刪除清單項目</AlertDialogTitle>
+            <AlertDialogDescription>
+              確定要刪除此準備項目嗎？此操作無法復原。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={() => checklistDeleteId && deleteItem(checklistDeleteId)}
+            >
+              刪除
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>刪除服務</AlertDialogTitle>
+            <AlertDialogDescription>確定刪除此服務？</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={deleteSvc}>
+              刪除
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <div className="mb-6 flex justify-end">
+        <Button
+          variant="default"
+          size="md"
+          className="font-semibold"
           onClick={() => { setSelected(null); setForm({ name: '', category: '', description: '' }); setChecklistItems([]); setShowForm(true) }}
-        />
+        >
+          <Plus data-icon="inline-start" />
+          新增服務
+        </Button>
       </div>
 
       <div className={`grid gap-5 ${showForm ? 'grid-cols-[1fr_1.4fr]' : 'grid-cols-1'}`}>
         {/* List */}
-        <div className="bg-card text-card-foreground border border-border rounded-xl shadow-sm overflow-hidden">
-          {Object.entries(grouped).map(([cat, svcs]) => (
+        <Card className="gap-0 py-0 shadow-sm">
+          {fetchLoading ? (
+            <AdminListSkeleton rows={8} />
+          ) : services.length === 0 ? (
+            <AppEmptyState
+              compact
+              embedded
+              icon={Layers}
+              title="尚無服務項目"
+              description="點選上方「新增服務」建立第一筆資料"
+            />
+          ) : (
+            Object.entries(grouped).map(([cat, svcs]) => (
             <div key={cat}>
               <div className="px-4 py-2 bg-muted text-xs font-bold text-muted-foreground uppercase tracking-wide">
                 {cat}
@@ -107,57 +185,75 @@ export default function ServicesAdmin() {
                 </div>
               ))}
             </div>
-          ))}
-          {services.length === 0 && (
-            <p className="p-6 text-muted-foreground text-center">尚無服務項目</p>
+          ))
           )}
-        </div>
+        </Card>
 
         {/* Form */}
         {showForm && (
-          <div className="bg-card text-card-foreground border border-border rounded-xl p-6 shadow-sm">
-            <p className="text-base font-semibold text-foreground mb-4">{selected ? '編輯服務' : '新增服務'}</p>
-            <div className="flex flex-col gap-4 mb-4">
-              <div>
-                <label className={LABEL_CLS}>服務名稱 *</label>
-                <input className={INPUT_CLS} value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
-              </div>
-              <div>
-                <label className={LABEL_CLS}>類別</label>
-                <input className={INPUT_CLS} value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} placeholder="例如：申報作業、勘驗作業" />
-              </div>
-              <div>
-                <label className={LABEL_CLS}>說明</label>
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle className="font-semibold">{selected ? '編輯服務' : '新增服務'}</CardTitle>
+            </CardHeader>
+            <CardContent>
+            <FieldGroup className="gap-4 mb-4">
+              <Field>
+                <FieldLabel>服務名稱</FieldLabel>
+                <Input required value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+              </Field>
+              <Field>
+                <FieldLabel>類別</FieldLabel>
+                <Input value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} placeholder="例如：申報作業、勘驗作業" />
+              </Field>
+              <Field>
+                <FieldLabel>說明</FieldLabel>
                 <RichEditor
                   value={form.description}
                   onChange={html => setForm(f => ({ ...f, description: html }))}
                 />
-              </div>
-            </div>
+              </Field>
+            </FieldGroup>
 
             {/* Checklist items */}
             {selected && (
               <div className="mt-2">
                 <div className="flex justify-between items-center mb-3">
                   <p className="text-base font-semibold text-foreground">客戶準備清單</p>
-                  <IconButton variant="ghost" size="sm" icon="add" label="新增" onClick={addItem} />
+                  <Button variant="ghost" size="sm" className="font-semibold" onClick={addItem}>
+                    <Plus data-icon="inline-start" />
+                    新增
+                  </Button>
                 </div>
                 {checklistItems.map((item, idx) => (
                   <div key={item.id} className="flex gap-2 items-center mb-2">
                     <span className="text-muted-foreground text-sm w-6 text-right shrink-0">{idx + 1}.</span>
-                    <input className={`${INPUT_CLS} flex-1`} value={item.item_text} onChange={e => updateItem(idx, e.target.value)} placeholder="準備項目" />
-                    <IconButton variant="danger" size="sm" icon="close" tooltip="刪除" onClick={() => deleteItem(item.id)} aria-label="刪除" />
+                    <Input className="flex-1" value={item.item_text} onChange={e => updateItem(idx, e.target.value)} placeholder="準備項目" />
+                    <IconTooltip label="刪除">
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        aria-label="刪除"
+                        onClick={() => setChecklistDeleteId(item.id)}
+                      >
+                        <X />
+                      </Button>
+                    </IconTooltip>
                   </div>
                 ))}
               </div>
             )}
 
             <div className="flex gap-3 mt-5">
-              <Button variant="primary" onClick={save} disabled={loading}>{loading ? '儲存中…' : '儲存'}</Button>
-              {selected && <Button variant="danger" onClick={deleteSvc}>刪除</Button>}
-              <Button variant="ghost" onClick={() => { setShowForm(false); setSelected(null) }}>取消</Button>
+              <Button variant="default" size="md" className="font-semibold" onClick={save} disabled={loading}>{loading ? '儲存中…' : '儲存'}</Button>
+              {selected && (
+                <Button variant="destructive" size="md" className="font-semibold" onClick={() => setShowDeleteDialog(true)}>
+                  刪除
+                </Button>
+              )}
+              <Button variant="ghost" size="md" className="font-semibold" onClick={() => { setShowForm(false); setSelected(null) }}>取消</Button>
             </div>
-          </div>
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>

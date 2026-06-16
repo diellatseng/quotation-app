@@ -1,12 +1,25 @@
 // src/pages/admin/TemplatesAdmin.jsx
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
-import { useNotification } from '../../context/NotificationContext.jsx'
-import Button from '../../components/Button'
-import IconButton from '../../components/IconButton'
-
-const LABEL_CLS = 'block text-xs font-semibold text-foreground mb-1.5'
-const INPUT_CLS = 'w-full h-10 px-3 text-sm bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all'
+import { toast } from 'sonner'
+import { Button } from '@/components/ui/button'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
+import { AppEmptyState } from '@/components/AppEmptyState'
+import { AdminListSkeleton } from '@/components/skeletons'
+import { Layers, LayoutTemplate, Plus } from 'lucide-react'
 
 export default function TemplatesAdmin() {
   const [templates, setTemplates] = useState([])
@@ -15,16 +28,19 @@ export default function TemplatesAdmin() {
   const [linkedServices, setLinkedServices] = useState([])
   const [form, setForm]           = useState({ name: '', description: '', category: '' })
   const [showForm, setShowForm]   = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [loading, setLoading]     = useState(false)
-  const { success, error }        = useNotification()
+  const [fetchLoading, setFetchLoading] = useState(true)
 
   const load = async () => {
+    setFetchLoading(true)
     const [{ data: tmpl }, { data: svcs }] = await Promise.all([
       supabase.from('project_templates').select('*, template_services(service_id)').order('name'),
       supabase.from('services').select('id, name, category').order('category').order('name'),
     ])
     setTemplates(tmpl || [])
     setAllServices(svcs || [])
+    setFetchLoading(false)
   }
 
   useEffect(() => { load() }, [])
@@ -54,15 +70,18 @@ export default function TemplatesAdmin() {
         linkedServices.map((sid, i) => ({ template_id: tmplId, service_id: sid, sort_order: i }))
       )
     }
-    success(selected ? '範本已更新' : '範本已新增')
+    toast.success(selected ? '範本已更新' : '範本已新增')
     await load()
     setShowForm(false); setSelected(null); setLoading(false)
   }
 
   const deleteTmpl = async () => {
-    if (!window.confirm('確定刪除此範本？')) return
     await supabase.from('project_templates').delete().eq('id', selected.id)
-    success('已刪除'); setShowForm(false); setSelected(null); load()
+    toast.success('已刪除')
+    setShowDeleteDialog(false)
+    setShowForm(false)
+    setSelected(null)
+    load()
   }
 
   const toggleService = (svcId) => {
@@ -78,21 +97,46 @@ export default function TemplatesAdmin() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-bold">工程範本</h2>
-        <IconButton
-          variant="primary"
-          icon="add"
-          label="新增範本"
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>刪除範本</AlertDialogTitle>
+            <AlertDialogDescription>確定刪除此範本？</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={deleteTmpl}>
+              刪除
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <div className="mb-6 flex justify-end">
+        <Button
+          variant="default"
+          size="md"
+          className="font-semibold"
           onClick={() => { setSelected(null); setForm({ name: '', description: '', category: '' }); setLinkedServices([]); setShowForm(true) }}
-        />
+        >
+          <Plus data-icon="inline-start" />
+          新增範本
+        </Button>
       </div>
 
       <div className={`grid gap-5 ${showForm ? 'grid-cols-[1fr_1.6fr]' : 'grid-cols-1'}`}>
         {/* Template list */}
-        <div className="bg-card text-card-foreground border border-border rounded-xl shadow-sm overflow-hidden">
-          {templates.length === 0 ? (
-            <p className="p-6 text-muted-foreground text-center">尚無工程範本</p>
+        <Card className="gap-0 py-0 shadow-sm">
+          {fetchLoading ? (
+            <AdminListSkeleton rows={8} />
+          ) : templates.length === 0 ? (
+            <AppEmptyState
+              compact
+              embedded
+              icon={LayoutTemplate}
+              title="尚無工程範本"
+              description="點選上方「新增範本」建立第一筆資料"
+            />
           ) : templates.map(t => (
             <div key={t.id} onClick={() => select(t)} className={`p-4 border-b border-border cursor-pointer transition-colors ${selected?.id === t.id
               ? 'bg-primary/10 border-l-4 border-l-primary'
@@ -104,26 +148,29 @@ export default function TemplatesAdmin() {
               </div>
             </div>
           ))}
-        </div>
+        </Card>
 
         {/* Edit form */}
         {showForm && (
-          <div className="bg-card text-card-foreground border border-border rounded-xl p-6 shadow-sm">
-            <p className="text-base font-semibold text-foreground mb-4">{selected ? '編輯範本' : '新增範本'}</p>
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div className="col-span-2">
-                <label className={LABEL_CLS}>範本名稱 *</label>
-                <input className={INPUT_CLS} value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="例如：住宅大樓跑照" />
-              </div>
-              <div>
-                <label className={LABEL_CLS}>類別</label>
-                <input className={INPUT_CLS} value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} placeholder="例如：住宅、商業" />
-              </div>
-              <div>
-                <label className={LABEL_CLS}>說明</label>
-                <input className={INPUT_CLS} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
-              </div>
-            </div>
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle className="font-semibold">{selected ? '編輯範本' : '新增範本'}</CardTitle>
+            </CardHeader>
+            <CardContent>
+            <FieldGroup className="grid grid-cols-2 gap-4 mb-4">
+              <Field className="col-span-2">
+                <FieldLabel>範本名稱</FieldLabel>
+                <Input required value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="例如：住宅大樓跑照" />
+              </Field>
+              <Field>
+                <FieldLabel>類別</FieldLabel>
+                <Input value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} placeholder="例如：住宅、商業" />
+              </Field>
+              <Field>
+                <FieldLabel>說明</FieldLabel>
+                <Input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
+              </Field>
+            </FieldGroup>
 
             {/* Service linking */}
             <p className="text-base font-semibold text-foreground mb-1">連結服務項目</p>
@@ -139,11 +186,9 @@ export default function TemplatesAdmin() {
                   {svcs.map(svc => (
                     <label key={svc.id} className={`flex items-center gap-3 px-4 py-3 border-b border-border cursor-pointer min-h-[44px] ${linkedServices.includes(svc.id) ? 'bg-primary/10' : 'hover:bg-muted/50'
                       }`}>
-                      <input
-                        type="checkbox"
+                      <Checkbox
                         checked={linkedServices.includes(svc.id)}
-                        onChange={() => toggleService(svc.id)}
-                        className="w-5 h-5"
+                        onCheckedChange={() => toggleService(svc.id)}
                       />
                       <span className={`text-sm ${linkedServices.includes(svc.id) ? 'font-semibold' : 'font-normal'}`}>
                         {svc.name}
@@ -153,18 +198,27 @@ export default function TemplatesAdmin() {
                 </div>
               ))}
               {allServices.length === 0 && (
-                <p className="p-4 text-muted-foreground text-center text-sm">
-                  請先在「服務資料庫」新增服務項目
-                </p>
+                <AppEmptyState
+                  compact
+                  embedded
+                  icon={Layers}
+                  title="尚無可連結的服務"
+                  description="請先在「服務資料庫」新增服務項目"
+                />
               )}
             </div>
 
             <div className="flex gap-3 mt-5">
-              <Button variant="primary" onClick={save} disabled={loading}>{loading ? '儲存中…' : '儲存範本'}</Button>
-              {selected && <Button variant="danger" onClick={deleteTmpl}>刪除</Button>}
-              <Button variant="ghost" onClick={() => { setShowForm(false); setSelected(null) }}>取消</Button>
+              <Button variant="default" size="md" className="font-semibold" onClick={save} disabled={loading}>{loading ? '儲存中…' : '儲存範本'}</Button>
+              {selected && (
+                <Button variant="destructive" size="md" className="font-semibold" onClick={() => setShowDeleteDialog(true)}>
+                  刪除
+                </Button>
+              )}
+              <Button variant="ghost" size="md" className="font-semibold" onClick={() => { setShowForm(false); setSelected(null) }}>取消</Button>
             </div>
-          </div>
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>

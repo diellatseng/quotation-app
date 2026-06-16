@@ -4,16 +4,22 @@
   "private": true,
   "homepage": "https://diellatseng.github.io/quotation-app/",
   "dependencies": {
+    "@base-ui/react": "^1.5.0",
+    "@fontsource-variable/geist": "^5.2.9",
     "@supabase/supabase-js": "^2.45.0",
     "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.3.0",
-    "emailjs-com": "^3.2.0",
-    "html2canvas": "^1.4.1",
-    "jspdf": "^2.5.1",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^1.18.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.26.0",
-    "tailwindcss": "^4.3.0"
+    "shadcn": "^4.11.0",
+    "sonner": "^2.0.7",
+    "tailwind-merge": "^3.6.0",
+    "tailwindcss": "^4.3.0",
+    "tw-animate-css": "^1.4.0"
   },
   "scripts": {
     "start": "vite",
@@ -39,7 +45,6 @@
     "gh-pages": "^6.3.0",
     "jsdom": "^29.1.1",
     "prettier": "^3.1.1",
-    "react-scripts": "5.0.1",
     "vite": "^8.0.16",
     "vitest": "^4.1.8"
   },

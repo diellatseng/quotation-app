@@ -1,6 +1,13 @@
 // src/pages/wizard/Step2Project.jsx
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
+import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+
+const NO_TEMPLATE = '__none__'
 
 export default function Step2Project({ data, update }) {
   const [templates, setTemplates] = useState([])
@@ -40,79 +47,82 @@ export default function Step2Project({ data, update }) {
         <p className="text-sm text-muted-foreground">請輸入本工程相關資訊，並選定預設服務項目範本。</p>
       </div>
 
-      <div className="bg-card text-card-foreground border border-border rounded-xl p-6 shadow-sm">
-        <p className="text-base font-semibold text-foreground mb-4">工程基本資料</p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-foreground">工程名稱 *</label>
-            <input
+      <Card className="shadow-sm">
+        <CardHeader>
+          <CardTitle className="font-semibold">工程基本資料</CardTitle>
+        </CardHeader>
+        <CardContent>
+        <FieldGroup className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Field>
+            <FieldLabel>工程名稱</FieldLabel>
+            <Input
               type="text"
-              className="w-full h-10 px-3 text-sm bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               value={data.project_name || ''}
               onChange={e => update({ project_name: e.target.value })}
               placeholder="例如：住宅新建工程"
               required
             />
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-foreground">起造人 / 業主</label>
-            <input
+          </Field>
+          <Field>
+            <FieldLabel>起造人 / 業主</FieldLabel>
+            <Input
               type="text"
-              className="w-full h-10 px-3 text-sm bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               value={data.project_owner || ''}
               onChange={e => update({ project_owner: e.target.value })}
               placeholder="例如：王小明"
             />
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-foreground">建造執照字號</label>
-            <input
+          </Field>
+          <Field>
+            <FieldLabel>建造執照字號</FieldLabel>
+            <Input
               type="text"
-              className="w-full h-10 px-3 text-sm bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               value={data.building_permit || ''}
               onChange={e => update({ building_permit: e.target.value })}
               placeholder="例如：(112)高市工建築字第XXXXX號"
             />
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-foreground">地號資訊</label>
-            <input
+          </Field>
+          <Field>
+            <FieldLabel>地號資訊</FieldLabel>
+            <Input
               type="text"
-              className="w-full h-10 px-3 text-sm bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               value={data.land_section || ''}
               onChange={e => update({ land_section: e.target.value })}
               placeholder="例如：XX區XX段XX地號"
             />
-          </div>
-          <div className="space-y-1.5 md:col-span-2">
-            <label className="text-xs font-semibold text-foreground">工程規模 / 備註說明</label>
-            <input
+          </Field>
+          <Field className="md:col-span-2">
+            <FieldLabel>工程規模 / 備註說明</FieldLabel>
+            <Input
               type="text"
-              className="w-full h-10 px-3 text-sm bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               value={data.project_scale || ''}
               onChange={e => update({ project_scale: e.target.value })}
               placeholder="例如：地上5層，地下1層，RC構造，總樓地板面積..."
             />
-          </div>
-        </div>
-      </div>
+          </Field>
+        </FieldGroup>
+        </CardContent>
+      </Card>
 
-      <div className="bg-card text-card-foreground border border-border rounded-xl p-6 shadow-sm">
-        <p className="text-base font-semibold text-foreground mb-4">選擇服務範本</p>
-        <div className="flex flex-col gap-3">
+      <Card className="shadow-sm">
+        <CardHeader>
+          <CardTitle className="font-semibold">選擇服務範本</CardTitle>
+        </CardHeader>
+        <CardContent>
+        <RadioGroup
+          value={data.project_template_id ?? NO_TEMPLATE}
+          onValueChange={(v) => {
+            if (v === NO_TEMPLATE) selectTemplate(null)
+            else selectTemplate(templates.find(t => t.id === v))
+          }}
+          className="flex flex-col gap-3"
+        >
           <label
             className={`flex items-start gap-4 p-4 border rounded-xl cursor-pointer transition-all hover:bg-muted/40 select-none ${data.project_template_id === null
                 ? 'border-primary bg-primary/[0.02] ring-1 ring-primary'
                 : 'border-border bg-background'
               }`}
           >
-            <input
-              type="radio"
-              name="template"
-              className="w-4 h-4 text-primary focus:ring-primary border-border mt-0.5"
-              checked={data.project_template_id === null}
-              onChange={() => selectTemplate(null)}
-            />
+            <RadioGroupItem value={NO_TEMPLATE} id="template-none" className="mt-0.5" />
             <div>
               <div className="text-sm font-semibold text-foreground">不使用範本</div>
               <div className="text-xs text-muted-foreground mt-0.5">服務內容與查核項目將手動新增與編輯</div>
@@ -127,31 +137,26 @@ export default function Step2Project({ data, update }) {
                   : 'border-border bg-background'
                 }`}
             >
-              <input
-                type="radio"
-                name="template"
-                className="w-4 h-4 text-primary focus:ring-primary border-border mt-0.5"
-                checked={data.project_template_id === tmpl.id}
-                onChange={() => selectTemplate(tmpl)}
-              />
+              <RadioGroupItem value={tmpl.id} id={`template-${tmpl.id}`} className="mt-0.5" />
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-semibold text-foreground">{tmpl.name}</div>
                 {tmpl.description && (
                   <div className="text-xs text-muted-foreground mt-0.5 line-clamp-2 leading-relaxed">{tmpl.description}</div>
                 )}
-                <div className="inline-flex items-center text-[10px] font-semibold text-primary bg-primary/5 px-2 py-0.5 rounded mt-2 border border-primary/10">
+                <Badge variant="outline" className="mt-2 rounded-md border-primary/10 bg-primary/5 font-semibold text-primary">
                   {(tmpl.template_services || []).length} 項服務
-                </div>
+                </Badge>
               </div>
               {tmpl.category && (
-                <span className="shrink-0 text-xs font-medium px-2.5 py-0.5 bg-muted text-muted-foreground border border-border rounded-full">
+                <Badge variant="secondary" className="shrink-0 rounded-full">
                   {tmpl.category}
-                </span>
+                </Badge>
               )}
             </label>
           ))}
-        </div>
-      </div>
+        </RadioGroup>
+        </CardContent>
+      </Card>
     </div>
   )
 }

@@ -1,15 +1,17 @@
 // src/components/ROCDateInput.jsx
 import { useState, useEffect } from 'react'
-import { 
+import {
   ceToRocInput, rocInputToCe, ceInputToCe,
   formatRocInputDisplay, formatCeInputDisplay, formatCeDisplay
 } from '../lib/rocDate'
+import { Field, FieldError, FieldLabel } from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
 
 /**
  * A controlled date input that supports both ROC (民國) and CE (西元) formats.
  * Internally always stores/emits CE date strings (YYYY-MM-DD).
  * Display format uses 年月日 separators.
- * 
+ *
  * Props:
  *   value {string} - CE date string (YYYY-MM-DD)
  *   onChange {function} - Callback when date changes
@@ -37,9 +39,9 @@ export default function ROCDateInput({ value, onChange, useRoc = true, id, label
     setInputValue(raw)
     setError('')
 
-    if (!raw) { 
+    if (!raw) {
       onChange('')
-      return 
+      return
     }
 
     // Try to convert - only emit if valid
@@ -97,25 +99,25 @@ export default function ROCDateInput({ value, onChange, useRoc = true, id, label
     ? '民國年月日，例如 114年12月31日 或 1141231'
     : '西元年月日，例如 2026年12月31日 或 20261231'
 
+  const ariaLabel = label || (useRoc ? '民國日期' : '西元日期')
+
   return (
-    <div>
-      {label && <label htmlFor={id} className="block text-xs font-semibold text-foreground mb-1.5">{label}</label>}
-      <input
+    <Field data-invalid={error ? true : undefined}>
+      {label && <FieldLabel htmlFor={id}>{label}</FieldLabel>}
+      <Input
         id={id}
         type="text"
         inputMode="numeric"
-        className={`w-full h-10 px-3 text-sm bg-background border rounded-lg text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 transition-all ${error
-          ? 'border-destructive focus:ring-destructive/20 focus:border-destructive'
-          : 'border-border focus:ring-primary/20 focus:border-primary'
-          }`}
+        size="md"
         value={displayValue}
         onChange={handleChange}
         onBlur={handleBlur}
         placeholder={placeholder}
         required={required}
-        aria-label={label || (useRoc ? '民國日期' : '西元日期')}
+        aria-invalid={error ? true : undefined}
+        aria-label={label ? undefined : ariaLabel}
       />
-      {error && <p className="text-xs text-destructive mt-1">{error}</p>}
-    </div>
+      {error && <FieldError>{error}</FieldError>}
+    </Field>
   )
 }

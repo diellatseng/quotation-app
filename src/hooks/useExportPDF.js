@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { toast } from 'sonner'
 
 const PDF_SERVER_URL = import.meta.env.VITE_PDF_SERVER_URL || 'http://localhost:3001'
 
@@ -29,12 +30,18 @@ export function useExportPDF() {
       // Remove .a4-page-break dividers before serialising — they are preview-only
       // and their presence causes Puppeteer to render a blank page between pages
       // (the break-after on [data-page] fires, then Puppeteer sees more content).
-      const container = previewRef.current?.cloneNode(true)
-      if (!container) return
+      const container = previewRef?.current?.cloneNode(true)
+      if (!container) {
+        toast.error('找不到預覽內容，無法匯出 PDF', { duration: 6000 })
+        return
+      }
       container.querySelectorAll('.a4-page-break').forEach(el => el.remove())
 
       const pageEls = container.querySelectorAll('[data-page]')
-      if (!pageEls?.length) return
+      if (!pageEls?.length) {
+        toast.error('預覽尚未完成排版，請稍候再試', { duration: 6000 })
+        return
+      }
 
       const pagesHtml = Array.from(pageEls).map(el => el.outerHTML).join('\n')
 
@@ -88,17 +95,22 @@ export function useExportPDF() {
     }
     /* ── Extracted A4Preview styles ── */
     ${inlinedCss}
-    /* ── PDF pagination ── */
-    /* .a4-page-break elements are removed from the DOM before serialisation,
-       so this rule is a safety net only. */
+    /* ── PDF pagination (export-only; does not change preview CSS) ── */
+    @page { size: 794px 1123px; margin: 0; }
     .a4-page-break { display: none !important; }
+    .a4-page {
+      width: 794px;
+      height: 1123px;
+      max-height: 1123px;
+      box-sizing: border-box;
+      page-break-inside: avoid;
+      break-inside: avoid-page;
+    }
     [data-page] {
       display: block;
       break-after: page;
       page-break-after: always;
-      break-inside: avoid;
     }
-    /* No trailing break after the final page */
     [data-page]:last-of-type {
       break-after: avoid;
       page-break-after: avoid;
@@ -123,17 +135,20 @@ ${pagesHtml}
       }
 
       const blob = await res.blob()
-      const url  = URL.createObjectURL(blob)
-      const a    = document.createElement('a')
-      a.href     = url
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
       a.download = `${filename}.pdf`
+      a.style.display = 'none'
+      document.body.appendChild(a)
       a.click()
+      document.body.removeChild(a)
       URL.revokeObjectURL(url)
 
       if (onSuccess) await onSuccess()
     } catch (err) {
       console.error('[useExportPDF]', err)
-      alert(`PDF 匯出失敗：${err.message}`)
+      toast.error(`PDF 匯出失敗：${err.message}`, { duration: 6000 })
     } finally {
       setExporting(false)
     }

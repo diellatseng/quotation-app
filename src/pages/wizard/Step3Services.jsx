@@ -1,8 +1,10 @@
 // src/pages/wizard/Step3Services.jsx
 import { useEffect } from 'react'
+import { MessageSquare } from 'lucide-react'
+import { Badge, DiffBadge } from '@/components/ui/badge'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import ServiceTable from '../../components/ServiceTable'
-import DiffBadge from '../../components/DiffBadge'
-import Icon from '../../components/Icon'
 import { FEATURE_NEGOTIATION, FEATURE_VERSIONING } from '../../lib/featureFlags'
 
 function computeDiff(current, parent) {
@@ -71,36 +73,42 @@ export default function Step3Services({ data, update, parentServices = null, neg
       </div>
 
       {showDiffBanner && (
-        <div className="p-4 rounded-xl text-sm border bg-muted/40 border-border flex flex-wrap items-center gap-2">
-          <span className="font-medium text-foreground">版本差異比較：</span>
-          {addedCount > 0 && <DiffBadge type="added" count={addedCount} />}
-          {modifiedCount > 0 && <DiffBadge type="modified" count={modifiedCount} />}
-          {removedCount > 0 && <DiffBadge type="removed" count={removedCount} />}
-        </div>
+        <Alert>
+          <AlertDescription className="flex flex-wrap items-center gap-2">
+            <span className="font-medium text-foreground">版本差異比較：</span>
+            {addedCount > 0 && <DiffBadge type="added" count={addedCount} />}
+            {modifiedCount > 0 && <DiffBadge type="modified" count={modifiedCount} />}
+            {removedCount > 0 && <DiffBadge type="removed" count={removedCount} />}
+          </AlertDescription>
+        </Alert>
       )}
 
       {FEATURE_NEGOTIATION && negContext && (
-        <div className="p-4 rounded-xl text-sm border bg-primary/[0.02] border-primary/20 flex items-center gap-2">
-          <Icon name="forum" className="text-lg leading-none text-primary shrink-0" title="" />
-          <span className="text-foreground">
+        <Alert className="border-primary/20 bg-primary/[0.02]">
+          <MessageSquare className="size-5 shrink-0 text-primary" aria-hidden="true" />
+          <AlertDescription className="text-foreground">
             議價歷史記錄金額：<strong className="font-bold text-primary">NT$ {Number(negContext.amount).toLocaleString('zh-TW')}</strong>
             {negContext.notes && <span className="text-muted-foreground"> ／ {negContext.notes}</span>}
-          </span>
-        </div>
+          </AlertDescription>
+        </Alert>
       )}
 
-      <div className="bg-card text-card-foreground border border-border rounded-xl p-6 shadow-sm">
-        <div className="flex items-center justify-between mb-4">
-          <p className="text-base font-semibold text-foreground">服務項目列表</p>
-          <span className="text-xs font-medium bg-muted text-muted-foreground px-2.5 py-0.5 rounded-full border border-border">
-            已加入 {data.services.filter(s => !s._removed).length} 項
-          </span>
-        </div>
+      <Card className="shadow-sm">
+        <CardHeader>
+          <CardTitle className="font-semibold">服務項目列表</CardTitle>
+          <CardAction>
+            <Badge variant="secondary" className="rounded-full">
+              已加入 {data.services.filter(s => !s._removed).length} 項
+            </Badge>
+          </CardAction>
+        </CardHeader>
+        <CardContent>
         <ServiceTable
           services={data.services}
           onChange={handleChange}
         />
-      </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

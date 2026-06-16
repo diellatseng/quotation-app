@@ -1,20 +1,44 @@
 // src/components/ServiceTable.jsx
-import { useState, useRef, useEffect } from 'react'
-import { createPortal } from 'react-dom'
+import { useState, useRef } from 'react'
 import RichEditor from './RichEditor'
-import Icon from './Icon'
-import IconButton from './IconButton'
-import DiffBadge from './DiffBadge'
+import { ChevronsDown, ChevronsUp, ChevronDown, ChevronRight, GripVertical, ListChecks, Pencil, Plus, Trash2, X } from 'lucide-react'
+import { AppEmptyState } from '@/components/AppEmptyState'
+import IconTooltip from '@/components/IconTooltip'
+import { Badge, DiffBadge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import {
+  getServiceRowIndexBadgeClass,
+  getServiceRowState,
+  ServiceRowSection,
+  ServiceRowShell,
+} from './ServiceRowShell'
 import { FEATURE_VERSIONING } from '../lib/featureFlags'
-import Button from '../components/Button'
 
 export default function ServiceTable({ services, onChange, readOnly = false }) {
   const [checklistIdx, setChecklistIdx] = useState(null)
   const [editingDesc, setEditingDesc] = useState(null)
   const [draftDesc, setDraftDesc] = useState('')
   const [collapsedDescs, setCollapsedDescs] = useState({})
-  const [confirmDeleteIdx, setConfirmDeleteIdx] = useState(null)
-  const confirmTimer = useRef(null)
+  const [deleteDialogIdx, setDeleteDialogIdx] = useState(null)
 
   // ── Drag state ────────────────────────────────────────────────────────────
   const dragIdx = useRef(null)
@@ -22,7 +46,7 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
   const [draggingIdx, setDraggingIdx] = useState(null)
   const [dragOverIdxState, setDragOverIdxState] = useState(null)
 
-  const handleDragStart = (idx) => { dragIdx.current = idx; setDraggingIdx(idx); setConfirmDeleteIdx(null) }
+  const handleDragStart = (idx) => { dragIdx.current = idx; setDraggingIdx(idx) }
   const handleDragEnter = (idx) => {
     if (idx === dragIdx.current) return
     dragOverIdx.current = idx; setDragOverIdxState(idx)
@@ -51,18 +75,12 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
     if (checklistIdx === idx) setChecklistIdx(null)
     const next = { ...collapsedDescs }; delete next[idx]; setCollapsedDescs(next)
   }
-  // Two-step delete: first click arms confirmation (auto-resets after 3s), second confirms.
-  const requestDelete = (idx) => {
-    clearTimeout(confirmTimer.current)
-    if (confirmDeleteIdx === idx) {
-      setConfirmDeleteIdx(null)
-      removeService(idx)
-      return
-    }
-    setConfirmDeleteIdx(idx)
-    confirmTimer.current = setTimeout(() => setConfirmDeleteIdx(null), 3000)
+  // Two-step delete replaced by AlertDialog — see deleteDialogIdx state.
+  const confirmDeleteService = () => {
+    if (deleteDialogIdx === null) return
+    removeService(deleteDialogIdx)
+    setDeleteDialogIdx(null)
   }
-  useEffect(() => () => clearTimeout(confirmTimer.current), [])
   const addService = () => onChange([...services, {
     id: crypto.randomUUID(), service_name: '', category: '',
     description: '', checklist_items: [], is_added: true,
@@ -108,51 +126,77 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
   const openChecklist = (idx) => setChecklistIdx(idx)
   const closeChecklist = () => setChecklistIdx(null)
 
-  // Close the checklist modal with Escape
-  useEffect(() => {
-    if (checklistIdx == null) return
-    const onKey = (e) => { if (e.key === 'Escape') closeChecklist() }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [checklistIdx])
-
   // ── Empty state ───────────────────────────────────────────────────────────
   if (!services.length) return (
-    <div className="text-center py-12 px-6 text-muted-foreground">
-      <p className="text-base mb-4">尚無服務項目。請從工程範本載入或手動新增。</p>
-      {!readOnly && (
-        <IconButton
-          variant="accent"
-          size="normal"
-          icon="add"
-          label="新增服務項目"
-          onClick={addService}
-        />
-      )}
-    </div>
+    <AppEmptyState
+      icon={ListChecks}
+      title="尚無服務項目"
+      description="請從工程範本載入或手動新增"
+      action={
+        !readOnly ? (
+          <Button
+            variant="accent"
+            size="md"
+            className="font-semibold"
+            onClick={addService}
+          >
+            <Plus data-icon="inline-start" />
+            新增服務項目
+          </Button>
+        ) : null
+      }
+    />
   )
 
   return (
     <div>
+      <AlertDialog
+        open={deleteDialogIdx !== null}
+        onOpenChange={open => {
+          if (!open) setDeleteDialogIdx(null)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>刪除服務項目</AlertDialogTitle>
+            <AlertDialogDescription>
+              確定要刪除此服務項目嗎？此操作無法復原。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={confirmDeleteService}>
+              刪除
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* ── Toolbar ─────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between gap-2 mb-3 flex-wrap min-h-[28px]">
         {!readOnly && (
           <span className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Icon name="drag_indicator" className="text-base leading-none" title="" />
+            <GripVertical className="size-4 shrink-0" aria-hidden="true" />
             拖曳左側可調整順序
           </span>
         )}
         {hasAnyDesc && (
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="sm"
             onClick={allCollapsed ? expandAll : collapseAll}
             title={allCollapsed ? '展開所有說明' : '折疊所有說明'}
             aria-label={allCollapsed ? '展開所有說明' : '折疊所有說明'}
-            className="ml-auto inline-flex items-center gap-1 h-7 px-2.5 text-xs font-medium rounded-md text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer transition-colors whitespace-nowrap"
+            className="ml-auto h-7 px-2.5 text-xs font-medium text-muted-foreground whitespace-nowrap"
           >
-            <Icon name={allCollapsed ? 'unfold_more' : 'unfold_less'} title="" />
+            {allCollapsed ? (
+              <ChevronsDown className="size-4 shrink-0" aria-hidden="true" />
+            ) : (
+              <ChevronsUp className="size-4 shrink-0" aria-hidden="true" />
+            )}
             {allCollapsed ? '全部展開' : '全部折疊'}
-          </button>
+          </Button>
         )}
       </div>
 
@@ -167,71 +211,65 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
           const diff = FEATURE_VERSIONING ? svc.diff_status : null
           const isRemoved = diff === 'removed'
           const checklistCount = (svc.checklist_items || []).filter(i => i.item_text?.trim()).length
-
-          // Dynamic border/bg depend on runtime state
-          const cardClasses = `
-            ${isOver ? 'border-2 border-dashed border-accent' : ''}
-            ${diff === 'added' ? 'border-2 border-green-500' : ''}
-            ${diff === 'modified' ? 'border-2 border-yellow-400' : ''}
-            ${diff === 'removed' ? 'border-2 border-red-400' : ''}
-            ${!isOver && !diff && svc.is_added ? 'border-2 border-accent' : ''}
-            ${!isOver && !diff && !svc.is_added ? 'border border-border' : ''}
-            rounded-md
-            overflow-hidden
-            ${isDragging ? 'opacity-40' : isRemoved ? 'opacity-70' : 'opacity-100'}
-            transition-opacity
-            ${isDragging ? 'cursor-grabbing' : 'cursor-default'}
-          `
-
-          const cardBgClasses = `
-            ${isDragging ? 'bg-muted' : ''}
-            ${diff === 'added' ? 'bg-green-50' : ''}
-            ${diff === 'modified' ? 'bg-yellow-50' : ''}
-            ${diff === 'removed' ? 'bg-red-50' : ''}
-            ${svc.is_added && !diff ? 'bg-accent-subtle' : ''}
-            ${!isDragging && !diff && !svc.is_added ? 'bg-card' : ''}
-          `
+          const rowState = getServiceRowState({
+            isOver,
+            diff,
+            isAdded: svc.is_added,
+            isDragging,
+          })
 
           return (
-            <div
+            <ServiceRowShell
               key={svc.service_id || idx}
+              state={rowState}
+              isDragging={isDragging}
+              isRemoved={isRemoved}
               draggable={!readOnly && !isRemoved && !isEditing}
               onDragStart={() => !isRemoved && handleDragStart(idx)}
               onDragEnter={() => handleDragEnter(idx)}
               onDragOver={e => e.preventDefault()}
               onDragEnd={handleDragEnd}
-              className={cardClasses + ' ' + cardBgClasses}
             >
               {/* ── Header row ─────────────────────────────────────────── */}
-              <div className="flex items-center gap-2 px-3 py-2 min-h-[52px]">
+              <ServiceRowSection className="flex min-h-[52px] items-center gap-2 py-2">
 
                 {/* Drag handle */}
                 {!readOnly && (
-                  <div title="拖曳調整順序" className="cursor-grab flex-shrink-0 user-select-none grid grid-cols-2 gap-1">
-                    {[0, 1, 2, 3, 4, 5].map(i => (
-                      <span key={i} className="w-1 h-1 rounded-full bg-muted-foreground" />
-                    ))}
-                  </div>
+                  <IconTooltip label="拖曳調整順序">
+                    <div
+                      className="grid shrink-0 cursor-grab grid-cols-2 gap-1 user-select-none"
+                      tabIndex={0}
+                      role="button"
+                      aria-label="拖曳調整順序"
+                    >
+                      {[0, 1, 2, 3, 4, 5].map(i => (
+                        <span key={i} className="h-1 w-1 rounded-full bg-muted-foreground" />
+                      ))}
+                    </div>
+                  </IconTooltip>
                 )}
 
                 {/* Disclosure chevron (leading) */}
-                {!isRemoved && (
-                  <IconButton
-                    icon={collapsed ? 'keyboard_arrow_right' : 'keyboard_arrow_down'}
-                    tooltip={collapsed ? '展開說明' : '摺疊說明'}
-                    onClick={() => toggleCollapse(idx)}
-                    variant="ghost"
-                    size="sm"
-                  />
-                )}
+                {!isRemoved && (() => {
+                  const CollapseIcon = collapsed ? ChevronRight : ChevronDown
+                  return (
+                    <IconTooltip label={collapsed ? '展開說明' : '摺疊說明'}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label={collapsed ? '展開說明' : '摺疊說明'}
+                        onClick={() => toggleCollapse(idx)}
+                      >
+                        <CollapseIcon />
+                      </Button>
+                    </IconTooltip>
+                  )
+                })()}
 
                 {/* Number badge — dynamic colours */}
-                <div className={`
-                  w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0
-                  ${isRemoved ? 'bg-red-400 text-red-900' : svc.is_added ? 'bg-accent text-white' : 'bg-muted text-muted-foreground'}
-                `}>
+                <div className={getServiceRowIndexBadgeClass({ isRemoved, isAdded: svc.is_added })}>
                   {isRemoved ? (
-                    <Icon name="close" className="text-sm leading-none" title="" />
+                    <X className="size-3.5 shrink-0" aria-hidden="true" />
                   ) : (
                     idx + 1
                   )}
@@ -245,8 +283,8 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                     {svc.service_name}
                   </span>
                 ) : (
-                  <input
-                    className="flex-grow-[2] min-w-0 px-3 py-1.5 border border-border rounded-md bg-background text-foreground text-sm font-semibold focus:outline-none focus:border-primary"
+                  <Input
+                    className="min-w-0 flex-[2] font-semibold"
                     value={svc.service_name}
                     onChange={e => updateService(idx, 'service_name', e.target.value)}
                     placeholder="服務項目名稱"
@@ -257,11 +295,11 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                 {/* Category */}
                 {readOnly ? (
                   svc.category && (
-                    <span className="inline-flex items-center flex-shrink-0 px-3 py-0.5 rounded-full text-xs bg-muted text-muted-foreground border border-border whitespace-nowrap">{svc.category}</span>
+                    <Badge variant="secondary" className="shrink-0 rounded-full whitespace-nowrap">{svc.category}</Badge>
                   )
                 ) : (
-                  <input
-                    className="w-28 px-3 py-1.5 border border-border rounded-md bg-background text-foreground text-sm focus:outline-none focus:border-primary min-w-0"
+                  <Input
+                    className="w-28 min-w-0"
                     value={svc.category || ''}
                     onChange={e => updateService(idx, 'category', e.target.value)}
                     placeholder="類別"
@@ -270,7 +308,7 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                 )}
 
                 {svc.is_added && !diff && (
-                  <span className="inline-flex items-center flex-shrink-0 px-2 py-0.5 rounded-full text-xs font-bold bg-accent-subtle text-accent border border-accent whitespace-nowrap">新增</span>
+                  <Badge className="shrink-0 rounded-full border-highlight-border bg-highlight font-bold text-highlight-text whitespace-nowrap">新增</Badge>
                 )}
 
                 {/* Right action cluster */}
@@ -279,64 +317,59 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
 
                     {/* Checklist indicator + one-click opener */}
                     {(!readOnly || checklistCount > 0) && (
-                      <button
+                      <Button
                         type="button"
+                        variant={checklistCount > 0 ? 'outline' : 'ghost'}
+                        size="sm"
                         onClick={() => openChecklist(idx)}
                         title={checklistCount > 0 ? `客戶準備清單（${checklistCount} 項）` : '新增客戶準備清單'}
                         aria-label={checklistCount > 0 ? `客戶準備清單，${checklistCount} 項` : '新增客戶準備清單'}
-                        className={`inline-flex items-center gap-1 h-7 px-2 rounded-md text-xs font-semibold border cursor-pointer transition-colors ${checklistCount > 0
-                          ? 'bg-primary/10 text-primary border-primary/20 hover:bg-primary/15'
-                          : 'bg-transparent text-muted-foreground border-transparent hover:bg-muted hover:text-foreground'
+                        className={`h-7 gap-1 px-2 text-xs font-semibold ${checklistCount > 0
+                          ? 'border-primary/20 bg-primary/10 text-primary hover:bg-primary/15'
+                          : 'text-muted-foreground'
                           }`}
                       >
-                        <Icon name="checklist" title="" />
+                        <ListChecks className="size-4 shrink-0" aria-hidden="true" />
                         {checklistCount > 0 && <span>{checklistCount}</span>}
-                      </button>
+                      </Button>
                     )}
 
                     {/* Edit description */}
                     {!readOnly && !isEditing && (
-                      <IconButton
-                        icon="edit"
-                        tooltip={hasDesc ? '編輯說明' : '新增說明'}
-                        onClick={() => startEditFromMenu(idx)}
-                        variant="ghost"
-                        size="sm"
-                      />
+                      <IconTooltip label={hasDesc ? '編輯說明' : '新增說明'}>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label={hasDesc ? '編輯說明' : '新增說明'}
+                          onClick={() => startEditFromMenu(idx)}
+                        >
+                          <Pencil />
+                        </Button>
+                      </IconTooltip>
                     )}
 
-                    {/* Delete service — two-step inline confirm */}
+                    {/* Delete service */}
                     {!readOnly && (
-                      confirmDeleteIdx === idx ? (
-                        <button
-                          type="button"
-                          onClick={() => requestDelete(idx)}
-                          title="再次點擊以確認刪除"
-                          aria-label="確認刪除服務項目"
-                          className="inline-flex items-center gap-1 h-8 px-2.5 rounded-md text-xs font-semibold border border-red-300 bg-red-50 text-red-600 hover:bg-red-100 cursor-pointer transition-colors whitespace-nowrap animate-in fade-in zoom-in-95 duration-150"
-                        >
-                          <Icon name="delete" title="" />
-                          確定刪除？
-                        </button>
-                      ) : (
-                        <IconButton
-                          icon="delete"
-                          tooltip="刪除服務項目"
-                          onClick={() => requestDelete(idx)}
+                      <IconTooltip label="刪除服務項目">
+                        <Button
                           variant="ghost"
-                          size="sm"
-                          className="!text-muted-foreground hover:!bg-red-50 hover:!text-red-600"
-                        />
-                      )
+                          size="icon"
+                          aria-label="刪除服務項目"
+                          onClick={() => setDeleteDialogIdx(idx)}
+                          className="text-muted-foreground hover:bg-destructive-muted hover:text-destructive-muted-text"
+                        >
+                          <Trash2 />
+                        </Button>
+                      </IconTooltip>
                     )}
                   </div>
                 )}
                 {isRemoved && <div className="ml-auto" />}
-              </div>
+              </ServiceRowSection>
 
               {/* ── Description section (expanded) ───────────────────────── */}
               {!isRemoved && !collapsed && (
-                <div className="border-t border-border px-3 py-3">
+                <ServiceRowSection className="border-t border-border py-3">
                   <div className={`
                     flex justify-between items-center
                     ${(isEditing || hasDesc) ? 'mb-2' : ''}
@@ -346,7 +379,9 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                     {!readOnly && isEditing && (
                       <div className="flex gap-1.5">
                         <Button
+                          variant="outline"
                           size="sm"
+                          className="font-semibold"
                           onClick={cancelEdit}
                         >
                           取消
@@ -354,6 +389,7 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                         <Button
                           variant="accent"
                           size="sm"
+                          className="font-semibold"
                           onClick={() => commitEdit(idx)}
                         >
                           完成
@@ -384,12 +420,15 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                       placeholder="輸入服務說明，可使用粗體、顏色等格式…"
                     />
                   )}
-                </div>
+                </ServiceRowSection>
               )}
 
               {/* ── Description stub (collapsed, has content) ────────────── */}
               {!isRemoved && collapsed && hasDesc && (
-                <div className="border-t border-border px-3 py-1.5 text-xs text-muted-foreground cursor-pointer bg-muted flex items-center gap-2" onClick={() => toggleCollapse(idx)}>
+                <ServiceRowSection
+                  className="flex cursor-pointer items-center gap-2 border-t border-border bg-muted py-1.5 text-xs text-muted-foreground"
+                  onClick={() => toggleCollapse(idx)}
+                >
                   <span
                     className="flex-1 overflow-hidden whitespace-nowrap text-ellipsis italic"
                     dangerouslySetInnerHTML={{
@@ -397,52 +436,65 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                         (svc.description || '').replace(/<[^>]*>/g, ' ').trim().slice(0, 80) + '…'
                     }}
                   />
-                </div>
+                </ServiceRowSection>
               )}
 
-            </div>
+            </ServiceRowShell>
           )
         })}
       </div>
 
       {!readOnly && (
-        <IconButton
-          variant="normal"
-          className="mt-4 w-full"
-          icon="add"
-          label="新增服務項目"
+        <Button
+          variant="outline"
+          size="md"
+          className="mt-4 w-full font-semibold"
           onClick={addService}
-        />
+        >
+          <Plus data-icon="inline-start" />
+          新增服務項目
+        </Button>
       )}
 
-      {/* ── Checklist modal ─────────────────────────────────────────────── */}
-      {checklistIdx != null && services[checklistIdx] && createPortal(
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-4 animate-in fade-in duration-150"
-          onClick={closeChecklist}
-          role="dialog"
-          aria-modal="true"
-          aria-label="客戶準備清單"
-        >
-          <div
-            className="w-full max-w-lg max-h-[80vh] flex flex-col bg-card text-card-foreground rounded-xl border border-border shadow-xl animate-in zoom-in-95 duration-200"
-            onClick={e => e.stopPropagation()}
+      {/* ── Checklist dialog ────────────────────────────────────────────── */}
+      <Dialog
+        open={checklistIdx != null && !!services[checklistIdx]}
+        onOpenChange={(open) => { if (!open) closeChecklist() }}
+      >
+        {checklistIdx != null && services[checklistIdx] && (
+          <DialogContent
+            className="flex max-h-[80vh] w-full max-w-lg flex-col gap-0 overflow-hidden p-0 sm:max-w-lg"
+            showCloseButton={false}
           >
-            {/* Header */}
-            <div className="flex items-start justify-between gap-3 px-5 py-4 border-b border-border">
-              <div className="min-w-0">
-                <h3 className="text-base font-semibold text-foreground">客戶準備清單</h3>
-                <p className="text-xs text-muted-foreground truncate mt-0.5">
+            <DialogHeader className="flex-row items-start justify-between gap-3 border-b border-border px-5 py-4">
+              <div className="min-w-0 space-y-1">
+                <DialogTitle>客戶準備清單</DialogTitle>
+                <DialogDescription className="truncate">
                   {services[checklistIdx].service_name || '未命名服務'}
-                </p>
+                </DialogDescription>
               </div>
-              <IconButton icon="close" tooltip="關閉" variant="ghost" size="sm" onClick={closeChecklist} />
-            </div>
+              <IconTooltip label="關閉">
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label="關閉"
+                  onClick={closeChecklist}
+                >
+                  <X />
+                </Button>
+              </IconTooltip>
+            </DialogHeader>
 
-            {/* Body */}
             <div className="flex-1 overflow-auto px-5 py-4">
               {(services[checklistIdx].checklist_items || []).length === 0 && (
-                <p className="text-sm text-muted-foreground mb-3">尚無清單項目</p>
+                <AppEmptyState
+                  compact
+                  embedded
+                  icon={ListChecks}
+                  title="尚無清單項目"
+                  description={readOnly ? undefined : '點選下方按鈕新增第一項'}
+                  className="mb-3"
+                />
               )}
 
               <div className="flex flex-col gap-2">
@@ -454,8 +506,8 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                     {readOnly ? (
                       <span className="flex-1 text-sm text-foreground">{item.item_text}</span>
                     ) : (
-                      <input
-                        className="flex-1 px-3 py-1.5 border border-border rounded-md bg-background text-foreground text-sm focus:outline-none focus:border-primary"
+                      <Input
+                        className="flex-1"
                         value={item.item_text}
                         onChange={e => updateChecklistItem(checklistIdx, iIdx, e.target.value)}
                         placeholder="準備項目說明"
@@ -463,41 +515,43 @@ export default function ServiceTable({ services, onChange, readOnly = false }) {
                       />
                     )}
                     {!readOnly && (
-                      <IconButton
-                        icon="close"
-                        tooltip="刪除此清單項目"
-                        onClick={() => removeChecklistItem(checklistIdx, iIdx)}
-                        variant="ghost"
-                        size="sm"
-                        className="!text-red-600 hover:!bg-red-50 flex-shrink-0"
-                      />
+                      <IconTooltip label="刪除此清單項目">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label="刪除此清單項目"
+                          onClick={() => removeChecklistItem(checklistIdx, iIdx)}
+                          className="shrink-0 text-destructive-muted-text hover:bg-destructive-muted"
+                        >
+                          <X />
+                        </Button>
+                      </IconTooltip>
                     )}
                   </div>
                 ))}
               </div>
 
               {!readOnly && (
-                <IconButton
+                <Button
                   variant="ghost"
                   size="sm"
-                  className="mt-3"
-                  icon="add"
-                  label="新增清單項目"
+                  className="mt-3 font-semibold"
                   onClick={() => addChecklistItem(checklistIdx)}
-                />
+                >
+                  <Plus data-icon="inline-start" />
+                  新增清單項目
+                </Button>
               )}
             </div>
 
-            {/* Footer */}
-            <div className="flex justify-end gap-2 px-5 py-3 border-t border-border">
-              <Button variant="accent" size="sm" onClick={closeChecklist}>
+            <DialogFooter className="border-t border-border px-5 py-3">
+              <Button variant="accent" size="sm" className="font-semibold" onClick={closeChecklist}>
                 完成
               </Button>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
+            </DialogFooter>
+          </DialogContent>
+        )}
+      </Dialog>
     </div>
   )
 }
