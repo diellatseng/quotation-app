@@ -12,6 +12,12 @@ import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+} from '@/components/ui/select'
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -31,7 +37,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { AppEmptyState } from '@/components/AppEmptyState'
-import DisbursementDialog from '@/components/DisbursementDialog'
+import DisbursementEditor, { disbursementsToRows } from '@/components/DisbursementEditor'
 import { AppBreadcrumbBar } from '@/components/AppShellHeader'
 import { QuotationDetailSkeleton } from '@/components/skeletons'
 import {
@@ -54,9 +60,10 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Check, Eye, FileText, MoreHorizontal, Pencil, Plus, Receipt, Trash2 } from 'lucide-react'
 import { deleteProjectById } from '@/lib/deleteProject'
-import { groupDisbursementsByStage, sumDisbursements } from '@/lib/disbursements'
+import { groupDisbursementsByStage, saveDisbursementsForStage, sumDisbursements } from '@/lib/disbursements'
 import { suggestReturnedDocuments } from '@/lib/invoiceDocument'
-import { applyStartProjectWork, needsStartWorkConfirmation } from '@/lib/startProjectWork'
+import { bankAccountLabel, pickDefaultBankAccount } from '@/lib/bankAccount'
+import { companyProfileLabel } from '@/lib/companyProfile'
 import {
   displayLandSection,
   displayProjectName,
@@ -71,6 +78,7 @@ const emptyInvoiceForm = () => ({
   invoiced_at: todayCe(),
   notes: '',
   returned_documents: '',
+  bank_account_id: '',
 })
 
 function buildInvoiceRows(stages, invoiceList, disbursementMap) {
@@ -86,10 +94,12 @@ function buildInvoiceRows(stages, invoiceList, disbursementMap) {
   })
 }
 
-const OVERVIEW_FIELDS = [
-  { key: 'building_permit', label: '建照號碼' },
-  { key: 'project_owner', label: '起造人' },
-  { key: 'project_scale', label: '工程規模' },
+const OVERVIEW_ENGINEERING_FIELDS = [
+  { key: 'project_name', label: '工程名稱', display: (p) => displayProjectName(p) },
+  { key: 'project_owner', label: '起造人 / 業主' },
+  { key: 'building_permit', label: '建造執照字號' },
+  { key: 'land_section', label: '地號資訊', display: (p) => displayLandSection(p) },
+  { key: 'project_scale', label: '工程規模 / 備註說明' },
 ]
 
 export default function ProjectDetailPage() {
@@ -102,21 +112,30 @@ export default function ProjectDetailPage() {
   const [paymentStages, setPaymentStages] = useState([])
   const [invoices, setInvoices] = useState([])
   const [disbursements, setDisbursements] = useState([])
-  const [disbursementStage, setDisbursementStage] = useState(null)
   const [loading, setLoading] = useState(true)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [showStartDialog, setShowStartDialog] = useState(false)
   const [invoiceDialog, setInvoiceDialog] = useState(null)
   const [invoiceForm, setInvoiceForm] = useState(emptyInvoiceForm())
+  const [invoiceDisbursementRows, setInvoiceDisbursementRows] = useState([])
   const [invoiceSaving, setInvoiceSaving] = useState(false)
   const [invoiceToReceive, setInvoiceToReceive] = useState(null)
   const [invoiceToDelete, setInvoiceToDelete] = useState(null)
+  const [bankAccounts, setBankAccounts] = useState([])
   const [quotationToDelete, setQuotationToDelete] = useState(null)
   const { user } = useAuth()
   const activeTab = searchParams.get('tab') || 'overview'
+  const editInvoiceParam = searchParams.get('editInvoice')
 
   const setActiveTab = (tab) => {
     setSearchParams(tab === 'overview' ? {} : { tab }, { replace: true })
+  }
+
+  const clearEditInvoiceParam = () => {
+    if (!searchParams.get('editInvoice')) return
+    const next = new URLSearchParams(searchParams)
+    next.delete('editInvoice')
+    setSearchParams(next, { replace: true })
   }
 
   const fetchData = async () => {
@@ -126,8 +145,9 @@ export default function ProjectDetailPage() {
         .from('projects')
         .select(`
           *,
-          clients(company_name, address, phone),
-          contact_persons(name, mobile, email)
+          clients(company_name, address, phone, email),
+          contact_persons(name, mobile, email),
+          company_profiles(id, label, name)
         `)
         .eq('id', id)
         .single()
@@ -190,6 +210,31 @@ export default function ProjectDetailPage() {
     fetchData()
   }, [id]) // eslint-disable-line
 
+  useEffect(() => {
+    supabase
+      .from('bank_accounts')
+      .select('*')
+      .order('sort_order', { ascending: true })
+      .order('label', { ascending: true })
+      .then(({ data }) => setBankAccounts(data || []))
+  }, [])
+
+  useEffect(() => {
+    if (!editInvoiceParam || loading) return
+    const invoice = invoices.find(inv => inv.id === editInvoiceParam)
+    if (!invoice) {
+      clearEditInvoiceParam()
+      return
+    }
+    const stage = paymentStages.find(s => s.id === invoice.payment_stage_id)
+    if (!stage) {
+      clearEditInvoiceParam()
+      return
+    }
+    openEditInvoice(stage, invoice)
+    clearEditInvoiceParam()
+  }, [editInvoiceParam, loading, invoices, paymentStages]) // eslint-disable-line
+
   const updateProjectStatus = async (newStatus) => {
     try {
       const { error } = await supabase
@@ -197,7 +242,7 @@ export default function ProjectDetailPage() {
         .update({ status: newStatus })
         .eq('id', id)
       if (error) throw error
-      toast.success(`專案狀態已更新為【${newStatus}】`)
+      toast.success(`案件狀態已更新為【${newStatus}】`)
       fetchData()
     } catch (err) {
       toast.error('更新失敗：' + err.message, { duration: 6000 })
@@ -220,7 +265,7 @@ export default function ProjectDetailPage() {
     setShowStartDialog(false)
     try {
       await applyStartProjectWork(supabase, id)
-      toast.success('專案狀態已更新為【進行中】')
+      toast.success('案件狀態已更新為【進行中】')
       fetchData()
     } catch (err) {
       toast.error('更新失敗：' + err.message, { duration: 6000 })
@@ -257,19 +302,25 @@ export default function ProjectDetailPage() {
 
   const openCreateInvoice = (stage) => {
     const stageDisbs = groupDisbursementsByStage(disbursements).get(stage.id) ?? []
+    const defaultBank = pickDefaultBankAccount(bankAccounts)
+    setInvoiceDisbursementRows(disbursementsToRows(stageDisbs))
     setInvoiceForm({
       ...emptyInvoiceForm(),
       returned_documents: suggestReturnedDocuments(stageDisbs).join('\n'),
+      bank_account_id: defaultBank?.id || '',
     })
     setInvoiceDialog({ mode: 'create', stage })
   }
 
   const openEditInvoice = (stage, invoice) => {
+    const stageDisbs = groupDisbursementsByStage(disbursements).get(stage.id) ?? []
+    setInvoiceDisbursementRows(disbursementsToRows(stageDisbs))
     setInvoiceForm({
       invoice_number: invoice.invoice_number || '',
       invoiced_at: invoice.invoiced_at || todayCe(),
       notes: invoice.notes || '',
       returned_documents: invoice.returned_documents || '',
+      bank_account_id: invoice.bank_account_id || '',
     })
     setInvoiceDialog({ mode: 'edit', stage, invoice })
   }
@@ -277,36 +328,47 @@ export default function ProjectDetailPage() {
   const closeInvoiceDialog = () => {
     setInvoiceDialog(null)
     setInvoiceForm(emptyInvoiceForm())
+    setInvoiceDisbursementRows([])
   }
 
   const saveInvoice = async () => {
     if (!invoiceDialog) return
+    if (!invoiceForm.bank_account_id) {
+      toast.warning('請選擇匯款帳戶')
+      return
+    }
     setInvoiceSaving(true)
     try {
+      await saveDisbursementsForStage(supabase, invoiceDialog.stage.id, invoiceDisbursementRows)
+
       const payload = {
         invoice_number: invoiceForm.invoice_number.trim() || null,
         invoiced_at: invoiceForm.invoiced_at || todayCe(),
         notes: invoiceForm.notes.trim() || null,
         returned_documents: invoiceForm.returned_documents.trim() || null,
+        bank_account_id: invoiceForm.bank_account_id || null,
       }
 
       if (invoiceDialog.mode === 'create') {
-        const { error } = await supabase.from('invoices').insert([{
+        const { data: created, error } = await supabase.from('invoices').insert([{
           project_id: id,
           payment_stage_id: invoiceDialog.stage.id,
-          status: '已請款',
+          status: '草稿',
           created_by: user?.id || null,
           ...payload,
-        }])
+        }]).select().single()
         if (error) throw error
-        toast.success('已建立請款紀錄')
+        toast.success('請款草稿已儲存')
+        closeInvoiceDialog()
+        navigate(`/projects/${id}/invoices/${created.id}`)
+        return
       } else {
         const { error } = await supabase
           .from('invoices')
           .update(payload)
           .eq('id', invoiceDialog.invoice.id)
         if (error) throw error
-        toast.success('發票資料已更新')
+        toast.success('請款資料已更新')
       }
 
       closeInvoiceDialog()
@@ -335,6 +397,20 @@ export default function ProjectDetailPage() {
     }
   }
 
+  const markInvoiceAsInvoiced = async (invoice) => {
+    try {
+      const { error } = await supabase
+        .from('invoices')
+        .update({ status: '已請款' })
+        .eq('id', invoice.id)
+      if (error) throw error
+      toast.success('狀態已更新為【已請款】')
+      fetchData()
+    } catch (err) {
+      toast.error('更新失敗：' + err.message, { duration: 6000 })
+    }
+  }
+
   const confirmDeleteInvoice = async () => {
     if (!invoiceToDelete) return
     const invoiceId = invoiceToDelete.id
@@ -356,9 +432,9 @@ export default function ProjectDetailPage() {
   if (!project || project.status === '已刪除') {
     return (
       <div className="min-h-screen bg-background text-foreground">
-        <AppBreadcrumbBar backTo="/dashboard" segments={['找不到專案']} />
+        <AppBreadcrumbBar backTo="/dashboard" segments={['找不到案件']} />
         <main className="mx-auto max-w-7xl px-4 py-12 text-center md:px-8">
-          <p className="text-sm font-medium text-muted-foreground">找不到該專案</p>
+          <p className="text-sm font-medium text-muted-foreground">找不到該案件</p>
         </main>
       </div>
     )
@@ -368,8 +444,11 @@ export default function ProjectDetailPage() {
   const secondaryName = projectSecondaryLabel(project)
   const disbursementMap = groupDisbursementsByStage(disbursements)
   const invoiceRows = buildInvoiceRows(paymentStages, invoices, disbursementMap)
+  const draftCount = invoices.filter(inv => inv.status === '草稿').length
+  const invoicedCount = invoices.filter(inv => inv.status === '已請款').length
   const receivedCount = invoices.filter(inv => inv.status === '已收款').length
   const disbursementGrandTotal = sumDisbursements(disbursements)
+  const selectedBankAccount = bankAccounts.find(a => a.id === invoiceForm.bank_account_id)
 
   return (
     <div className="min-h-screen bg-background pb-12 text-foreground transition-colors duration-200">
@@ -379,7 +458,7 @@ export default function ProjectDetailPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>刪除專案</AlertDialogTitle>
+            <AlertDialogTitle>刪除案件</AlertDialogTitle>
             <AlertDialogDescription>
               確定要刪除「{projectPrimaryLabel(project)}」嗎？相關報價單也會一併刪除。
             </AlertDialogDescription>
@@ -401,7 +480,7 @@ export default function ProjectDetailPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>開始進行專案</AlertDialogTitle>
+            <AlertDialogTitle>開始進行案件</AlertDialogTitle>
             <AlertDialogDescription>
               「{projectPrimaryLabel(project)}」— 客戶是否已回傳報價確認？
               已回傳可直接開工（略過「已確認報價」）；若尚未回傳，請先完成報價確認後再開工。
@@ -489,16 +568,16 @@ export default function ProjectDetailPage() {
           if (!open) closeInvoiceDialog()
         }}
       >
-        <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-lg">
-          <DialogHeader className="border-b border-border px-5 py-4">
+        <DialogContent className="flex max-h-[min(90vh,720px)] flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl">
+          <DialogHeader className="shrink-0 border-b border-border px-5 py-4">
             <DialogTitle>
-              {invoiceDialog?.mode === 'create' ? '建立請款' : '編輯請款'}
+              {invoiceDialog?.mode === 'create' ? '建立請款草稿' : '編輯請款'}
             </DialogTitle>
             <DialogDescription>
               {invoiceDialog?.stage?.stage_name} · {fmt(invoiceDialog?.stage?.amount)}
             </DialogDescription>
           </DialogHeader>
-          <div className="px-5 py-4">
+          <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
             <FieldGroup className="gap-4">
               <Field>
                 <FieldLabel htmlFor="invoice_number">發票／請款編號</FieldLabel>
@@ -516,6 +595,28 @@ export default function ProjectDetailPage() {
                 onChange={value => setInvoiceForm(f => ({ ...f, invoiced_at: value }))}
                 useRoc
               />
+              <Field>
+                <FieldLabel htmlFor="invoice_bank_account_id">匯款帳戶</FieldLabel>
+                <Select
+                  value={invoiceForm.bank_account_id || ''}
+                  onValueChange={val => setInvoiceForm(f => ({ ...f, bank_account_id: val }))}
+                  disabled={bankAccounts.length === 0}
+                >
+                  <SelectTrigger id="invoice_bank_account_id" className="w-full">
+                    {selectedBankAccount
+                      ? bankAccountLabel(selectedBankAccount)
+                      : (bankAccounts.length === 0 ? '尚無帳戶，請至管理後台新增' : '選擇匯款帳戶')}
+                  </SelectTrigger>
+                  <SelectContent>
+                    {bankAccounts.map(account => (
+                      <SelectItem key={account.id} value={account.id}>
+                        {bankAccountLabel(account)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="mt-1.5 text-xs text-muted-foreground">顯示於請款單 PDF</p>
+              </Field>
               <Field>
                 <FieldLabel htmlFor="invoice_returned_documents">檢還文件</FieldLabel>
                 <Textarea
@@ -536,9 +637,18 @@ export default function ProjectDetailPage() {
                   rows={3}
                 />
               </Field>
+
+              <div className="border-t border-border pt-4">
+                <p className="mb-3 text-sm font-semibold text-foreground">代墊明細</p>
+                <p className="mb-3 text-xs text-muted-foreground">顯示於請款單 PDF，可與請款資料一併儲存。</p>
+                <DisbursementEditor
+                  rows={invoiceDisbursementRows}
+                  onRowsChange={setInvoiceDisbursementRows}
+                />
+              </div>
             </FieldGroup>
           </div>
-          <DialogFooter className="border-t border-border px-5 py-3">
+          <DialogFooter className="shrink-0 border-t border-border px-5 py-3">
             <Button variant="outline" size="sm" className="font-semibold" onClick={closeInvoiceDialog}>
               取消
             </Button>
@@ -549,20 +659,11 @@ export default function ProjectDetailPage() {
               onClick={saveInvoice}
               disabled={invoiceSaving}
             >
-              {invoiceSaving ? '儲存中…' : '儲存'}
+              {invoiceSaving ? '儲存中…' : (invoiceDialog?.mode === 'create' ? '儲存草稿' : '儲存')}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      <DisbursementDialog
-        open={!!disbursementStage}
-        stage={disbursementStage}
-        onOpenChange={open => {
-          if (!open) setDisbursementStage(null)
-        }}
-        onSaved={fetchData}
-      />
 
       <AppBreadcrumbBar
         backTo="/dashboard"
@@ -577,7 +678,16 @@ export default function ProjectDetailPage() {
         ]}
         actions={
           <>
-            {project.status === '草稿' && quotations.some(q => q.status === '草稿') && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="font-semibold"
+              onClick={() => navigate(`/projects/${id}/edit`)}
+            >
+              <Pencil data-icon="inline-start" />
+              編輯案件
+            </Button>
+            {project.status === '未報價' && quotations.some(q => q.status === '草稿') && (
               <Button
                 variant="outline"
                 size="sm"
@@ -680,8 +790,17 @@ export default function ProjectDetailPage() {
           <TabsContent value="overview" className="mt-6 space-y-6">
             <div className="grid gap-6 md:grid-cols-2">
               <Card className="shadow-sm">
-                <CardHeader>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0">
                   <CardTitle className="text-base font-semibold">客戶資訊</CardTitle>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 font-semibold"
+                    onClick={() => navigate(`/projects/${id}/edit`)}
+                  >
+                    <Pencil data-icon="inline-start" />
+                    編輯
+                  </Button>
                 </CardHeader>
                 <CardContent className="space-y-2 text-sm">
                   <div>
@@ -695,18 +814,24 @@ export default function ProjectDetailPage() {
                       {project.contact_persons?.mobile ? ` · ${project.contact_persons.mobile}` : ''}
                     </p>
                   </div>
-                  {project.clients?.address && (
-                    <div>
-                      <span className="text-muted-foreground">地址</span>
-                      <p className="font-medium text-foreground">{project.clients.address}</p>
-                    </div>
-                  )}
+                  <div>
+                    <span className="text-muted-foreground">電話</span>
+                    <p className="font-medium text-foreground">{project.clients?.phone || '—'}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">電子郵件</span>
+                    <p className="font-medium text-foreground">{project.clients?.email || '—'}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">地址</span>
+                    <p className="font-medium text-foreground">{project.clients?.address || '—'}</p>
+                  </div>
                 </CardContent>
               </Card>
 
               <Card className="shadow-sm">
                 <CardHeader>
-                  <CardTitle className="text-base font-semibold">專案摘要</CardTitle>
+                  <CardTitle className="text-base font-semibold">案件摘要</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2 text-sm">
                   <div>
@@ -715,7 +840,7 @@ export default function ProjectDetailPage() {
                   </div>
                   {project.name?.trim() && (
                     <div>
-                      <span className="text-muted-foreground">專案名稱</span>
+                      <span className="text-muted-foreground">案件名稱</span>
                       <p className="font-medium text-foreground">{displayProjectName(project)}</p>
                     </div>
                   )}
@@ -738,23 +863,45 @@ export default function ProjectDetailPage() {
               </Card>
             </div>
 
-            {OVERVIEW_FIELDS.some(({ key }) => project[key]) && (
-              <Card className="shadow-sm">
-                <CardHeader>
-                  <CardTitle className="text-base font-semibold">工程資料</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <dl className="grid gap-4 sm:grid-cols-2">
-                    {OVERVIEW_FIELDS.filter(({ key }) => project[key]).map(({ key, label }) => (
-                      <div key={key}>
-                        <dt className="text-sm text-muted-foreground">{label}</dt>
-                        <dd className="mt-0.5 font-medium text-foreground">{project[key]}</dd>
-                      </div>
-                    ))}
-                  </dl>
-                </CardContent>
-              </Card>
-            )}
+            <Card className="shadow-sm">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                <CardTitle className="text-base font-semibold">工程資料</CardTitle>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 font-semibold"
+                  onClick={() => navigate(`/projects/${id}/edit`)}
+                >
+                  <Pencil data-icon="inline-start" />
+                  編輯
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <dl className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <dt className="text-sm text-muted-foreground">公司抬頭</dt>
+                    <dd className="mt-0.5 font-medium text-foreground">
+                      {project.company_profiles
+                        ? companyProfileLabel(project.company_profiles)
+                        : '—'}
+                    </dd>
+                    {project.company_profiles?.name && (
+                      <dd className="mt-0.5 text-sm text-muted-foreground">
+                        {project.company_profiles.name}
+                      </dd>
+                    )}
+                  </div>
+                  {OVERVIEW_ENGINEERING_FIELDS.map(({ key, label, display }) => (
+                    <div key={key} className={key === 'project_scale' ? 'sm:col-span-2' : undefined}>
+                      <dt className="text-sm text-muted-foreground">{label}</dt>
+                      <dd className="mt-0.5 font-medium text-foreground">
+                        {display ? display(project) : (project[key]?.trim() || '—')}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="quotations" className="mt-6">
@@ -762,7 +909,7 @@ export default function ProjectDetailPage() {
               <AppEmptyState
                 icon={FileText}
                 title="尚無報價單"
-                description="建立第一份報價以記錄此專案的報價內容"
+                description="建立第一份報價以記錄此案件的報價內容"
                 action={
                   <Button
                     variant="default"
@@ -900,13 +1047,20 @@ export default function ProjectDetailPage() {
             ) : (
               <>
                 <p className="text-sm text-muted-foreground">
-                  共 {paymentStages.length} 個付款階段 · 已請款 {invoices.length} 筆 · 已收款 {receivedCount} 筆
+                  共 {paymentStages.length} 個付款階段 · 草稿 {draftCount} · 已請款 {invoicedCount} · 已收款 {receivedCount}
                   {disbursementGrandTotal > 0 && ` · 代墊合計 ${fmt(disbursementGrandTotal)}`}
                 </p>
 
                 <div className="block space-y-3 md:hidden">
                   {invoiceRows.map(({ stage, invoice, disbursements: stageDisbs, disbursementTotal }) => (
-                    <Card key={stage.id} size="sm" className="gap-0 py-0 shadow-sm">
+                    <Card
+                      key={stage.id}
+                      size="sm"
+                      className={`gap-0 py-0 shadow-sm ${invoice ? 'cursor-pointer hover:bg-muted/20' : ''}`}
+                      onClick={() => {
+                        if (invoice) navigate(`/projects/${id}/invoices/${invoice.id}`)
+                      }}
+                    >
                       <CardContent className="space-y-3 py-4">
                         <div className="flex items-start justify-between gap-2">
                           <div>
@@ -933,80 +1087,17 @@ export default function ProjectDetailPage() {
                             代墊 {stageDisbs.length} 項 · {fmt(disbursementTotal)}
                           </p>
                         )}
-                        <div className="flex flex-wrap gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="font-semibold"
-                            onClick={() => setDisbursementStage(stage)}
-                          >
-                            代墊明細
-                          </Button>
-                          {!invoice ? (
-                            <Button
-                              variant="default"
-                              size="sm"
-                              className="font-semibold"
-                              onClick={() => openCreateInvoice(stage)}
-                            >
-                              <Plus data-icon="inline-start" />
-                              建立請款
-                            </Button>
-                          ) : (
-                            <>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="font-semibold"
-                                onClick={() => navigate(`/projects/${id}/invoices/${invoice.id}`)}
-                              >
-                                <Eye data-icon="inline-start" />
-                                檢視
-                              </Button>
-                              {invoice.status === '已請款' && (
-                                <>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="font-semibold"
-                                    onClick={() => openEditInvoice(stage, invoice)}
-                                  >
-                                    <Pencil data-icon="inline-start" />
-                                    編輯
-                                  </Button>
-                                  <Button
-                                    variant="default"
-                                    size="sm"
-                                    className="font-semibold"
-                                    onClick={() => setInvoiceToReceive(invoice)}
-                                  >
-                                    <Check data-icon="inline-start" />
-                                    已收款
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="font-semibold text-destructive hover:text-destructive"
-                                    onClick={() => setInvoiceToDelete(invoice)}
-                                  >
-                                    <Trash2 data-icon="inline-start" />
-                                    刪除
-                                  </Button>
-                                </>
-                              )}
-                              {invoice.status === '已收款' && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="font-semibold"
-                                  onClick={() => openEditInvoice(stage, invoice)}
-                                >
-                                  <Pencil data-icon="inline-start" />
-                                  編輯備註
-                                </Button>
-                              )}
-                            </>
-                          )}
+                        <div className="flex items-center justify-end gap-2" onClick={e => e.stopPropagation()}>
+                          <InvoiceActionsMenu
+                            projectId={id}
+                            stage={stage}
+                            invoice={invoice}
+                            onCreate={openCreateInvoice}
+                            onEdit={openEditInvoice}
+                            onMarkInvoiced={markInvoiceAsInvoiced}
+                            onReceive={setInvoiceToReceive}
+                            onDelete={setInvoiceToDelete}
+                          />
                         </div>
                       </CardContent>
                     </Card>
@@ -1024,12 +1115,18 @@ export default function ProjectDetailPage() {
                         <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">請款日</TableHead>
                         <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">狀態</TableHead>
                         <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">收款日</TableHead>
-                        <TableHead className="h-auto p-4 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">操作</TableHead>
+                        <TableHead className="h-auto w-[72px] p-4 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">操作</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {invoiceRows.map(({ stage, invoice, disbursementTotal }) => (
-                        <TableRow key={stage.id} className="border-border">
+                        <TableRow
+                          key={stage.id}
+                          className={`border-border ${invoice ? 'cursor-pointer hover:bg-muted/30' : ''}`}
+                          onClick={() => {
+                            if (invoice) navigate(`/projects/${id}/invoices/${invoice.id}`)
+                          }}
+                        >
                           <TableCell className="p-4 font-medium text-foreground">
                             {stage.stage_name}
                             <span className="ml-2 text-xs text-muted-foreground">{stage.percentage}%</span>
@@ -1054,81 +1151,17 @@ export default function ProjectDetailPage() {
                           <TableCell className="p-4 text-muted-foreground">
                             {invoice?.received_at ? formatRocDate(invoice.received_at) : '—'}
                           </TableCell>
-                          <TableCell className="p-4 text-right">
-                            <div className="flex flex-wrap justify-end gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="font-semibold"
-                                onClick={() => setDisbursementStage(stage)}
-                              >
-                                代墊
-                              </Button>
-                              {!invoice ? (
-                                <Button
-                                  variant="default"
-                                  size="sm"
-                                  className="font-semibold"
-                                  onClick={() => openCreateInvoice(stage)}
-                                >
-                                  <Plus data-icon="inline-start" />
-                                  建立請款
-                                </Button>
-                              ) : (
-                                <>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="font-semibold"
-                                    onClick={() => navigate(`/projects/${id}/invoices/${invoice.id}`)}
-                                  >
-                                    <Eye data-icon="inline-start" />
-                                    檢視
-                                  </Button>
-                                  {invoice.status === '已請款' ? (
-                                    <>
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="font-semibold"
-                                        onClick={() => openEditInvoice(stage, invoice)}
-                                      >
-                                        <Pencil data-icon="inline-start" />
-                                        編輯
-                                      </Button>
-                                      <Button
-                                        variant="default"
-                                        size="sm"
-                                        className="font-semibold"
-                                        onClick={() => setInvoiceToReceive(invoice)}
-                                      >
-                                        <Check data-icon="inline-start" />
-                                        已收款
-                                      </Button>
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="font-semibold text-destructive hover:text-destructive"
-                                        onClick={() => setInvoiceToDelete(invoice)}
-                                      >
-                                        <Trash2 data-icon="inline-start" />
-                                        刪除
-                                      </Button>
-                                    </>
-                                  ) : (
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="font-semibold"
-                                      onClick={() => openEditInvoice(stage, invoice)}
-                                    >
-                                      <Pencil data-icon="inline-start" />
-                                      編輯備註
-                                    </Button>
-                                  )}
-                                </>
-                              )}
-                            </div>
+                          <TableCell className="p-4 text-right" onClick={e => e.stopPropagation()}>
+                            <InvoiceActionsMenu
+                              projectId={id}
+                              stage={stage}
+                              invoice={invoice}
+                              onCreate={openCreateInvoice}
+                              onEdit={openEditInvoice}
+                              onMarkInvoiced={markInvoiceAsInvoiced}
+                              onReceive={setInvoiceToReceive}
+                              onDelete={setInvoiceToDelete}
+                            />
                           </TableCell>
                         </TableRow>
                       ))}
@@ -1141,6 +1174,108 @@ export default function ProjectDetailPage() {
         </Tabs>
       </main>
     </div>
+  )
+}
+
+function InvoiceActionsMenu({ projectId, stage, invoice, onCreate, onEdit, onMarkInvoiced, onReceive, onDelete }) {
+  const navigate = useNavigate()
+
+  if (!invoice) {
+    return (
+      <Button
+        variant="default"
+        size="sm"
+        className="font-semibold"
+        onClick={() => onCreate(stage)}
+      >
+        <Plus data-icon="inline-start" />
+        建立請款
+      </Button>
+    )
+  }
+
+  const canEdit = invoice.status === '草稿' || invoice.status === '已請款'
+  const canDelete = invoice.status === '草稿' || invoice.status === '已請款'
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="請款操作"
+            title="請款操作"
+            onClick={e => e.stopPropagation()}
+          >
+            <MoreHorizontal className="size-4 shrink-0" aria-hidden="true" />
+          </Button>
+        }
+      />
+      <DropdownMenuContent align="end" className="min-w-[140px]">
+        <DropdownMenuGroup>
+          <DropdownMenuItem
+            onClick={e => {
+              e.stopPropagation()
+              navigate(`/projects/${projectId}/invoices/${invoice.id}`)
+            }}
+          >
+            <Eye />
+            檢視請款單
+          </DropdownMenuItem>
+          {canEdit && (
+            <DropdownMenuItem
+              onClick={e => {
+                e.stopPropagation()
+                onEdit(stage, invoice)
+              }}
+            >
+              <Pencil />
+              {invoice.status === '草稿' ? '編輯草稿' : '編輯'}
+            </DropdownMenuItem>
+          )}
+          {invoice.status === '草稿' && (
+            <DropdownMenuItem
+              onClick={e => {
+                e.stopPropagation()
+                onMarkInvoiced(invoice)
+              }}
+            >
+              <Check />
+              標記已請款
+            </DropdownMenuItem>
+          )}
+          {invoice.status === '已請款' && (
+            <DropdownMenuItem
+              onClick={e => {
+                e.stopPropagation()
+                onReceive(invoice)
+              }}
+            >
+              <Check />
+              標記已收款
+            </DropdownMenuItem>
+          )}
+        </DropdownMenuGroup>
+        {canDelete && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuGroup>
+              <DropdownMenuItem
+                variant="destructive"
+                onClick={e => {
+                  e.stopPropagation()
+                  onDelete(invoice)
+                }}
+              >
+                <Trash2 />
+                刪除
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+          </>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
 

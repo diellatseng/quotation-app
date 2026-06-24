@@ -7,6 +7,8 @@ const ADMIN_TABS = [
   { value: 'clients', to: '/admin/clients', label: '客戶資料庫' },
   { value: 'templates', to: '/admin/templates', label: '工程範本' },
   { value: 'services', to: '/admin/services', label: '服務資料庫' },
+  { value: 'companies', to: '/admin/companies', label: '公司抬頭' },
+  { value: 'banks', to: '/admin/banks', label: '銀行帳戶' },
 ]
 
 export default function AdminLayout() {

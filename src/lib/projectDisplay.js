@@ -1,5 +1,5 @@
 /** Auto-generated legacy fallback names from early wizard saves. */
-const PLACEHOLDER_PROJECT_NAME = '未命名專案'
+const PLACEHOLDER_PROJECT_NAME = '未命名案件'
 const AUTO_PROJECT_NAME_PATTERN = /^Project-\d+$/
 
 export function isPlaceholderProjectName(name) {
@@ -11,7 +11,7 @@ export function isPlaceholderProjectName(name) {
 
 /**
  * Value stored in projects.name (NOT NULL).
- * Prefer 工程名稱; otherwise 地號; otherwise 未命名專案.
+ * Prefer 工程名稱; otherwise 地號; otherwise 未命名案件.
  */
 export function resolveProjectName({ project_name, land_section }) {
   const projectName = project_name?.trim()
@@ -44,5 +44,14 @@ export function displayLandSection(project) {
 export function displayProjectName(project) {
   const name = project?.name?.trim()
   if (!name || isPlaceholderProjectName(name) || name === project?.land_section?.trim()) return '—'
+  return name
+}
+
+/** Value for 工程名稱 field when editing an existing project. */
+export function projectNameForEdit(project) {
+  const name = project?.name?.trim()
+  const land = project?.land_section?.trim()
+  if (!name || isPlaceholderProjectName(name)) return ''
+  if (land && name === land) return ''
   return name
 }

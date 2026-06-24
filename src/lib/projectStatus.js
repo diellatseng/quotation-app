@@ -1,6 +1,6 @@
 /** Map quotation workflow status → project status (when project should follow). */
 export function projectStatusFromQuotation(quotationStatus) {
-  if (quotationStatus === '草稿') return '草稿'
+  if (quotationStatus === '草稿') return null
   if (quotationStatus === '已報價') return '已報價'
   if (quotationStatus === '已確認') return '已確認報價'
   return null

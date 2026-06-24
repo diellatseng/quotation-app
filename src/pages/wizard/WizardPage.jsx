@@ -18,10 +18,13 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { resolveProjectName } from '../../lib/projectDisplay'
-import Step1Client from './Step1Client'
-import Step2Project from './Step2Project'
 import Step3Services from './Step3Services'
 import Step4Confirm from './Step4Confirm'
+
+const QUOTATION_STEPS = [
+  { num: 1, label: '服務內容' },
+  { num: 2, label: '報價與付款' },
+]
 
 const initState = () => ({
   // Step 1
@@ -36,6 +39,9 @@ const initState = () => ({
   project_scale: '',
   project_owner: '',
   project_name: '',
+
+  // 案件公司抬頭（步驟 2）
+  company_profile_id: null,
 
   // Step 3
   services: [],
@@ -62,7 +68,7 @@ export default function WizardPage() {
   // const negAmount = searchParams.get('negAmount')
   // const negNotes = searchParams.get('negNotes') ? decodeURIComponent(searchParams.get('negNotes')) : ''
 
-  const initStep = parseInt(searchParams.get('step') || '1', 10)
+  const initStep = Math.min(Math.max(parseInt(searchParams.get('step') || '1', 10) || 1, 1), QUOTATION_STEPS.length)
 
   // inactive: versioning — parent quote services for diff
   const [parentServices, setParentServices] = useState([])
@@ -82,6 +88,12 @@ export default function WizardPage() {
 
   const [step, setStep] = useState(initStep)
   const [data, setData] = useState(initState)
+
+  useEffect(() => {
+    if (!editId && !projectParam) {
+      navigate('/projects/new', { replace: true })
+    }
+  }, [editId, projectParam, navigate])
 
   // Load existing quotation if editing
   useEffect(() => {
@@ -149,6 +161,7 @@ export default function WizardPage() {
         project_scale: q.project_scale || '',
         project_owner: q.project_owner || '',
         project_name: q.project_name || '',
+        company_profile_id: null,
         payment_stages: stages.map(st => ({ id: crypto.randomUUID(), stage_name: st.stage_name, percentage: st.percentage })),
         services: services.map(s => ({
           service_id: s.service_id,
@@ -167,7 +180,17 @@ export default function WizardPage() {
         version: q.version || 1,
       })
       setQuotationId(q.id)
-      if (q.project_id) setLinkedProjectId(q.project_id)
+      if (q.project_id) {
+        setLinkedProjectId(q.project_id)
+        const { data: proj } = await supabase
+          .from('projects')
+          .select('company_profile_id')
+          .eq('id', q.project_id)
+          .single()
+        if (proj?.company_profile_id) {
+          setData(d => ({ ...d, company_profile_id: proj.company_profile_id }))
+        }
+      }
 
       // inactive: versioning — load parent quote services for diff
       if (FEATURE_VERSIONING) {
@@ -202,7 +225,7 @@ export default function WizardPage() {
         .single()
 
       if (projErr || !proj) {
-        toast.error('載入專案失敗', { duration: 6000 })
+        toast.error('載入案件失敗', { duration: 6000 })
         setLoading(false)
         navigate('/dashboard')
         return
@@ -234,6 +257,7 @@ export default function WizardPage() {
         project_scale: proj.project_scale || '',
         project_owner: proj.project_owner || '',
         project_name: proj.name || '',
+        company_profile_id: proj.company_profile_id || null,
         fee_amount: proj.total_amount?.toString() || '',
         tax_included: proj.tax_included ?? false,
       }))
@@ -255,6 +279,7 @@ export default function WizardPage() {
     project_owner: data.project_owner,
     total_amount: Number(data.fee_amount) || 0,
     tax_included: data.tax_included,
+    company_profile_id: data.company_profile_id || null,
   })
 
   const syncProject = async (projectId) => {
@@ -271,26 +296,12 @@ export default function WizardPage() {
 
     if (!qid) {
       if (!projectId) {
-        // 1. Create project first
-        const { data: proj, error: projErr } = await supabase
-          .from('projects')
-          .insert([{
-            ...projectPayload(),
-            status: '草稿',
-            created_by: user.id,
-          }])
-          .select()
-          .single()
-        if (projErr || !proj) {
-          toast.error('建立專案失敗：' + (projErr?.message || '未知錯誤'), { duration: 6000 })
-          setSaving(false)
-          return null
-        }
-        projectId = proj.id
-        setLinkedProjectId(proj.id)
+        toast.error('請先建立案件，再新增報價', { duration: 6000 })
+        setSaving(false)
+        return null
       }
 
-      // 2. Insert new draft quotation with project_id
+      // Insert new draft quotation for existing project
       const { data: q, error: err } = await supabase
         .from('quotations')
         .insert([{
@@ -409,15 +420,15 @@ export default function WizardPage() {
   }
 
   const canGoNext = () => {
-    if (step === 1) return !!data.client
-    if (step === 4) return !!data.fee_amount && !!data.quote_number && Math.abs((data.payment_stages || []).reduce((s, st) => s + Number(st.percentage || 0), 0) - 100) < 0.01
+    if (step === 2) {
+      return !!data.fee_amount && !!data.quote_number && Math.abs((data.payment_stages || []).reduce((s, st) => s + Number(st.percentage || 0), 0) - 100) < 0.01
+    }
     return true
   }
 
   const handleNext = async () => {
     if (!canGoNext()) {
-      if (step === 1) toast.warning('請先選擇或建立客戶')
-      if (step === 4) toast.warning('請填寫報價編號、金額，且付款階段百分比需合計100%')
+      if (step === 2) toast.warning('請填寫報價編號、金額，且付款階段百分比需合計100%')
       return
     }
     setStep(s => s + 1)
@@ -448,24 +459,14 @@ export default function WizardPage() {
   const handleFinish = async () => {
     const qid = await saveDraft()
     if (!qid) return
-
-    const { data: row } = await supabase
-      .from('quotations')
-      .select('project_id')
-      .eq('id', qid)
-      .single()
-
-    if (row?.project_id) {
-      navigate(`/projects/${row.project_id}?tab=quotations`)
-    } else {
-      navigate(`/quotation/${qid}`)
-    }
+    navigate(`/quotation/${qid}`)
   }
 
   const stepProps = {
     data,
     update,
     loading,
+    companyProfileLocked: !!(projectParam || linkedProjectId),
     ...(FEATURE_VERSIONING ? { parentServices } : {}),
     ...(FEATURE_NEGOTIATION ? { negContext } : {}),
   }
@@ -490,21 +491,34 @@ export default function WizardPage() {
         </AlertDialogContent>
       </AlertDialog>
       <WizardShell
+        steps={QUOTATION_STEPS}
         currentStep={step}
-        onNext={step === 4 ? handleFinish : handleNext}
+        onNext={step === QUOTATION_STEPS.length ? handleFinish : handleNext}
         onBack={handleBack}
-        onSaveDraft={step === 4 ? null : saveDraft}
+        onSaveDraft={step === QUOTATION_STEPS.length ? null : saveDraft}
         onBackToDashboard={handleBackToDashboard}
         onStepClick={handleStepClick}
         saving={saving}
         canNext={canGoNext()}
-        nextLabel={step === 4 ? '完成並儲存' : undefined}
-        headerSubtitle={editId ? '編輯草稿' : projectParam ? '新增報價' : '新增專案'}
+        nextLabel={step === QUOTATION_STEPS.length ? '完成並儲存' : undefined}
+        headerSubtitle={editId ? '編輯草稿' : '新增報價'}
       >
-        {step === 1 && <Step1Client  {...stepProps} />}
-        {step === 2 && <Step2Project {...stepProps} />}
-        {step === 3 && <Step3Services {...stepProps} />}
-        {step === 4 && <Step4Confirm {...stepProps} onFinish={handleFinish} saving={saving} />}
+        {step === 1 && (
+          <Step3Services
+            {...stepProps}
+            title="步驟 1：服務內容"
+            description="選擇服務範本，並配置、調整各項服務及查核清單細節項目。"
+          />
+        )}
+        {step === 2 && (
+          <Step4Confirm
+            {...stepProps}
+            onFinish={handleFinish}
+            saving={saving}
+            title="步驟 2：報價與付款"
+            description="填寫報價費用總額，並設定各階段付款收款條件比率。"
+          />
+        )}
       </WizardShell>
     </>
   )

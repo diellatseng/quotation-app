@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { projectStatusFromQuotation } from '../projectStatus'
 
 describe('projectStatusFromQuotation', () => {
-  it('maps draft quotation to draft project', () => {
-    expect(projectStatusFromQuotation('草稿')).toBe('草稿')
+  it('does not sync draft quotation to project status', () => {
+    expect(projectStatusFromQuotation('草稿')).toBeNull()
   })
 
   it('maps sent quotation to quoted project', () => {

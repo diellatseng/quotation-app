@@ -5,7 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Step1ClientSkeleton } from '@/components/skeletons'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 
-export default function Step1Client({ data, update, loading = false }) {
+export default function Step1Client({
+  data,
+  update,
+  loading = false,
+  title = '步驟 1：客戶資料',
+  description = '請選擇現有客戶，或建立新客戶資料。',
+}) {
   const handleClientChange = (value) => {
     if (value === null) {
       // Clear selection
@@ -29,8 +35,8 @@ export default function Step1Client({ data, update, loading = false }) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-bold text-foreground tracking-tight mb-1">步驟 1：客戶資料</h2>
-        <p className="text-sm text-muted-foreground">請選擇現有客戶，或建立新客戶資料。</p>
+        <h2 className="text-xl font-bold text-foreground tracking-tight mb-1">{title}</h2>
+        <p className="text-sm text-muted-foreground">{description}</p>
       </div>
 
       <Card className="relative shadow-sm">

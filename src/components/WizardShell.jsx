@@ -4,7 +4,7 @@ import { AppBreadcrumbBar } from '@/components/AppShellHeader'
 import WizardStepNav from '@/components/WizardStepNav'
 import { Button } from '@/components/ui/button'
 
-const STEPS = [
+const DEFAULT_STEPS = [
   { num: 1, label: '客戶資料' },
   { num: 2, label: '工程資料' },
   { num: 3, label: '服務內容' },
@@ -12,6 +12,7 @@ const STEPS = [
 ]
 
 export default function WizardShell({
+  steps = DEFAULT_STEPS,
   currentStep,
   onNext,
   onBack,
@@ -22,19 +23,20 @@ export default function WizardShell({
   canNext = true,
   nextLabel,
   backLabel,
+  navBackLabel = '案件列表',
   headerSubtitle = '新增報價',
   children,
 }) {
   const isFirst = currentStep === 1
-  const isLast = currentStep === 4
-  const currentStepMeta = STEPS[currentStep - 1]
+  const isLast = currentStep === steps.length
+  const currentStepMeta = steps[currentStep - 1]
   const wizardLabel = headerSubtitle === '編輯草稿' ? '編輯報價' : headerSubtitle
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <AppBreadcrumbBar
         maxWidth="max-w-5xl"
-        backLabel="專案列表"
+        backLabel={navBackLabel}
         onBack={onBackToDashboard}
         backDisabled={saving}
         segments={[wizardLabel, currentStepMeta?.label].filter(Boolean)}
@@ -42,7 +44,7 @@ export default function WizardShell({
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 md:px-6">
         <WizardStepNav
-          steps={STEPS}
+          steps={steps}
           currentStep={currentStep}
           onStepClick={onStepClick}
         />

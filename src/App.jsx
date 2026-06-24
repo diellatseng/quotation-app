@@ -8,6 +8,8 @@ import { AppLoadingSkeleton } from '@/components/skeletons'
 
 import LoginPage             from './pages/LoginPage'
 import DashboardPage         from './pages/DashboardPage'
+import ProjectSetupPage     from './pages/ProjectSetupPage'
+import ProjectEditPage      from './pages/ProjectEditPage'
 import WizardPage            from './pages/wizard/WizardPage'
 import QuotationDetailPage   from './pages/QuotationDetailPage'
 import ProjectDetailPage     from './pages/ProjectDetailPage'
@@ -16,6 +18,8 @@ import AdminLayout           from './pages/admin/AdminLayout'
 import ClientsAdmin          from './pages/admin/ClientsAdmin'
 import TemplatesAdmin        from './pages/admin/TemplatesAdmin'
 import ServicesAdmin         from './pages/admin/ServicesAdmin'
+import CompanyProfilesAdmin  from './pages/admin/CompanyProfilesAdmin'
+import BankAccountsAdmin     from './pages/admin/BankAccountsAdmin'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -30,6 +34,8 @@ function AppRoutes() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+        <Route path="/projects/new" element={<ProtectedRoute><ProjectSetupPage /></ProtectedRoute>} />
+        <Route path="/projects/:id/edit" element={<ProtectedRoute><ProjectEditPage /></ProtectedRoute>} />
         <Route path="/projects/:id" element={<ProtectedRoute><ProjectDetailPage /></ProtectedRoute>} />
         <Route path="/projects/:projectId/invoices/:invoiceId" element={<ProtectedRoute><InvoiceDetailPage /></ProtectedRoute>} />
         <Route path="/quotation/new" element={<ProtectedRoute><WizardPage /></ProtectedRoute>} />
@@ -39,6 +45,8 @@ function AppRoutes() {
           <Route path="clients"   element={<ClientsAdmin />} />
           <Route path="templates" element={<TemplatesAdmin />} />
           <Route path="services"  element={<ServicesAdmin />} />
+          <Route path="companies" element={<CompanyProfilesAdmin />} />
+          <Route path="banks"     element={<BankAccountsAdmin />} />
         </Route>
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>

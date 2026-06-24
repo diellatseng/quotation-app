@@ -64,7 +64,7 @@ import { FolderKanban, MoreHorizontal, Palette, Pause, Play, Plus, Search, Trash
 
 import { displayLandSection, displayProjectName } from '@/lib/projectDisplay'
 
-const STATUS_FILTERS = ['全部', '草稿', '已報價', '已確認報價', '進行中', '完工', '暫停']
+const STATUS_FILTERS = ['全部', '未報價', '已報價', '已確認報價', '進行中', '完工', '暫停']
 const fmt = (n) => (n != null && n !== '' ? `NT$ ${Number(n).toLocaleString('zh-TW')}` : '—')
 
 function hasProjectStatusActions(status) {
@@ -195,8 +195,8 @@ export default function DashboardPage() {
     const hasFilters = search.trim() !== '' || statusFilter !== '全部'
     if (filtered.length === 0) {
       return projects.length === 0
-        ? '尚無專案，建立第一個專案開始吧'
-        : '找不到符合條件的專案'
+        ? '尚無案件，建立第一個案件開始吧'
+        : '找不到符合條件的案件'
     }
     const totalSuffix = hasFilters && filtered.length !== poolProjects.length ? ` / ${poolProjects.length}` : ''
     return `共 ${filtered.length}${totalSuffix} 筆`
@@ -212,7 +212,7 @@ export default function DashboardPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>刪除專案</AlertDialogTitle>
+            <AlertDialogTitle>刪除案件</AlertDialogTitle>
             <AlertDialogDescription>
               確定要刪除「{projectToDelete ? projectPrimaryLabel(projectToDelete) : ''}」嗎？相關報價單也會一併刪除。
             </AlertDialogDescription>
@@ -234,7 +234,7 @@ export default function DashboardPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>開始進行專案</AlertDialogTitle>
+            <AlertDialogTitle>開始進行案件</AlertDialogTitle>
             <AlertDialogDescription>
               「{projectToStart ? projectPrimaryLabel(projectToStart) : ''}」— 客戶是否已回傳報價確認？
               已回傳可直接開工（略過「已確認報價」）；若尚未回傳，請先完成報價確認後再開工。
@@ -326,7 +326,7 @@ export default function DashboardPage() {
 
       <main className="mx-auto max-w-7xl space-y-6 px-4 py-6 pb-24 sm:pb-6 md:px-8">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">專案列表</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">案件列表</h1>
           {listSummary && (
             <p className="mt-1 text-sm text-muted-foreground">{listSummary}</p>
           )}
@@ -341,19 +341,19 @@ export default function DashboardPage() {
               type="search"
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="搜尋地號、專案名稱、客戶名稱…"
-              aria-label="搜尋專案"
+              placeholder="搜尋地號、案件名稱、客戶名稱…"
+              aria-label="搜尋案件"
             />
           </InputGroup>
           <Button
             variant="default"
             size="md"
             className="hidden h-11 shrink-0 px-5 font-semibold sm:inline-flex"
-            onClick={() => navigate('/quotation/new')}
-            aria-label="新增專案"
+            onClick={() => navigate('/projects/new')}
+            aria-label="新增案件"
           >
             <Plus data-icon="inline-start" />
-            新增專案
+            新增案件
           </Button>
         </div>
 
@@ -390,10 +390,10 @@ export default function DashboardPage() {
         ) : filtered.length === 0 ? (
           <AppEmptyState
             icon={FolderKanban}
-            title={projects.length === 0 ? '尚無專案' : '找不到符合條件的專案'}
+            title={projects.length === 0 ? '尚無案件' : '找不到符合條件的案件'}
             description={
               projects.length === 0
-                ? '建立第一個專案，開始管理報價與後續發票'
+                ? '建立第一個案件，開始管理報價與後續發票'
                 : '試試調整搜尋或篩選條件'
             }
             action={
@@ -402,9 +402,9 @@ export default function DashboardPage() {
                   variant="default"
                   size="md"
                   className="font-semibold"
-                  onClick={() => navigate('/quotation/new')}
+                  onClick={() => navigate('/projects/new')}
                 >
-                  建立第一個專案
+                  建立第一個案件
                 </Button>
               ) : null
             }
@@ -447,7 +447,7 @@ export default function DashboardPage() {
                 <TableHeader>
                   <TableRow className="border-border bg-muted/40 hover:bg-muted/40">
                     <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">地號</TableHead>
-                    <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">專案名稱</TableHead>
+                    <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">案件名稱</TableHead>
                     <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">客戶名稱</TableHead>
                     <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">金額</TableHead>
                     <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">狀態</TableHead>
@@ -566,13 +566,13 @@ export default function DashboardPage() {
 
       {!loading && (
         <div className="fixed bottom-6 right-6 z-40 sm:hidden">
-          <IconTooltip label="新增專案" side="left">
+          <IconTooltip label="新增案件" side="left">
             <Button
               variant="default"
               size="icon-lg"
               className="size-14 rounded-full shadow-lg"
-              onClick={() => navigate('/quotation/new')}
-              aria-label="新增專案"
+              onClick={() => navigate('/projects/new')}
+              aria-label="新增案件"
             >
               <Plus className="size-6" aria-hidden="true" />
             </Button>

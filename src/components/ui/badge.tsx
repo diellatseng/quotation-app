@@ -122,7 +122,7 @@ export { Badge, badgeVariants }
 
 /** Project lifecycle status → badge variant */
 export const PROJECT_STATUS_TO_VARIANT = {
-  草稿: 'draft',
+  未報價: 'draft',
   已報價: 'quoted',
   已確認報價: 'confirmed',
   進行中: 'confirmed',
@@ -135,7 +135,7 @@ export function projectStatusVariant(status: string) {
 }
 
 export function projectStatusLabel(status: string) {
-  return status in PROJECT_STATUS_TO_VARIANT ? status : '草稿'
+  return status in PROJECT_STATUS_TO_VARIANT ? status : '未報價'
 }
 
 export function ProjectStatusBadges({
@@ -154,16 +154,17 @@ export function ProjectStatusBadges({
 
 /** Invoice status → badge variant */
 export const INVOICE_STATUS_TO_VARIANT = {
+  草稿: 'draft',
   已請款: 'quoted',
   已收款: 'confirmed',
 } as const
 
 export function invoiceStatusVariant(status: string) {
-  return INVOICE_STATUS_TO_VARIANT[status as keyof typeof INVOICE_STATUS_TO_VARIANT] ?? 'quoted'
+  return INVOICE_STATUS_TO_VARIANT[status as keyof typeof INVOICE_STATUS_TO_VARIANT] ?? 'draft'
 }
 
 export function invoiceStatusLabel(status: string) {
-  return status in INVOICE_STATUS_TO_VARIANT ? status : '已請款'
+  return status in INVOICE_STATUS_TO_VARIANT ? status : '草稿'
 }
 
 export function InvoiceStatusBadges({

@@ -26,7 +26,7 @@ export function AppBrandMark({ size = 'md', className }) {
 }
 
 export function AppBrandTitle({
-  title = '專案管理系統',
+  title = '案件管理系統',
   subtitle,
   showVersion = false,
   markSize = 'md',
@@ -51,13 +51,13 @@ export function AppBrandTitle({
 }
 
 /**
- * Slim sticky bar: [← 專案列表] › segment › segment     [actions]
+ * Slim sticky bar: [← 案件列表] › segment › segment     [actions]
  * Secondary navigation (tabs, stepper) belongs in page content, not here.
  */
 export function AppBreadcrumbBar({
   backTo,
   onBack,
-  backLabel = '專案列表',
+  backLabel = '案件列表',
   backDisabled = false,
   segments = [],
   actions,

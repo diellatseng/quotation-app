@@ -63,7 +63,7 @@ const PRESETS = [
   },
 ]
 
-export default function Step4Confirm({ data, update }) {
+export default function Step4Confirm({ data, update, onFinish, saving, title = '步驟 4：報價與付款', description = '確認報價金額、付款階段與備註。' }) {
   const [useRoc, setUseRoc] = useState(true)
   const [editingMeta, setEditingMeta] = useState(false)
 
@@ -108,8 +108,8 @@ export default function Step4Confirm({ data, update }) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-bold text-foreground tracking-tight mb-1">步驟 4：報價與付款</h2>
-        <p className="text-sm text-muted-foreground">填寫報價費用總額，並設定各階段付款收款條件比率。</p>
+        <h2 className="text-xl font-bold text-foreground tracking-tight mb-1">{title}</h2>
+        <p className="text-sm text-muted-foreground">{description}</p>
       </div>
 
       <Card className="gap-0 py-0 shadow-sm">

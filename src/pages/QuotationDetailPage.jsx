@@ -17,16 +17,8 @@ import { QuotationDetailSkeleton } from '@/components/skeletons'
 import { AppBreadcrumbBar } from '@/components/AppShellHeader'
 import { projectPrimaryLabel } from '../lib/projectDisplay'
 import { syncProjectStatusFromQuotation } from '../lib/projectStatus'
+import { companyProfileToInfo } from '../lib/companyProfile'
 import { Pencil, Printer } from 'lucide-react'
-
-
-const COMPANY_INFO = {
-  name: import.meta.env.VITE_COMPANY_NAME || '公司名稱',
-  address: import.meta.env.VITE_COMPANY_ADDRESS || '公司地址',
-  phone: import.meta.env.VITE_COMPANY_PHONE || '公司電話',
-  fax: import.meta.env.VITE_COMPANY_FAX || '',
-  email: import.meta.env.VITE_COMPANY_EMAIL || '',
-}
 
 export default function QuotationDetailPage() {
   const { id } = useParams()
@@ -50,7 +42,10 @@ export default function QuotationDetailPage() {
         .select(`
           *,
           clients(*),
-          contact_persons(*)
+          contact_persons(*),
+          projects(
+            company_profiles(*)
+          )
         `)
         .eq('id', id)
         .single()
@@ -143,7 +138,7 @@ export default function QuotationDetailPage() {
   if (!qt) {
     return (
       <div className="min-h-screen bg-background text-foreground">
-        <AppBreadcrumbBar backTo="/dashboard" backLabel="專案列表" segments={['找不到報價單']} />
+        <AppBreadcrumbBar backTo="/dashboard" backLabel="案件列表" segments={['找不到報價單']} />
         <main className="mx-auto max-w-7xl px-4 py-12 text-center md:px-8">
           <p className="text-sm font-medium text-muted-foreground">找不到該報價單</p>
         </main>
@@ -153,12 +148,13 @@ export default function QuotationDetailPage() {
 
   const projectBackTo = qt.project_id ? `/projects/${qt.project_id}?tab=quotations` : '/dashboard'
   const projectBackLabel = qt.land_section?.trim() || qt.project_name?.trim() || projectPrimaryLabel({ land_section: qt.land_section, name: qt.project_name })
+  const companyInfo = companyProfileToInfo(qt.projects?.company_profiles)
 
   return (
     <div className="min-h-screen bg-background pb-12 text-foreground transition-colors duration-200">
       <AppBreadcrumbBar
         backTo={projectBackTo}
-        backLabel={qt.project_id ? projectBackLabel : '專案列表'}
+        backLabel={qt.project_id ? projectBackLabel : '案件列表'}
         segments={[
           <span key="quote" className="inline-flex flex-wrap items-center gap-2">
             <span>{qt.quote_number}</span>
@@ -240,7 +236,7 @@ export default function QuotationDetailPage() {
               stages={paymentStages}
               client={qt.clients}
               contactPerson={qt.contact_persons}
-              companyInfo={COMPANY_INFO}
+              companyInfo={companyInfo}
               mode={activeTab}
             />
           </div>

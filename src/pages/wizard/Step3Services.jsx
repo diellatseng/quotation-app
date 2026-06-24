@@ -5,6 +5,7 @@ import { Badge, DiffBadge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import ServiceTable from '../../components/ServiceTable'
+import TemplatePicker from '../../components/TemplatePicker'
 import { FEATURE_NEGOTIATION, FEATURE_VERSIONING } from '../../lib/featureFlags'
 
 function computeDiff(current, parent) {
@@ -40,7 +41,14 @@ function computeDiff(current, parent) {
   return result
 }
 
-export default function Step3Services({ data, update, parentServices = null, negContext = null }) {
+export default function Step3Services({
+  data,
+  update,
+  parentServices = null,
+  negContext = null,
+  title = '步驟 3：服務內容',
+  description = '選擇服務範本，並配置、調整各項服務及查核清單細節項目。',
+}) {
   const isVersionEdit = FEATURE_VERSIONING && parentServices !== null
 
   useEffect(() => {
@@ -68,9 +76,11 @@ export default function Step3Services({ data, update, parentServices = null, neg
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-bold text-foreground tracking-tight mb-1">步驟 3：服務內容</h2>
-        <p className="text-sm text-muted-foreground">配置、調整各項服務及查核清單細節項目。</p>
+        <h2 className="text-xl font-bold text-foreground tracking-tight mb-1">{title}</h2>
+        <p className="text-sm text-muted-foreground">{description}</p>
       </div>
+
+      <TemplatePicker data={data} update={update} />
 
       {showDiffBanner && (
         <Alert>

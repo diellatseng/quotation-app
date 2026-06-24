@@ -10,6 +10,7 @@ import {
   padInvoiceTableRows,
   sumInvoiceRequestedAmounts,
 } from '../lib/invoiceDocument'
+import { formatBankAccountLines } from '../lib/bankAccount'
 import '../styles/components/InvoicePreview.css'
 
 const InvoicePreview = forwardRef(function InvoicePreview(
@@ -21,6 +22,7 @@ const InvoicePreview = forwardRef(function InvoicePreview(
     invoice,
     disbursements = [],
     companyInfo,
+    bankAccount,
   },
   ref,
 ) {
@@ -47,6 +49,7 @@ const InvoicePreview = forwardRef(function InvoicePreview(
   const honorific = honorificMatch?.[2] || ''
   const permitLine = formatInvoiceBuildingPermit(project?.building_permit, invoice?.invoiced_at)
   const dateLine = formatInvoiceDateShort(invoice?.invoiced_at)
+  const bankLines = formatBankAccountLines(bankAccount)
 
   return (
     <div ref={ref} className="inv-root">
@@ -139,6 +142,17 @@ const InvoicePreview = forwardRef(function InvoicePreview(
             </div>
           </div>
         </div>
+
+        {bankLines.length > 0 && (
+          <div className="inv-section inv-section--full">
+            <div className="inv-section-label">匯款帳戶</div>
+            <div className="inv-section-body inv-bank-box">
+              {bankLines.map((line, idx) => (
+                <div key={idx}>{line}</div>
+              ))}
+            </div>
+          </div>
+        )}
         </div>
 
         <div className="inv-footer">

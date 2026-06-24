@@ -67,7 +67,7 @@ describe('App', () => {
     // findByText waits for AuthProvider's async getSession to settle
     // before we assert — no manual act() needed since RTL wraps internally.
     render(<App />)
-    await screen.findByText('專案管理系統', {}, { timeout: 2000 })
+    await screen.findByText('案件管理系統', {}, { timeout: 2000 })
     expect(document.body).toBeInTheDocument()
   })
 
@@ -78,10 +78,10 @@ describe('App', () => {
   it('shows the login page heading when there is no active session', async () => {
     // getSession resolves with session: null → AuthProvider sets user to null
     // → ProtectedRoute redirects to /login → LoginPage renders
-    // Expected: main heading "專案管理系統" is visible
+    // Expected: main heading "案件管理系統" is visible
     render(<App />)
-    await screen.findByText('專案管理系統', {}, { timeout: 2000 })
-    expect(screen.getByText('專案管理系統')).toBeInTheDocument()
+    await screen.findByText('案件管理系統', {}, { timeout: 2000 })
+    expect(screen.getByText('案件管理系統')).toBeInTheDocument()
   })
 
   it('shows the English subtitle on the login page', async () => {

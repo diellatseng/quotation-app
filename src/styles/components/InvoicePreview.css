@@ -193,6 +193,17 @@
   min-height: 1.7em;
 }
 
+.inv-section--full {
+  margin-top: 16px;
+}
+
+.inv-bank-box {
+  background: #f9f9f7;
+  border: 1px solid #e0ded8;
+  border-radius: 4px;
+  padding: 10px 12px;
+}
+
 /* ── Page footer（同 a4-footer） ── */
 .inv-footer {
   position: absolute;

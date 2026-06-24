@@ -1,8 +1,8 @@
 -- ============================================================
--- 專案管理系統 Schema (consolidated)
+-- 案件管理系統 Schema (consolidated)
 -- Run in: Supabase Dashboard → SQL Editor → New Query
 --
--- 適用於全新 Supabase 專案。若資料庫已存在，請勿重複執行整份腳本。
+-- 適用於全新 Supabase 案件。若資料庫已存在，請勿重複執行整份腳本。
 -- ============================================================
 
 
@@ -70,21 +70,60 @@ CREATE TABLE service_checklist_items (
   sort_order  INT DEFAULT 0
 );
 
+-- ── COMPANY PROFILES (公司抬頭，供案件 / PDF 使用) ───────────────
+CREATE TABLE company_profiles (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  label       TEXT NOT NULL,
+  name        TEXT NOT NULL,
+  address     TEXT,
+  phone       TEXT,
+  fax         TEXT,
+  email       TEXT,
+  is_default  BOOLEAN DEFAULT FALSE,
+  sort_order  INT DEFAULT 0,
+  created_at  TIMESTAMPTZ DEFAULT NOW(),
+  updated_at  TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE company_profiles ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "auth_all_company_profiles" ON company_profiles
+  FOR ALL USING (auth.role() = 'authenticated');
+
+-- ── BANK ACCOUNTS (匯款帳戶，供請款單 PDF 使用) ─────────────────
+CREATE TABLE bank_accounts (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  label           TEXT NOT NULL,
+  bank_name       TEXT NOT NULL,
+  branch_name     TEXT,
+  account_name    TEXT NOT NULL,
+  account_number  TEXT NOT NULL,
+  notes           TEXT,
+  is_default      BOOLEAN DEFAULT FALSE,
+  sort_order      INT DEFAULT 0,
+  created_at      TIMESTAMPTZ DEFAULT NOW(),
+  updated_at      TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE bank_accounts ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "auth_all_bank_accounts" ON bank_accounts
+  FOR ALL USING (auth.role() = 'authenticated');
+
 -- ── PROJECTS ────────────────────────────────────────────────────
 CREATE TABLE projects (
   id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name              TEXT NOT NULL,
   client_id         UUID REFERENCES clients(id) ON DELETE SET NULL,
   contact_person_id UUID REFERENCES contact_persons(id) ON DELETE SET NULL,
+  company_profile_id UUID REFERENCES company_profiles(id) ON DELETE SET NULL,
   building_permit   TEXT,
   land_section      TEXT,
   project_scale     TEXT,
   project_owner     TEXT,
   total_amount      NUMERIC(14,2) DEFAULT 0,
   tax_included      BOOLEAN DEFAULT FALSE,
-  status            TEXT NOT NULL DEFAULT '草稿'
+  status            TEXT NOT NULL DEFAULT '未報價'
                       CHECK (status IN (
-                        '草稿', '已報價', '已確認報價', '進行中', '完工', '暫停', '已刪除'
+                        '未報價', '已報價', '已確認報價', '進行中', '完工', '暫停', '已刪除'
                       )),
   created_by        UUID REFERENCES auth.users(id),
   created_at        TIMESTAMPTZ DEFAULT NOW(),
@@ -162,12 +201,13 @@ CREATE TABLE invoices (
   project_id       UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
   payment_stage_id UUID NOT NULL REFERENCES payment_stages(id) ON DELETE CASCADE,
   invoice_number   TEXT,
-  status           TEXT NOT NULL DEFAULT '已請款'
-                     CHECK (status IN ('已請款', '已收款')),
+  status           TEXT NOT NULL DEFAULT '草稿'
+                     CHECK (status IN ('草稿', '已請款', '已收款')),
   invoiced_at      DATE,
   received_at      DATE,
   notes            TEXT,
   returned_documents TEXT,
+  bank_account_id  UUID REFERENCES bank_accounts(id) ON DELETE SET NULL,
   created_by       UUID REFERENCES auth.users(id),
   created_at       TIMESTAMPTZ DEFAULT NOW(),
   updated_at       TIMESTAMPTZ DEFAULT NOW(),
@@ -198,6 +238,10 @@ $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER trg_clients_updated_at
   BEFORE UPDATE ON clients FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+CREATE TRIGGER trg_company_profiles_updated_at
+  BEFORE UPDATE ON company_profiles FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+CREATE TRIGGER trg_bank_accounts_updated_at
+  BEFORE UPDATE ON bank_accounts FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 CREATE TRIGGER trg_project_templates_updated_at
   BEFORE UPDATE ON project_templates FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 CREATE TRIGGER trg_services_updated_at
@@ -230,7 +274,8 @@ DO $$
 DECLARE tbl TEXT;
 BEGIN
   FOREACH tbl IN ARRAY ARRAY[
-    'clients', 'contact_persons', 'project_templates', 'services',
+    'clients', 'contact_persons',
+    'project_templates', 'services',
     'template_services', 'service_checklist_items', 'projects',
     'quotations', 'quotation_services', 'payment_stages',
     'disbursements', 'invoices', 'negotiation_log'

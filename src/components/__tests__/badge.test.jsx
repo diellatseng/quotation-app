@@ -51,6 +51,11 @@ describe('QuotationStatusBadges', () => {
 })
 
 describe('InvoiceStatusBadges', () => {
+  it('renders 草稿 status', () => {
+    render(<InvoiceStatusBadges status="草稿" />)
+    expect(screen.getByText('草稿')).toBeInTheDocument()
+  })
+
   it('renders 已請款 status', () => {
     render(<InvoiceStatusBadges status="已請款" />)
     expect(screen.getByText('已請款')).toBeInTheDocument()

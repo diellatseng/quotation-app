@@ -69,7 +69,7 @@ export default function LoginPage() {
         <div className="flex items-center gap-4">
           <AppBrandMark size="lg" />
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">專案管理系統</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">案件管理系統</h1>
             <p className="text-sm text-muted-foreground">Project Management</p>
           </div>
         </div>

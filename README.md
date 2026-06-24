@@ -1,6 +1,6 @@
-# 專案管理系統 — Project Management System
+# 案件管理系統 — Project Management System
 
-工程專案管理系統。整合客戶資料庫、工程範本、服務清單與報價流程，並可匯出 PDF；後續將擴充發票模組。
+工程案件管理系統。整合客戶資料庫、工程範本、服務清單與報價流程，並可匯出 PDF；後續將擴充發票模組。
 
 Construction project management system with client database, project templates, service catalog, quotation workflow, and PDF export; invoice module planned.
 
@@ -10,9 +10,9 @@ Construction project management system with client database, project templates, 
 
 ### 1️⃣ Supabase 設定
 
-#### 建立專案 / Create Project
+#### 建立案件 / Create Project
 1. 前往 [https://app.supabase.com](https://app.supabase.com) 註冊免費帳號
-2. 建立新專案（New Project）
+2. 建立新案件（New Project）
 3. 前往 **SQL Editor** → New Query
 4. 複製並執行 `supabase/schema.sql` 中的完整 SQL
 
@@ -112,13 +112,13 @@ npm start
 
 ## 🗂️ 資料庫結構
 
-完整 schema 見 `supabase/schema.sql`（新專案一次性執行）。主要資料表：
+完整 schema 見 `supabase/schema.sql`（新案件一次性執行）。主要資料表：
 
 ```
-projects                 → 專案主檔（地號、狀態、合約金額）
+projects                 → 案件主檔（地號、狀態、合約金額）
   └── status: 草稿 | 已報價 | 已確認報價 | 進行中 | 完工 | 暫停 | 已刪除
 
-quotations               → 報價單（project_id 連結專案）
+quotations               → 報價單（project_id 連結案件）
   └── status: 草稿 | 已報價 | 已確認 | 已結案 | 已刪除
 
 payment_stages           → 付款階段（quotation_id + project_id）
@@ -205,7 +205,7 @@ MIT License — 自由使用、修改、分發。
 
 ## 🙏 致謝
 
-此專案使用以下開源技術：
+此案件使用以下開源技術：
 - [React](https://react.dev/)
 - [Vite](https://vite.dev/)
 - [Supabase](https://supabase.com/)
