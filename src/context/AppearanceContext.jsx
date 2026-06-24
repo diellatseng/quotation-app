@@ -1,55 +1,77 @@
 // src/context/AppearanceContext.jsx
-// Single source of truth for all user-facing appearance preferences:
-//   • theme        → color palette, drives [data-theme] (light / dark / future)
-//   • contrast     → high-contrast accessibility mode, drives [data-contrast]
-//   • baseFontSize → font scaling, drives the --base-font-size custom property
-// These three axes are independent and compose (e.g. dark theme + high contrast).
-// All persisted together under one localStorage key.
+// User-facing appearance preferences:
+//   • theme        → color palette via [data-theme] (default | high-contrast)
+//   • baseFontSize → font scaling via --base-font-size on <html>
 import { createContext, useContext, useState, useEffect } from 'react'
+import { APP_THEMES, DEFAULT_THEME, isAppTheme } from '@/lib/themes'
 
 const STORAGE_KEY = 'qapp_theme'
 
 const defaults = {
-  theme: 'light',     // 'light' | 'dark' | future custom themes
-  contrast: 'normal', // 'normal' | 'high'
-  baseFontSize: 18,   // px — all other sizes scale from this
+  theme: DEFAULT_THEME,
+  baseFontSize: 18,
+}
+
+function normalizeSavedSettings(raw) {
+  const merged = { ...defaults, ...raw }
+  let theme = merged.theme
+  if (theme === 'light') theme = DEFAULT_THEME
+  if (raw?.contrast === 'high' && theme === DEFAULT_THEME) theme = 'high-contrast'
+  if (!isAppTheme(theme)) theme = DEFAULT_THEME
+  return {
+    theme,
+    baseFontSize: merged.baseFontSize,
+  }
+}
+
+function loadSettings() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY)
+    return saved ? normalizeSavedSettings(JSON.parse(saved)) : defaults
+  } catch {
+    return defaults
+  }
+}
+
+function applyAppearanceToDocument(settings) {
+  const root = document.documentElement
+  root.setAttribute('data-theme', settings.theme)
+  root.style.setProperty('--base-font-size', `${settings.baseFontSize}px`)
 }
 
 const AppearanceContext = createContext(null)
 
 export function AppearanceProvider({ children }) {
   const [settings, setSettings] = useState(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY)
-      return saved ? { ...defaults, ...JSON.parse(saved) } : defaults
-    } catch { return defaults }
+    const initial = loadSettings()
+    if (typeof document !== 'undefined') applyAppearanceToDocument(initial)
+    return initial
   })
 
-  // Reflect preferences onto :root whenever they change
   useEffect(() => {
-    const root = document.documentElement
-    root.setAttribute('data-theme', settings.theme)
-    root.setAttribute('data-contrast', settings.contrast)
-    root.style.setProperty('--base-font-size', `${settings.baseFontSize}px`)
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(settings)) } catch {}
+    applyAppearanceToDocument(settings)
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(settings))
+    } catch { /* ignore quota / private mode */ }
   }, [settings])
 
-  const setTheme = (theme) =>
-    setSettings(s => ({ ...s, theme }))
-
-  const setFontSize = (size) => {
-    const clamped = Math.min(Math.max(size, 14), 24) // 14–24px range
-    setSettings(s => ({ ...s, baseFontSize: clamped }))
+  const setTheme = (theme) => {
+    if (!isAppTheme(theme)) return
+    setSettings((s) => ({ ...s, theme }))
   }
 
-  const toggleContrast = () =>
-    setSettings(s => ({ ...s, contrast: s.contrast === 'high' ? 'normal' : 'high' }))
+  const setFontSize = (size) => {
+    const clamped = Math.min(Math.max(size, 14), 24)
+    setSettings((s) => ({ ...s, baseFontSize: clamped }))
+  }
 
   return (
-    <AppearanceContext.Provider value={{ ...settings, setTheme, setFontSize, toggleContrast }}>
+    <AppearanceContext.Provider value={{ ...settings, setTheme, setFontSize }}>
       {children}
     </AppearanceContext.Provider>
   )
 }
 
 export const useAppearance = () => useContext(AppearanceContext)
+
+export { APP_THEMES }
