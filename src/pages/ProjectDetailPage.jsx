@@ -97,7 +97,7 @@ function buildInvoiceRows(stages, invoiceList, disbursementMap) {
 }
 
 const OVERVIEW_ENGINEERING_FIELDS = [
-  { key: 'project_name', label: '工程名稱', display: (p) => displayProjectName(p) },
+  { key: 'marketing_name', label: '工程名稱', display: (p) => displayProjectName(p) },
   { key: 'project_owner', label: '起造人 / 業主' },
   { key: 'building_permit', label: '建造執照字號' },
   { key: 'land_section', label: '地號資訊', display: (p) => displayLandSection(p) },
@@ -898,9 +898,9 @@ export default function ProjectDetailPage() {
                     <span className="text-muted-foreground">地號</span>
                     <p className="font-medium text-foreground">{displayLandSection(project)}</p>
                   </div>
-                  {project.name?.trim() && (
+                  {project.marketing_name?.trim() && (
                     <div>
-                      <span className="text-muted-foreground">案件名稱</span>
+                      <span className="text-muted-foreground">工程名稱</span>
                       <p className="font-medium text-foreground">{displayProjectName(project)}</p>
                     </div>
                   )}

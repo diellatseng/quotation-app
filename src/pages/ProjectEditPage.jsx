@@ -1,11 +1,11 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { toast } from 'sonner'
 import WizardShell from '../components/WizardShell'
 import Step1Client from './wizard/Step1Client'
 import Step2Project from './wizard/Step2Project'
-import { projectNameForEdit, resolveProjectName } from '../lib/projectDisplay'
+import { marketingNameForEdit } from '../lib/projectDisplay'
 import { QuotationDetailSkeleton } from '@/components/skeletons'
 import {
   AlertDialog,
@@ -38,8 +38,26 @@ const initState = () => ({
   land_section: '',
   project_scale: '',
   project_owner: '',
-  project_name: '',
+  marketing_name: '',
 })
+
+function snapshotState(data) {
+  return JSON.stringify({
+    clientId: data.client?.id || null,
+    selectedContactId: data.selectedContactId || null,
+    company_profile_id: data.company_profile_id || null,
+    building_permit: data.building_permit || '',
+    land_section: data.land_section || '',
+    project_scale: data.project_scale || '',
+    project_owner: data.project_owner || '',
+    marketing_name: data.marketing_name || '',
+  })
+}
+
+function landSectionDuplicateMessage(message) {
+  const msg = message || ''
+  return msg.includes('projects_land_section_key') || msg.includes('duplicate key value')
+}
 
 export default function ProjectEditPage() {
   const { id } = useParams()
@@ -49,6 +67,7 @@ export default function ProjectEditPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [showExitDialog, setShowExitDialog] = useState(false)
+  const initialSnapshot = useRef(null)
   const navigate = useNavigate()
 
   const update = useCallback((fields) => setData(d => ({ ...d, ...fields })), [])
@@ -85,7 +104,7 @@ export default function ProjectEditPage() {
 
         if (cancelled) return
 
-        setData({
+        const loaded = {
           client: proj.clients || null,
           contacts,
           selectedContactId: proj.contact_person_id || null,
@@ -94,8 +113,10 @@ export default function ProjectEditPage() {
           land_section: proj.land_section || '',
           project_scale: proj.project_scale || '',
           project_owner: proj.project_owner || '',
-          project_name: projectNameForEdit(proj),
-        })
+          marketing_name: marketingNameForEdit(proj),
+        }
+        setData(loaded)
+        initialSnapshot.current = snapshotState(loaded)
       } catch (err) {
         toast.error('載入案件失敗：' + err.message, { duration: 6000 })
         navigate(`/projects/${id}`, { replace: true })
@@ -109,18 +130,20 @@ export default function ProjectEditPage() {
   }, [id, navigate])
 
   const projectPayload = () => ({
-    name: resolveProjectName({
-      project_name: data.project_name,
-      land_section: data.land_section,
-    }),
+    marketing_name: data.marketing_name?.trim() || null,
     client_id: data.client?.id || null,
     contact_person_id: data.selectedContactId || null,
     building_permit: data.building_permit,
-    land_section: data.land_section,
+    land_section: data.land_section.trim(),
     project_scale: data.project_scale,
     project_owner: data.project_owner,
     company_profile_id: data.company_profile_id || null,
   })
+
+  const isDirty = () => {
+    if (!initialSnapshot.current) return false
+    return snapshotState(data) !== initialSnapshot.current
+  }
 
   const saveProject = async () => {
     if (!data.client) {
@@ -129,6 +152,10 @@ export default function ProjectEditPage() {
     }
     if (!data.company_profile_id) {
       toast.warning('請選擇公司抬頭')
+      return false
+    }
+    if (!data.land_section?.trim()) {
+      toast.warning('請輸入地號')
       return false
     }
 
@@ -140,10 +167,16 @@ export default function ProjectEditPage() {
         .eq('id', id)
 
       if (error) throw error
+      initialSnapshot.current = snapshotState(data)
       toast.success('案件已更新')
       return true
     } catch (err) {
-      toast.error('更新案件失敗：' + err.message, { duration: 6000 })
+      const msg = err?.message || '未知錯誤'
+      if (landSectionDuplicateMessage(msg)) {
+        toast.error('此地號已被使用，請輸入不同的地號', { duration: 6000 })
+      } else {
+        toast.error('更新案件失敗：' + msg, { duration: 6000 })
+      }
       return false
     } finally {
       setSaving(false)
@@ -152,26 +185,44 @@ export default function ProjectEditPage() {
 
   const canGoNext = () => {
     if (step === 1) return !!data.client
-    if (step === 2) return !!data.company_profile_id
+    if (step === 2) return !!data.company_profile_id && !!data.land_section?.trim()
     return true
   }
 
   const handleNext = () => {
     if (!canGoNext()) {
       if (step === 1) toast.warning('請先選擇或建立客戶')
-      if (step === 2) toast.warning('請選擇公司抬頭')
+      if (step === 2) {
+        if (!data.company_profile_id) toast.warning('請選擇公司抬頭')
+        else toast.warning('請輸入地號')
+      }
       return
     }
     setStep(s => s + 1)
   }
 
+  const handleStepClick = (clickedStep) => {
+    if (clickedStep === step) return
+    if (clickedStep === 2 && !data.client) {
+      toast.warning('請先選擇或建立客戶')
+      return
+    }
+    setStep(clickedStep)
+  }
+
   const handleFinish = async () => {
     if (!canGoNext()) {
-      toast.warning('請選擇公司抬頭')
+      if (!data.company_profile_id) toast.warning('請選擇公司抬頭')
+      else toast.warning('請輸入地號')
       return
     }
     const ok = await saveProject()
     if (ok) navigate(`/projects/${id}`)
+  }
+
+  const handleBackToProject = () => {
+    if (isDirty()) setShowExitDialog(true)
+    else navigate(`/projects/${id}`)
   }
 
   const stepProps = { data, update, loading, companyProfileLocked: false }
@@ -204,8 +255,8 @@ export default function ProjectEditPage() {
         currentStep={step}
         onNext={step === SETUP_STEPS.length ? handleFinish : handleNext}
         onBack={() => setStep(s => s - 1)}
-        onBackToDashboard={() => setShowExitDialog(true)}
-        onStepClick={setStep}
+        onBackToDashboard={handleBackToProject}
+        onStepClick={handleStepClick}
         saving={saving}
         canNext={canGoNext()}
         nextLabel={step === SETUP_STEPS.length ? '儲存變更' : undefined}
@@ -223,7 +274,7 @@ export default function ProjectEditPage() {
           <Step2Project
             {...stepProps}
             title="步驟 2：工程資料"
-            description="可調整公司抬頭與工程基本資料。這些設定將沿用於本案件所有文件。"
+            description="可調整公司抬頭與工程基本資料。地號為必填且不可與其他案件重複。"
           />
         )}
       </WizardShell>

@@ -97,7 +97,7 @@ export default function DashboardPage() {
     const { data, error: err } = await supabase
       .from('projects')
       .select(`
-        id, name, land_section, status, total_amount, tax_included, updated_at,
+        id, marketing_name, land_section, status, total_amount, tax_included, updated_at,
         clients(company_name)
       `)
       .neq('status', '已刪除')
@@ -205,7 +205,7 @@ export default function DashboardPage() {
 
   const matchesSearch = (p) =>
     (p.land_section || '').includes(search) ||
-    (p.name || '').includes(search) ||
+    (p.marketing_name || '').includes(search) ||
     (p.clients?.company_name || '').includes(search)
 
   const poolProjects = projects.filter(p => {
@@ -454,7 +454,7 @@ export default function DashboardPage() {
                         <p className="truncate text-sm font-semibold text-foreground">
                           {displayLandSection(p)}
                         </p>
-                        {p.name?.trim() && (
+                        {p.marketing_name?.trim() && (
                           <p className="truncate text-xs text-muted-foreground">{displayProjectName(p)}</p>
                         )}
                       </div>
@@ -479,7 +479,7 @@ export default function DashboardPage() {
                 <TableHeader>
                   <TableRow className="border-border bg-muted/40 hover:bg-muted/40">
                     <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">地號</TableHead>
-                    <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">案件名稱</TableHead>
+                    <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">工程名稱</TableHead>
                     <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">客戶名稱</TableHead>
                     <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">金額</TableHead>
                     <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">案件狀態</TableHead>

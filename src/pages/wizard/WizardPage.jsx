@@ -17,7 +17,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { resolveProjectName } from '../../lib/projectDisplay'
 import Step3Services from './Step3Services'
 import Step4Confirm from './Step4Confirm'
 
@@ -38,7 +37,7 @@ const initState = () => ({
   land_section: '',
   project_scale: '',
   project_owner: '',
-  project_name: '',
+  marketing_name: '',
 
   // 案件公司抬頭（步驟 2）
   company_profile_id: null,
@@ -160,7 +159,7 @@ export default function WizardPage() {
         land_section: q.land_section || '',
         project_scale: q.project_scale || '',
         project_owner: q.project_owner || '',
-        project_name: q.project_name || '',
+        marketing_name: q.marketing_name || '',
         company_profile_id: null,
         payment_stages: stages.map(st => ({ id: crypto.randomUUID(), stage_name: st.stage_name, percentage: st.percentage })),
         services: services.map(s => ({
@@ -256,7 +255,7 @@ export default function WizardPage() {
         land_section: proj.land_section || '',
         project_scale: proj.project_scale || '',
         project_owner: proj.project_owner || '',
-        project_name: proj.name || '',
+        marketing_name: proj.marketing_name || '',
         company_profile_id: proj.company_profile_id || null,
         fee_amount: proj.total_amount?.toString() || '',
         tax_included: proj.tax_included ?? false,
@@ -267,14 +266,11 @@ export default function WizardPage() {
   }, [editId, projectParam, navigate])
 
   const projectPayload = () => ({
-    name: resolveProjectName({
-      project_name: data.project_name,
-      land_section: data.land_section,
-    }),
+    marketing_name: data.marketing_name?.trim() || null,
     client_id: data.client?.id || null,
     contact_person_id: data.selectedContactId || null,
     building_permit: data.building_permit,
-    land_section: data.land_section,
+    land_section: data.land_section?.trim() || '',
     project_scale: data.project_scale,
     project_owner: data.project_owner,
     total_amount: Number(data.fee_amount) || 0,
@@ -317,7 +313,7 @@ export default function WizardPage() {
           land_section: data.land_section,
           project_scale: data.project_scale,
           project_owner: data.project_owner,
-          project_name: data.project_name,
+          marketing_name: data.marketing_name?.trim() || null,
           fee_amount: Number(data.fee_amount) || 0,
           tax_included: data.tax_included,
           notes: data.notes,
@@ -346,7 +342,7 @@ export default function WizardPage() {
         land_section: data.land_section,
         project_scale: data.project_scale,
         project_owner: data.project_owner,
-        project_name: data.project_name,
+        marketing_name: data.marketing_name?.trim() || null,
         fee_amount: Number(data.fee_amount) || 0,
         tax_included: data.tax_included,
         notes: data.notes,

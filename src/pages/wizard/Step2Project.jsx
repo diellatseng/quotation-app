@@ -100,21 +100,22 @@ export default function Step2Project({
         <CardContent>
         <FieldGroup className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Field>
-            <FieldLabel>工程名稱</FieldLabel>
+            <FieldLabel>地號資訊</FieldLabel>
             <Input
               type="text"
-              value={data.project_name || ''}
-              onChange={e => update({ project_name: e.target.value })}
-              placeholder="可稍後再填，例如：住宅新建工程"
+              required
+              value={data.land_section || ''}
+              onChange={e => update({ land_section: e.target.value })}
+              placeholder="例如：XX區XX段XX地號"
             />
           </Field>
           <Field>
-            <FieldLabel>起造人 / 業主</FieldLabel>
+            <FieldLabel>工程名稱</FieldLabel>
             <Input
               type="text"
-              value={data.project_owner || ''}
-              onChange={e => update({ project_owner: e.target.value })}
-              placeholder="例如：王小明"
+              value={data.marketing_name || ''}
+              onChange={e => update({ marketing_name: e.target.value })}
+              placeholder="選填，例如：住宅新建工程"
             />
           </Field>
           <Field>
@@ -127,12 +128,12 @@ export default function Step2Project({
             />
           </Field>
           <Field>
-            <FieldLabel>地號資訊</FieldLabel>
+            <FieldLabel>起造人 / 業主</FieldLabel>
             <Input
               type="text"
-              value={data.land_section || ''}
-              onChange={e => update({ land_section: e.target.value })}
-              placeholder="例如：XX區XX段XX地號"
+              value={data.project_owner || ''}
+              onChange={e => update({ project_owner: e.target.value })}
+              placeholder="例如：王小明"
             />
           </Field>
           <Field className="md:col-span-2">

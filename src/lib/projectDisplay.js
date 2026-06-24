@@ -9,32 +9,20 @@ export function isPlaceholderProjectName(name) {
   return AUTO_PROJECT_NAME_PATTERN.test(trimmed)
 }
 
-/**
- * Value stored in projects.name (NOT NULL).
- * Prefer 工程名稱; otherwise 地號; otherwise 未命名案件.
- */
-export function resolveProjectName({ project_name, land_section }) {
-  const projectName = project_name?.trim()
-  const land = land_section?.trim()
-  if (projectName) return projectName
-  if (land) return land
-  return PLACEHOLDER_PROJECT_NAME
-}
-
-/** Primary list / breadcrumb label — 地號 first, then name. */
+/** Primary list / breadcrumb label — 地號 first, then 工程名稱. */
 export function projectPrimaryLabel(project) {
   if (project?.land_section?.trim()) return project.land_section.trim()
-  const name = project?.name?.trim()
-  if (name && !isPlaceholderProjectName(name)) return name
+  const marketing = project?.marketing_name?.trim()
+  if (marketing && !isPlaceholderProjectName(marketing)) return marketing
   return PLACEHOLDER_PROJECT_NAME
 }
 
-/** Secondary label when both 地號 and name exist. */
+/** Secondary label when both 地號 and 工程名稱 exist. */
 export function projectSecondaryLabel(project) {
   const land = project?.land_section?.trim()
-  const name = project?.name?.trim()
-  if (!land || !name || isPlaceholderProjectName(name) || name === land) return null
-  return name
+  const marketing = project?.marketing_name?.trim()
+  if (!land || !marketing || isPlaceholderProjectName(marketing)) return null
+  return marketing
 }
 
 export function displayLandSection(project) {
@@ -42,16 +30,12 @@ export function displayLandSection(project) {
 }
 
 export function displayProjectName(project) {
-  const name = project?.name?.trim()
-  if (!name || isPlaceholderProjectName(name) || name === project?.land_section?.trim()) return '—'
-  return name
+  const marketing = project?.marketing_name?.trim()
+  if (!marketing || isPlaceholderProjectName(marketing)) return '—'
+  return marketing
 }
 
 /** Value for 工程名稱 field when editing an existing project. */
-export function projectNameForEdit(project) {
-  const name = project?.name?.trim()
-  const land = project?.land_section?.trim()
-  if (!name || isPlaceholderProjectName(name)) return ''
-  if (land && name === land) return ''
-  return name
+export function marketingNameForEdit(project) {
+  return project?.marketing_name?.trim() || ''
 }

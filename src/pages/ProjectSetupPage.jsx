@@ -6,7 +6,6 @@ import { toast } from 'sonner'
 import WizardShell from '../components/WizardShell'
 import Step1Client from './wizard/Step1Client'
 import Step2Project from './wizard/Step2Project'
-import { resolveProjectName } from '../lib/projectDisplay'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,8 +31,13 @@ const initState = () => ({
   land_section: '',
   project_scale: '',
   project_owner: '',
-  project_name: '',
+  marketing_name: '',
 })
+
+function landSectionDuplicateMessage(message) {
+  const msg = message || ''
+  return msg.includes('projects_land_section_key') || msg.includes('duplicate key value')
+}
 
 export default function ProjectSetupPage() {
   const [step, setStep] = useState(1)
@@ -46,14 +50,11 @@ export default function ProjectSetupPage() {
   const update = useCallback((fields) => setData(d => ({ ...d, ...fields })), [])
 
   const projectPayload = () => ({
-    name: resolveProjectName({
-      project_name: data.project_name,
-      land_section: data.land_section,
-    }),
+    marketing_name: data.marketing_name?.trim() || null,
     client_id: data.client?.id || null,
     contact_person_id: data.selectedContactId || null,
     building_permit: data.building_permit,
-    land_section: data.land_section,
+    land_section: data.land_section.trim(),
     project_scale: data.project_scale,
     project_owner: data.project_owner,
     company_profile_id: data.company_profile_id || null,
@@ -69,6 +70,10 @@ export default function ProjectSetupPage() {
     }
     if (!data.company_profile_id) {
       toast.warning('請選擇公司抬頭')
+      return null
+    }
+    if (!data.land_section?.trim()) {
+      toast.warning('請輸入地號')
       return null
     }
 
@@ -93,6 +98,8 @@ export default function ProjectSetupPage() {
           '建立案件失敗：資料庫 status 限制尚未更新。請至 Supabase SQL Editor 執行 supabase/migration_project_work_status.sql。',
           { duration: 10000 },
         )
+      } else if (landSectionDuplicateMessage(msg)) {
+        toast.error('此地號已被使用，請輸入不同的地號', { duration: 6000 })
       } else {
         toast.error('建立案件失敗：' + msg, { duration: 6000 })
       }
@@ -104,22 +111,35 @@ export default function ProjectSetupPage() {
 
   const canGoNext = () => {
     if (step === 1) return !!data.client
-    if (step === 2) return !!data.company_profile_id
+    if (step === 2) return !!data.company_profile_id && !!data.land_section?.trim()
     return true
   }
 
   const handleNext = () => {
     if (!canGoNext()) {
       if (step === 1) toast.warning('請先選擇或建立客戶')
-      if (step === 2) toast.warning('請選擇公司抬頭')
+      if (step === 2) {
+        if (!data.company_profile_id) toast.warning('請選擇公司抬頭')
+        else toast.warning('請輸入地號')
+      }
       return
     }
     setStep(s => s + 1)
   }
 
+  const handleStepClick = (clickedStep) => {
+    if (clickedStep === step) return
+    if (clickedStep === 2 && !data.client) {
+      toast.warning('請先選擇或建立客戶')
+      return
+    }
+    setStep(clickedStep)
+  }
+
   const handleFinish = async () => {
     if (!canGoNext()) {
-      toast.warning('請選擇公司抬頭')
+      if (!data.company_profile_id) toast.warning('請選擇公司抬頭')
+      else toast.warning('請輸入地號')
       return
     }
     const projectId = await saveProject()
@@ -149,7 +169,7 @@ export default function ProjectSetupPage() {
         onNext={step === SETUP_STEPS.length ? handleFinish : handleNext}
         onBack={() => setStep(s => s - 1)}
         onBackToDashboard={() => setShowExitDialog(true)}
-        onStepClick={setStep}
+        onStepClick={handleStepClick}
         saving={saving}
         canNext={canGoNext()}
         nextLabel={step === SETUP_STEPS.length ? '建立案件' : undefined}
@@ -166,7 +186,7 @@ export default function ProjectSetupPage() {
           <Step2Project
             {...stepProps}
             title="步驟 2：工程資料"
-            description="請選擇公司抬頭並輸入工程基本資料。這些設定將沿用於本案件所有文件。"
+            description="請選擇公司抬頭並輸入地號（必填）。工程名稱為選填，可稍後再補。"
           />
         )}
       </WizardShell>

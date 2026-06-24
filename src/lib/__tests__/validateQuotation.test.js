@@ -6,7 +6,7 @@ import {
 
 const complete = {
   clientId: 'client-1',
-  projectName: '住宅新建工程',
+  landSection: '鹽埕段一小段 123',
   quoteNumber: 'QT-2025-00001',
   quoteDate: '2025-06-14',
   feeAmount: 100000,
@@ -21,15 +21,15 @@ describe('validateQuotationForSend', () => {
     expect(validateQuotationForSend(complete)).toEqual({ valid: true, missing: [] })
   })
 
-  it('reports missing client and project name', () => {
+  it('reports missing client and land section', () => {
     const result = validateQuotationForSend({
       ...complete,
       clientId: null,
-      projectName: '  ',
+      landSection: '  ',
     })
     expect(result.valid).toBe(false)
     expect(result.missing).toContain('客戶')
-    expect(result.missing).toContain('工程名稱')
+    expect(result.missing).toContain('地號')
   })
 
   it('reports invalid fee amount', () => {
@@ -50,8 +50,8 @@ describe('validateQuotationForSend', () => {
 
 describe('formatQuotationValidationMessage', () => {
   it('joins missing labels for toast display', () => {
-    expect(formatQuotationValidationMessage(['客戶', '工程名稱'])).toBe(
-      '無法發送報價，請補齊：客戶、工程名稱',
+    expect(formatQuotationValidationMessage(['客戶', '地號'])).toBe(
+      '無法發送報價，請補齊：客戶、地號',
     )
   })
 })

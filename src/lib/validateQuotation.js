@@ -10,7 +10,7 @@ function isBlank(value) {
  */
 export function validateQuotationForSend({
   clientId,
-  projectName,
+  landSection,
   quoteNumber,
   quoteDate,
   feeAmount,
@@ -19,7 +19,7 @@ export function validateQuotationForSend({
   const missing = []
 
   if (!clientId) missing.push('客戶')
-  if (isBlank(projectName)) missing.push('工程名稱')
+  if (isBlank(landSection)) missing.push('地號')
   if (isBlank(quoteNumber)) missing.push('報價編號')
   if (isBlank(quoteDate)) missing.push('報價日期')
   if (isBlank(feeAmount) || Number(feeAmount) <= 0) missing.push('報價金額 (未稅)')
@@ -53,7 +53,7 @@ export function formatQuotationValidationMessage(missing) {
 export function validateWizardDataForSend(data) {
   return validateQuotationForSend({
     clientId: data.client?.id,
-    projectName: data.project_name,
+    landSection: data.land_section,
     quoteNumber: data.quote_number,
     quoteDate: data.quote_date,
     feeAmount: data.fee_amount,
@@ -65,7 +65,7 @@ export function validateWizardDataForSend(data) {
 export function validateQuotationRecordForSend(quotation, paymentStages) {
   return validateQuotationForSend({
     clientId: quotation.client_id,
-    projectName: quotation.project_name,
+    landSection: quotation.land_section,
     quoteNumber: quotation.quote_number,
     quoteDate: quotation.quote_date,
     feeAmount: quotation.fee_amount,

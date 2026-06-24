@@ -147,7 +147,7 @@ export default function QuotationDetailPage() {
   }
 
   const projectBackTo = qt.project_id ? `/projects/${qt.project_id}?tab=quotations` : '/dashboard'
-  const projectBackLabel = qt.land_section?.trim() || qt.project_name?.trim() || projectPrimaryLabel({ land_section: qt.land_section, name: qt.project_name })
+  const projectBackLabel = qt.land_section?.trim() || qt.marketing_name?.trim() || projectPrimaryLabel({ land_section: qt.land_section, marketing_name: qt.marketing_name })
   const companyInfo = companyProfileToInfo(qt.projects?.company_profiles)
 
   return (

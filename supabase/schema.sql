@@ -111,12 +111,12 @@ CREATE POLICY "auth_all_bank_accounts" ON bank_accounts
 -- ── PROJECTS ────────────────────────────────────────────────────
 CREATE TABLE projects (
   id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name              TEXT NOT NULL,
+  marketing_name    TEXT,
   client_id         UUID REFERENCES clients(id) ON DELETE SET NULL,
   contact_person_id UUID REFERENCES contact_persons(id) ON DELETE SET NULL,
   company_profile_id UUID REFERENCES company_profiles(id) ON DELETE SET NULL,
   building_permit   TEXT,
-  land_section      TEXT,
+  land_section      TEXT NOT NULL UNIQUE,
   project_scale     TEXT,
   project_owner     TEXT,
   total_amount      NUMERIC(14,2) DEFAULT 0,
@@ -149,7 +149,7 @@ CREATE TABLE quotations (
   land_section            TEXT,
   project_scale           TEXT,
   project_owner           TEXT,
-  project_name            TEXT,
+  marketing_name            TEXT,
   -- 報價
   fee_amount              NUMERIC(14,2) DEFAULT 0,
   tax_included            BOOLEAN DEFAULT FALSE,
