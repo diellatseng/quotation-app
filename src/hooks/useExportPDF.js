@@ -23,7 +23,7 @@ const PDF_SERVER_URL = import.meta.env.VITE_PDF_SERVER_URL || 'http://localhost:
 export function useExportPDF() {
   const [exporting, setExporting] = useState(false)
 
-  const exportPDF = async (previewRef, { filename = '報價單', onSuccess } = {}) => {
+  const exportPDF = async (previewRef, { filename = '報價單', onSuccess, styleMatchers = ['a4-', 'desc-block', 'diff-badge'] } = {}) => {
     setExporting(true)
     try {
       // Clone the container so we can mutate it without affecting the live DOM.
@@ -60,9 +60,7 @@ export function useExportPDF() {
               // Include any rule that touches A4Preview classes or generic
               // layout primitives that the preview relies on
               if (
-                text.includes('a4-') ||
-                text.includes('desc-block') ||
-                text.includes('diff-badge')
+                styleMatchers.some(prefix => text.includes(prefix))
               ) {
                 inlinedCss += text + '\n'
               }
@@ -99,6 +97,14 @@ export function useExportPDF() {
     @page { size: 794px 1123px; margin: 0; }
     .a4-page-break { display: none !important; }
     .a4-page {
+      width: 794px;
+      height: 1123px;
+      max-height: 1123px;
+      box-sizing: border-box;
+      page-break-inside: avoid;
+      break-inside: avoid-page;
+    }
+    .inv-page {
       width: 794px;
       height: 1123px;
       max-height: 1123px;

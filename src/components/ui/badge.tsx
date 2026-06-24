@@ -152,12 +152,39 @@ export function ProjectStatusBadges({
   )
 }
 
+/** Invoice status → badge variant */
+export const INVOICE_STATUS_TO_VARIANT = {
+  已請款: 'quoted',
+  已收款: 'confirmed',
+} as const
+
+export function invoiceStatusVariant(status: string) {
+  return INVOICE_STATUS_TO_VARIANT[status as keyof typeof INVOICE_STATUS_TO_VARIANT] ?? 'quoted'
+}
+
+export function invoiceStatusLabel(status: string) {
+  return status in INVOICE_STATUS_TO_VARIANT ? status : '已請款'
+}
+
+export function InvoiceStatusBadges({
+  status,
+  className,
+}: {
+  status: string
+  className?: string
+}) {
+  return (
+    <Badge variant={invoiceStatusVariant(status)} className={cn('rounded-full', className)}>
+      {invoiceStatusLabel(status)}
+    </Badge>
+  )
+}
+
 /** Quotation workflow status → badge variant */
 export const QUOTATION_STATUS_TO_VARIANT = {
   草稿: 'draft',
   已報價: 'quoted',
   已確認: 'confirmed',
-  已結案: 'closed',
 } as const
 
 export function quotationStatusVariant(status: string) {

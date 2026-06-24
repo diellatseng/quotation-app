@@ -98,7 +98,7 @@ CREATE TABLE quotations (
   version                 INT DEFAULT 1,
   parent_id               UUID REFERENCES quotations(id) ON DELETE SET NULL,
   status                  TEXT NOT NULL DEFAULT '草稿'
-                            CHECK (status IN ('草稿', '已報價', '已確認', '已結案', '已刪除')),
+                            CHECK (status IN ('草稿', '已報價', '已確認', '已刪除')),
   is_negotiating          BOOLEAN DEFAULT FALSE,
   project_id              UUID REFERENCES projects(id) ON DELETE SET NULL,
   client_id               UUID REFERENCES clients(id) ON DELETE SET NULL,
@@ -167,6 +167,7 @@ CREATE TABLE invoices (
   invoiced_at      DATE,
   received_at      DATE,
   notes            TEXT,
+  returned_documents TEXT,
   created_by       UUID REFERENCES auth.users(id),
   created_at       TIMESTAMPTZ DEFAULT NOW(),
   updated_at       TIMESTAMPTZ DEFAULT NOW(),

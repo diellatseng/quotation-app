@@ -2,6 +2,7 @@
 import { render, screen } from '@testing-library/react'
 import {
   DiffBadge,
+  InvoiceStatusBadges,
   QuotationStatusBadges,
   quotationStatusLabel,
   quotationStatusVariant,
@@ -12,7 +13,6 @@ describe('quotation status badge helpers', () => {
     expect(quotationStatusVariant('草稿')).toBe('draft')
     expect(quotationStatusVariant('已報價')).toBe('quoted')
     expect(quotationStatusVariant('已確認')).toBe('confirmed')
-    expect(quotationStatusVariant('已結案')).toBe('closed')
   })
 
   it('defaults unknown status to draft', () => {
@@ -37,11 +37,6 @@ describe('QuotationStatusBadges', () => {
     expect(screen.getByText('已確認')).toBeInTheDocument()
   })
 
-  it('renders 已結案 status', () => {
-    render(<QuotationStatusBadges status="已結案" />)
-    expect(screen.getByText('已結案')).toBeInTheDocument()
-  })
-
   it('shows 議價中 tag when isNegotiating is true', () => {
     render(<QuotationStatusBadges status="已報價" isNegotiating={true} />)
     expect(screen.getByText('已報價')).toBeInTheDocument()
@@ -52,6 +47,18 @@ describe('QuotationStatusBadges', () => {
     render(<QuotationStatusBadges status="已報價" isNegotiating={false} />)
     expect(screen.getByText('已報價')).toBeInTheDocument()
     expect(screen.queryByText('議價中')).not.toBeInTheDocument()
+  })
+})
+
+describe('InvoiceStatusBadges', () => {
+  it('renders 已請款 status', () => {
+    render(<InvoiceStatusBadges status="已請款" />)
+    expect(screen.getByText('已請款')).toBeInTheDocument()
+  })
+
+  it('renders 已收款 status', () => {
+    render(<InvoiceStatusBadges status="已收款" />)
+    expect(screen.getByText('已收款')).toBeInTheDocument()
   })
 })
 

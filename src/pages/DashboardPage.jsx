@@ -8,6 +8,7 @@ import { APP_THEMES, getThemeLabel } from '@/lib/themes'
 import { toast } from 'sonner'
 import { formatRocDate } from '../lib/rocDate'
 import { deleteProjectById } from '../lib/deleteProject'
+import { applyStartProjectWork, needsStartWorkConfirmation } from '../lib/startProjectWork'
 import { projectPrimaryLabel } from '../lib/projectDisplay'
 import {
   AlertDialog,
@@ -122,7 +123,7 @@ export default function DashboardPage() {
 
   const requestStartWork = (project) => {
     setActionMenuId(null)
-    if (project.status === '已報價') {
+    if (needsStartWorkConfirmation(project.status)) {
       setProjectToStart(project)
       setShowStartDialog(true)
       return
@@ -141,18 +142,13 @@ export default function DashboardPage() {
     setShowStartDialog(false)
     setProjectToStart(null)
 
-    const { error: qErr } = await supabase
-      .from('quotations')
-      .update({ status: '已確認' })
-      .eq('project_id', projectId)
-      .eq('status', '已報價')
-
-    if (qErr) {
-      toast.error('更新報價單失敗：' + qErr.message, { duration: 6000 })
-      return
+    try {
+      await applyStartProjectWork(supabase, projectId)
+      toast.success('狀態已更新為【進行中】')
+      fetchProjects()
+    } catch (err) {
+      toast.error('更新失敗：' + err.message, { duration: 6000 })
     }
-
-    await updateStatus(projectId, '進行中')
   }
 
   const handleDelete = (project) => {

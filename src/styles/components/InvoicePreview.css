@@ -1,0 +1,213 @@
+/* InvoicePreview.css — 請款單 PDF（視覺對齊 A4Preview 報價單） */
+
+.inv-root {
+  font-family: 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
+  background: transparent;
+}
+
+.inv-page {
+  width: 794px;
+  min-height: 1123px;
+  background: #fff;
+  box-sizing: border-box;
+  padding: 40px 50px 70px;
+  color: #1a1916;
+  position: relative;
+}
+
+.inv-page__body {
+  padding-bottom: 28px;
+}
+
+/* ── Header（同 a4-header） ── */
+.inv-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.inv-company-block {
+  flex: 1;
+}
+
+.inv-company-name {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+}
+
+.inv-company-meta {
+  font-size: 12px;
+  color: #000;
+  line-height: 1.7;
+}
+
+.inv-doc-title {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  align-self: center;
+  color: #000;
+}
+
+.inv-rule {
+  border-top: 2.5px solid #1a1916;
+  margin: 12px 0 16px;
+}
+
+/* ── 受款人區 ── */
+.inv-letterhead {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px 24px;
+  margin-bottom: 16px;
+  font-size: 12px;
+}
+
+.inv-recipient {
+  grid-column: 1;
+  display: flex;
+  align-items: baseline;
+  width: 100%;
+}
+
+.inv-recipient-name {
+  display: inline-block;
+  border-bottom: 1px solid #1a1916;
+  padding: 0 8px 2px;
+  min-width: 160px;
+}
+
+.inv-tai-zhao {
+  margin-left: auto;
+  padding-right: 8px;
+}
+
+.inv-permit-line {
+  grid-column: 1;
+  margin-top: 4px;
+  font-size: 12px;
+}
+
+.inv-date-line {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: start;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+/* ── Table（同 a4-table） ── */
+.inv-main-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 12px;
+  margin-bottom: 16px;
+}
+
+.inv-th {
+  background: #1a1916;
+  color: #fff;
+  padding: 7px 10px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 12px;
+  border: 1px solid #1a1916;
+}
+
+.inv-td {
+  padding: 6px 10px;
+  text-align: center;
+  border: 1px solid #d4d2cb;
+  color: #333;
+  font-size: 12px;
+  vertical-align: middle;
+}
+
+.inv-td--left {
+  text-align: left;
+}
+
+.inv-td--total {
+  background: #1a1916;
+  color: #fff;
+  border-color: #1a1916;
+  padding: 8px 12px;
+  font-weight: 700;
+}
+
+.inv-col-item {
+  width: 42%;
+}
+
+.inv-col-total,
+.inv-col-unit,
+.inv-col-qty,
+.inv-col-requested {
+  width: 14.5%;
+}
+
+.inv-row-empty .inv-td {
+  height: 28px;
+}
+
+/* ── 檢還文件 / 備註（同 a4-section-label） ── */
+.inv-footer-blocks {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.inv-section-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #888;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #ddd;
+}
+
+.inv-section-body {
+  min-height: 72px;
+  padding-left: 8px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: #333;
+}
+
+.inv-footer-list {
+  margin: 0;
+  padding-left: 1.4em;
+}
+
+.inv-footer-text {
+  white-space: pre-wrap;
+}
+
+.inv-footer-empty {
+  min-height: 1.7em;
+}
+
+/* ── Page footer（同 a4-footer） ── */
+.inv-footer {
+  position: absolute;
+  bottom: 16px;
+  left: 50px;
+  right: 50px;
+  border-top: 1px solid #e0ded8;
+  padding-top: 5px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: #aaa;
+}
+
+.inv-footer__page {
+  white-space: nowrap;
+  margin-left: 16px;
+}

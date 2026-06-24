@@ -122,8 +122,8 @@ quotations               → 報價單（project_id 連結專案）
   └── status: 草稿 | 已報價 | 已確認 | 已結案 | 已刪除
 
 payment_stages           → 付款階段（quotation_id + project_id）
-disbursements            → 代墊明細（→ payment_stages）
-invoices                 → 發票（→ project + payment_stage，每階段一張）
+disbursements            → 代墊明細（→ payment_stages，Phase 4）
+invoices                 → 請款／收款（每付款階段一筆，status: 已請款 | 已收款）
 
 clients / contact_persons / project_templates / services / …
 ```
