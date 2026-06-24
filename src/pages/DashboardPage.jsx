@@ -228,7 +228,7 @@ export default function DashboardPage() {
             <Select value={theme} onValueChange={setTheme}>
               <SelectTrigger
                 size="sm"
-                className="h-7 min-w-[5.5rem] gap-1 border-0 bg-transparent px-1.5 font-semibold shadow-none focus-visible:ring-2"
+                className="h-7 min-w-[11rem] max-w-[12rem] gap-1 border-0 bg-transparent px-1.5 font-semibold shadow-none focus-visible:ring-2"
                 aria-label="切換主題色彩"
               >
                 <Palette className="size-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />

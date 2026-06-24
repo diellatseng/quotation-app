@@ -1,6 +1,6 @@
 /** App color themes — values map to `[data-theme]` on `<html>`. */
 export const APP_THEMES = [
-  { value: 'default', label: '蔚藍海岸' },
+  { value: 'default', label: '幽蘭霧紫 / Violet Mist' },
   { value: 'high-contrast', label: '高對比' },
 ]
 

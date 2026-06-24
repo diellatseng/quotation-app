@@ -89,94 +89,94 @@
     --color-destructive-foreground: var(--destructive-foreground);
 }
 
-/* ── 2. Default theme (2026 SaaS + quotation domain tokens) ── */
+/* ── 2. Default theme — 幽蘭霧紫 / Violet Mist ── */
 :root,
 [data-theme="default"] {
-    --background: #F5F8FC;
-    --foreground: #1A2540;
+    --background: #F8F9FC;
+    --foreground: #1A1F36;
     --card: #FFFFFF;
-    --card-foreground: #1A2540;
+    --card-foreground: #1A1F36;
     --popover: #FFFFFF;
-    --popover-foreground: #1A2540;
-    --muted: #EDF3FA;
-    --muted-foreground: #6B8AB5;
-    --border: #CBDCF0;
-    --input: #CBDCF0;
-    --ring: #2D7DD2;
+    --popover-foreground: #1A1F36;
+    --muted: #F3F5F9;
+    --muted-foreground: #8C94A8;
+    --border: #E4E8F0;
+    --input: #D9DFEA;
+    --ring: #7269E6;
 
-    --primary: #2D7DD2;
+    --primary: #7269E6;
     --primary-foreground: #FFFFFF;
 
-    --secondary: #5C7A9E;
+    --secondary: #425466;
     --secondary-foreground: #FFFFFF;
 
-    /* shadcn hover / list highlight surface — not brand gold */
-    --accent: #E3EDF7;
-    --accent-foreground: #1A2540;
+    /* shadcn hover / list highlight surface */
+    --accent: #F5F7FB;
+    --accent-foreground: #1A1F36;
 
-    --destructive: #E05555;
+    --destructive: #D95B66;
     --destructive-foreground: #FFFFFF;
 
-    --chart-1: #2D7DD2;
-    --chart-2: #E8A838;
-    --chart-3: #3AABF0;
-    --chart-4: #2ECC71;
-    --chart-5: #A878E8;
+    --chart-1: #7269E6;
+    --chart-2: #D99BB6;
+    --chart-3: #6BA8FF;
+    --chart-4: #61C9A8;
+    --chart-5: #F2B24E;
     --radius: 0.625rem;
 
     --sidebar: #FFFFFF;
-    --sidebar-foreground: #1A2540;
-    --sidebar-primary: #2D7DD2;
+    --sidebar-foreground: #1A1F36;
+    --sidebar-primary: #7269E6;
     --sidebar-primary-foreground: #FFFFFF;
-    --sidebar-accent: #EDF3FA;
-    --sidebar-accent-foreground: #1A2540;
-    --sidebar-border: #CBDCF0;
-    --sidebar-ring: #2D7DD2;
+    --sidebar-accent: #F3F5F9;
+    --sidebar-accent-foreground: #1A1F36;
+    --sidebar-border: #E4E8F0;
+    --sidebar-ring: #7269E6;
 
     /* Quotation status badges */
-    --status-draft: #F0F4F8;
-    --status-draft-text: #4A6280;
-    --status-draft-border: #C2D4E8;
-    --status-quoted: #EEF4FF;
-    --status-quoted-text: #2D5A9E;
-    --status-quoted-border: #A8C4F0;
-    --status-confirmed: #E2F5EC;
-    --status-confirmed-text: #1A6E3C;
-    --status-confirmed-border: #7FD4A8;
-    --status-closed: #ECEEF2;
-    --status-closed-text: #3D4A5C;
-    --status-closed-border: #A8B4C4;
+    --status-draft: #F8F7FE;
+    --status-draft-text: #8C94A8;
+    --status-draft-border: #D3D9E5;
+    --status-quoted: #EEEDFE;
+    --status-quoted-text: #534AB7;
+    --status-quoted-border: #AFA9EC;
+    --status-confirmed: #EAF8F3;
+    --status-confirmed-text: #0F6E56;
+    --status-confirmed-border: #5DCAA5;
+    --status-closed: #F3F2F8;
+    --status-closed-text: #425466;
+    --status-closed-border: #B3BAC8;
     /* General warning UI (Alert) — 議價中 feature inactive */
-    --status-warning: #FFF8E8;
-    --status-warning-text: #5A3800;
-    --status-warning-border: #E8A838;
+    --status-warning: #FFF6E5;
+    --status-warning-text: #854F0B;
+    --status-warning-border: #EF9F27;
 
     /* Version diff (services compare) */
-    --diff-added: #EDFBF3;
-    --diff-added-border: #2ECC71;
-    --diff-added-text: #1A4A2A;
-    --diff-added-badge: #2ECC71;
-    --diff-modified: #FFF8E8;
-    --diff-modified-border: #E8A838;
-    --diff-modified-text: #5A3800;
-    --diff-modified-badge: #E8A838;
-    --diff-removed: #FFF0F0;
-    --diff-removed-border: #E05555;
-    --diff-removed-text: #5A1A1A;
-    --diff-removed-badge: #E05555;
+    --diff-added: #F0FBF6;
+    --diff-added-border: #1D9E75;
+    --diff-added-text: #FFFFFF;
+    --diff-added-badge: #1D9E75;
+    --diff-modified: #F5F3FF;
+    --diff-modified-border: #7269E6;
+    --diff-modified-text: #FFFFFF;
+    --diff-modified-badge: #7269E6;
+    --diff-removed: #FDF0F5;
+    --diff-removed-border: #D99BB6;
+    --diff-removed-text: #4B1528;
+    --diff-removed-badge: #D99BB6;
     --diff-removed-badge-text: #FFFFFF;
 
     /* Soft destructive (icon delete, remove row) */
-    --destructive-muted: #FFF0F0;
-    --destructive-muted-text: #8A2020;
-    --destructive-muted-border: #F5C4C4;
-    --destructive-muted-hover: #FFE0E0;
+    --destructive-muted: #FFF0F5;
+    --destructive-muted-text: #72243E;
+    --destructive-muted-border: #ED93B1;
+    --destructive-muted-hover: #FFE4EF;
 
     /* CTA / inline highlight banners */
-    --highlight: #EEF4FF;
-    --highlight-text: #1E4A90;
-    --highlight-border: #2D7DD2;
-    --cta-hover: #1E6BB8;
+    --highlight: #EEEDFE;
+    --highlight-text: #3C3489;
+    --highlight-border: #7269E6;
+    --cta-hover: #6359D9;
 }
 
 /* ── 3. High-contrast theme ── */
