@@ -7,7 +7,7 @@ import { toast } from 'sonner'
 import { formatRocDate, todayCe } from '../lib/rocDate'
 import ROCDateInput from '../components/ROCDateInput'
 import { FEATURE_NEGOTIATION, FEATURE_VERSIONING } from '../lib/featureFlags'
-import { ProjectStatusBadges, QuotationStatusBadges, InvoiceStatusBadges, Badge } from '@/components/ui/badge'
+import { ProjectSummaryBadges, QuotationStatusBadges, InvoiceStatusBadges, Badge } from '@/components/ui/badge'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -38,6 +38,7 @@ import {
 } from '@/components/ui/table'
 import { AppEmptyState } from '@/components/AppEmptyState'
 import DisbursementEditor, { disbursementsToRows } from '@/components/DisbursementEditor'
+import InvoiceSetupDialog from '@/components/InvoiceSetupDialog'
 import { AppBreadcrumbBar } from '@/components/AppShellHeader'
 import { QuotationDetailSkeleton } from '@/components/skeletons'
 import {
@@ -70,11 +71,12 @@ import {
   projectPrimaryLabel,
   projectSecondaryLabel,
 } from '@/lib/projectDisplay'
+import { applyStartProjectWork, needsStartWorkConfirmation } from '@/lib/startProjectWork'
+import { getBillingSummary, getQuotationSummary } from '@/lib/projectSummaries'
 
 const fmt = (n) => (n != null && n !== '' ? `NT$ ${Number(n).toLocaleString('zh-TW')}` : '—')
 
 const emptyInvoiceForm = () => ({
-  invoice_number: '',
   invoiced_at: todayCe(),
   notes: '',
   returned_documents: '',
@@ -123,6 +125,8 @@ export default function ProjectDetailPage() {
   const [invoiceToDelete, setInvoiceToDelete] = useState(null)
   const [bankAccounts, setBankAccounts] = useState([])
   const [quotationToDelete, setQuotationToDelete] = useState(null)
+  const [invoiceSetupOpen, setInvoiceSetupOpen] = useState(false)
+  const [invoiceMetaEditing, setInvoiceMetaEditing] = useState(false)
   const { user } = useAuth()
   const activeTab = searchParams.get('tab') || 'overview'
   const editInvoiceParam = searchParams.get('editInvoice')
@@ -159,7 +163,7 @@ export default function ProjectDetailPage() {
         .from('quotations')
         .select(`
           id, quote_number, version, status, is_negotiating,
-          quote_date, fee_amount, created_at
+          quote_date, fee_amount, tax_included, created_at
         `)
         .eq('project_id', id)
         .neq('status', '已刪除')
@@ -250,11 +254,11 @@ export default function ProjectDetailPage() {
   }
 
   const requestStartWork = () => {
-    if (needsStartWorkConfirmation(project.status)) {
+    if (needsStartWorkConfirmation(quotations)) {
       setShowStartDialog(true)
       return
     }
-    updateProjectStatus('進行中')
+    updateProjectStatus('已開工')
   }
 
   const handleStartCancel = () => {
@@ -265,7 +269,7 @@ export default function ProjectDetailPage() {
     setShowStartDialog(false)
     try {
       await applyStartProjectWork(supabase, id)
-      toast.success('案件狀態已更新為【進行中】')
+      toast.success('案件狀態已更新為【已開工】')
       fetchData()
     } catch (err) {
       toast.error('更新失敗：' + err.message, { duration: 6000 })
@@ -309,6 +313,7 @@ export default function ProjectDetailPage() {
       returned_documents: suggestReturnedDocuments(stageDisbs).join('\n'),
       bank_account_id: defaultBank?.id || '',
     })
+    setInvoiceMetaEditing(false)
     setInvoiceDialog({ mode: 'create', stage })
   }
 
@@ -316,12 +321,12 @@ export default function ProjectDetailPage() {
     const stageDisbs = groupDisbursementsByStage(disbursements).get(stage.id) ?? []
     setInvoiceDisbursementRows(disbursementsToRows(stageDisbs))
     setInvoiceForm({
-      invoice_number: invoice.invoice_number || '',
       invoiced_at: invoice.invoiced_at || todayCe(),
       notes: invoice.notes || '',
       returned_documents: invoice.returned_documents || '',
       bank_account_id: invoice.bank_account_id || '',
     })
+    setInvoiceMetaEditing(false)
     setInvoiceDialog({ mode: 'edit', stage, invoice })
   }
 
@@ -329,6 +334,7 @@ export default function ProjectDetailPage() {
     setInvoiceDialog(null)
     setInvoiceForm(emptyInvoiceForm())
     setInvoiceDisbursementRows([])
+    setInvoiceMetaEditing(false)
   }
 
   const saveInvoice = async () => {
@@ -342,7 +348,6 @@ export default function ProjectDetailPage() {
       await saveDisbursementsForStage(supabase, invoiceDialog.stage.id, invoiceDisbursementRows)
 
       const payload = {
-        invoice_number: invoiceForm.invoice_number.trim() || null,
         invoiced_at: invoiceForm.invoiced_at || todayCe(),
         notes: invoiceForm.notes.trim() || null,
         returned_documents: invoiceForm.returned_documents.trim() || null,
@@ -449,6 +454,8 @@ export default function ProjectDetailPage() {
   const receivedCount = invoices.filter(inv => inv.status === '已收款').length
   const disbursementGrandTotal = sumDisbursements(disbursements)
   const selectedBankAccount = bankAccounts.find(a => a.id === invoiceForm.bank_account_id)
+  const quotationSummary = getQuotationSummary(quotations)
+  const billingSummary = getBillingSummary(paymentStages, invoices)
 
   return (
     <div className="min-h-screen bg-background pb-12 text-foreground transition-colors duration-200">
@@ -483,7 +490,7 @@ export default function ProjectDetailPage() {
             <AlertDialogTitle>開始進行案件</AlertDialogTitle>
             <AlertDialogDescription>
               「{projectPrimaryLabel(project)}」— 客戶是否已回傳報價確認？
-              已回傳可直接開工（略過「已確認報價」）；若尚未回傳，請先完成報價確認後再開工。
+              已回傳可直接開工；若尚未回傳，請先完成報價確認後再開工。
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -579,44 +586,92 @@ export default function ProjectDetailPage() {
           </DialogHeader>
           <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
             <FieldGroup className="gap-4">
-              <Field>
-                <FieldLabel htmlFor="invoice_number">發票／請款編號</FieldLabel>
-                <Input
-                  id="invoice_number"
-                  value={invoiceForm.invoice_number}
-                  onChange={e => setInvoiceForm(f => ({ ...f, invoice_number: e.target.value }))}
-                  placeholder="選填"
+              <div className="rounded-lg border border-border bg-muted/20 px-4 py-3">
+                {!invoiceMetaEditing ? (
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="space-y-3 text-sm">
+                      <div>
+                        <p className="text-muted-foreground">請款日期</p>
+                        <p className="font-medium text-foreground">
+                          {formatRocDate(invoiceForm.invoiced_at) || '—'}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">匯款帳戶</p>
+                        <p className="font-medium text-foreground">
+                          {selectedBankAccount
+                            ? bankAccountLabel(selectedBankAccount)
+                            : (bankAccounts.length === 0 ? '尚無帳戶，請至管理後台新增' : '未選擇')}
+                        </p>
+                        <p className="mt-1 text-xs text-muted-foreground">顯示於請款單 PDF</p>
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="link"
+                      size="sm"
+                      className="h-auto shrink-0 p-0 font-semibold"
+                      onClick={() => setInvoiceMetaEditing(true)}
+                    >
+                      <Pencil data-icon="inline-start" />
+                      編輯
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <ROCDateInput
+                      id="invoiced_at"
+                      label="請款日期"
+                      value={invoiceForm.invoiced_at}
+                      onChange={value => setInvoiceForm(f => ({ ...f, invoiced_at: value }))}
+                      useRoc
+                    />
+                    <Field>
+                      <FieldLabel htmlFor="invoice_bank_account_id">匯款帳戶</FieldLabel>
+                      <Select
+                        value={invoiceForm.bank_account_id || ''}
+                        onValueChange={val => setInvoiceForm(f => ({ ...f, bank_account_id: val }))}
+                        disabled={bankAccounts.length === 0}
+                      >
+                        <SelectTrigger id="invoice_bank_account_id" className="w-full">
+                          {selectedBankAccount
+                            ? bankAccountLabel(selectedBankAccount)
+                            : (bankAccounts.length === 0 ? '尚無帳戶，請至管理後台新增' : '選擇匯款帳戶')}
+                        </SelectTrigger>
+                        <SelectContent>
+                          {bankAccounts.map(account => (
+                            <SelectItem key={account.id} value={account.id}>
+                              {bankAccountLabel(account)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="mt-1.5 text-xs text-muted-foreground">顯示於請款單 PDF</p>
+                    </Field>
+                    <div className="flex justify-end">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-auto p-0 font-semibold text-muted-foreground"
+                        onClick={() => setInvoiceMetaEditing(false)}
+                      >
+                        完成
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="border-t border-border pt-4">
+                <p className="mb-3 text-sm font-semibold text-foreground">代墊明細</p>
+                <p className="mb-3 text-xs text-muted-foreground">顯示於請款單 PDF，可與請款資料一併儲存。</p>
+                <DisbursementEditor
+                  rows={invoiceDisbursementRows}
+                  onRowsChange={setInvoiceDisbursementRows}
                 />
-              </Field>
-              <ROCDateInput
-                id="invoiced_at"
-                label="請款日期"
-                value={invoiceForm.invoiced_at}
-                onChange={value => setInvoiceForm(f => ({ ...f, invoiced_at: value }))}
-                useRoc
-              />
-              <Field>
-                <FieldLabel htmlFor="invoice_bank_account_id">匯款帳戶</FieldLabel>
-                <Select
-                  value={invoiceForm.bank_account_id || ''}
-                  onValueChange={val => setInvoiceForm(f => ({ ...f, bank_account_id: val }))}
-                  disabled={bankAccounts.length === 0}
-                >
-                  <SelectTrigger id="invoice_bank_account_id" className="w-full">
-                    {selectedBankAccount
-                      ? bankAccountLabel(selectedBankAccount)
-                      : (bankAccounts.length === 0 ? '尚無帳戶，請至管理後台新增' : '選擇匯款帳戶')}
-                  </SelectTrigger>
-                  <SelectContent>
-                    {bankAccounts.map(account => (
-                      <SelectItem key={account.id} value={account.id}>
-                        {bankAccountLabel(account)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="mt-1.5 text-xs text-muted-foreground">顯示於請款單 PDF</p>
-              </Field>
+              </div>
+
               <Field>
                 <FieldLabel htmlFor="invoice_returned_documents">檢還文件</FieldLabel>
                 <Textarea
@@ -637,15 +692,6 @@ export default function ProjectDetailPage() {
                   rows={3}
                 />
               </Field>
-
-              <div className="border-t border-border pt-4">
-                <p className="mb-3 text-sm font-semibold text-foreground">代墊明細</p>
-                <p className="mb-3 text-xs text-muted-foreground">顯示於請款單 PDF，可與請款資料一併儲存。</p>
-                <DisbursementEditor
-                  rows={invoiceDisbursementRows}
-                  onRowsChange={setInvoiceDisbursementRows}
-                />
-              </div>
             </FieldGroup>
           </div>
           <DialogFooter className="shrink-0 border-t border-border px-5 py-3">
@@ -665,6 +711,15 @@ export default function ProjectDetailPage() {
         </DialogContent>
       </Dialog>
 
+      <InvoiceSetupDialog
+        open={invoiceSetupOpen}
+        onOpenChange={setInvoiceSetupOpen}
+        projectId={id}
+        project={project}
+        quotations={quotations}
+        onSuccess={fetchData}
+      />
+
       <AppBreadcrumbBar
         backTo="/dashboard"
         segments={[
@@ -673,7 +728,12 @@ export default function ProjectDetailPage() {
             {secondaryName && (
               <span className="truncate text-sm font-normal text-muted-foreground">{secondaryName}</span>
             )}
-            <ProjectStatusBadges status={project.status} />
+            <ProjectSummaryBadges
+              workStatus={project.status}
+              quotationSummary={quotationSummary}
+              billingSummary={billingSummary}
+              layout="inline"
+            />
           </span>,
         ]}
         actions={
@@ -687,7 +747,7 @@ export default function ProjectDetailPage() {
               <Pencil data-icon="inline-start" />
               編輯案件
             </Button>
-            {project.status === '未報價' && quotations.some(q => q.status === '草稿') && (
+            {quotationSummary === '草稿' && (
               <Button
                 variant="outline"
                 size="sm"
@@ -701,7 +761,7 @@ export default function ProjectDetailPage() {
                 編輯草稿
               </Button>
             )}
-            {(project.status === '已報價' || project.status === '已確認報價') && (
+            {project.status === '未開工' && (
               <Button
                 variant="outline"
                 size="sm"
@@ -711,7 +771,7 @@ export default function ProjectDetailPage() {
                 開工
               </Button>
             )}
-            {project.status === '進行中' && (
+            {project.status === '已開工' && (
               <>
                 <Button
                   variant="outline"
@@ -736,7 +796,7 @@ export default function ProjectDetailPage() {
                 variant="default"
                 size="sm"
                 className="font-semibold"
-                onClick={() => updateProjectStatus('進行中')}
+                onClick={() => updateProjectStatus('已開工')}
               >
                 恢復進行
               </Button>
@@ -1019,37 +1079,38 @@ export default function ProjectDetailPage() {
             {paymentStages.length === 0 ? (
               <AppEmptyState
                 icon={Receipt}
-                title="尚無付款階段"
-                description="請先完成報價並設定付款階段，才能建立請款紀錄"
+                title="尚未設定付款階段"
+                description="可從現有報價單匯入付款階段，或手動建立以支援進行中案件"
                 action={
-                  quotations.length > 0 ? (
-                    <Button
-                      variant="default"
-                      size="md"
-                      className="font-semibold"
-                      onClick={() => setActiveTab('quotations')}
-                    >
-                      查看報價
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="default"
-                      size="md"
-                      className="font-semibold"
-                      onClick={() => navigate(`/quotation/new?project=${id}`)}
-                    >
-                      建立報價
-                    </Button>
-                  )
+                  <Button
+                    variant="default"
+                    size="md"
+                    className="font-semibold"
+                    onClick={() => setInvoiceSetupOpen(true)}
+                  >
+                    設定請款
+                  </Button>
                 }
                 className="shadow-sm"
               />
             ) : (
               <>
-                <p className="text-sm text-muted-foreground">
-                  共 {paymentStages.length} 個付款階段 · 草稿 {draftCount} · 已請款 {invoicedCount} · 已收款 {receivedCount}
-                  {disbursementGrandTotal > 0 && ` · 代墊合計 ${fmt(disbursementGrandTotal)}`}
-                </p>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <p className="text-sm text-muted-foreground">
+                    共 {paymentStages.length} 個付款階段 · 草稿 {draftCount} · 已請款 {invoicedCount} · 已收款 {receivedCount}
+                    {disbursementGrandTotal > 0 && ` · 代墊合計 ${fmt(disbursementGrandTotal)}`}
+                  </p>
+                  {invoices.length === 0 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="font-semibold"
+                      onClick={() => setInvoiceSetupOpen(true)}
+                    >
+                      變更付款階段
+                    </Button>
+                  )}
+                </div>
 
                 <div className="block space-y-3 md:hidden">
                   {invoiceRows.map(({ stage, invoice, disbursements: stageDisbs, disbursementTotal }) => (

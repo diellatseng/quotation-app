@@ -55,7 +55,13 @@ import {
   SelectItem,
   SelectTrigger,
 } from '@/components/ui/select'
-import { ProjectStatusBadges } from '@/components/ui/badge'
+import { BillingSummaryBadges, ProjectStatusBadges, QuotationSummaryBadges, ProjectSummaryBadges } from '@/components/ui/badge'
+import {
+  enrichProjectWithSummaries,
+  groupInvoicesByProject,
+  groupQuotationsByProject,
+  groupStagesByProject,
+} from '@/lib/projectSummaries'
 import { AppEmptyState } from '@/components/AppEmptyState'
 import { DashboardQuotationsSkeleton } from '@/components/skeletons'
 import IconTooltip from '@/components/IconTooltip'
@@ -64,14 +70,11 @@ import { FolderKanban, MoreHorizontal, Palette, Pause, Play, Plus, Search, Trash
 
 import { displayLandSection, displayProjectName } from '@/lib/projectDisplay'
 
-const STATUS_FILTERS = ['全部', '未報價', '已報價', '已確認報價', '進行中', '完工', '暫停']
+const STATUS_FILTERS = ['全部', '未開工', '已開工', '暫停', '完工']
 const fmt = (n) => (n != null && n !== '' ? `NT$ ${Number(n).toLocaleString('zh-TW')}` : '—')
 
 function hasProjectStatusActions(status) {
-  return status === '已報價'
-    || status === '已確認報價'
-    || status === '進行中'
-    || status === '暫停'
+  return status === '未開工' || status === '已開工' || status === '暫停'
 }
 
 export default function DashboardPage() {
@@ -105,7 +108,32 @@ export default function DashboardPage() {
       setLoading(false)
       return
     }
-    setProjects(data || [])
+
+    const projectList = data || []
+    const projectIds = projectList.map(p => p.id)
+
+    if (projectIds.length === 0) {
+      setProjects([])
+      setLoading(false)
+      return
+    }
+
+    const [{ data: quotes }, { data: stages }, { data: invs }] = await Promise.all([
+      supabase.from('quotations').select('project_id, status').in('project_id', projectIds).neq('status', '已刪除'),
+      supabase.from('payment_stages').select('id, project_id').in('project_id', projectIds),
+      supabase.from('invoices').select('project_id, payment_stage_id, status').in('project_id', projectIds),
+    ])
+
+    const quotesByProject = groupQuotationsByProject(quotes || [])
+    const stagesByProject = groupStagesByProject(stages || [])
+    const invsByProject = groupInvoicesByProject(invs || [])
+
+    setProjects(projectList.map(p => enrichProjectWithSummaries(
+      p,
+      quotesByProject.get(p.id) ?? [],
+      stagesByProject.get(p.id) ?? [],
+      invsByProject.get(p.id) ?? [],
+    )))
     setLoading(false)
   }
 
@@ -123,12 +151,12 @@ export default function DashboardPage() {
 
   const requestStartWork = (project) => {
     setActionMenuId(null)
-    if (needsStartWorkConfirmation(project.status)) {
+    if (needsStartWorkConfirmation(project.quotations ?? [])) {
       setProjectToStart(project)
       setShowStartDialog(true)
       return
     }
-    updateStatus(project.id, '進行中')
+    updateStatus(project.id, '已開工')
   }
 
   const handleStartCancel = () => {
@@ -144,7 +172,7 @@ export default function DashboardPage() {
 
     try {
       await applyStartProjectWork(supabase, projectId)
-      toast.success('狀態已更新為【進行中】')
+      toast.success('狀態已更新為【已開工】')
       fetchProjects()
     } catch (err) {
       toast.error('更新失敗：' + err.message, { duration: 6000 })
@@ -237,7 +265,7 @@ export default function DashboardPage() {
             <AlertDialogTitle>開始進行案件</AlertDialogTitle>
             <AlertDialogDescription>
               「{projectToStart ? projectPrimaryLabel(projectToStart) : ''}」— 客戶是否已回傳報價確認？
-              已回傳可直接開工（略過「已確認報價」）；若尚未回傳，請先完成報價確認後再開工。
+              已回傳可直接開工；若尚未回傳，請先完成報價確認後再開工。
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -421,7 +449,7 @@ export default function DashboardPage() {
                   onClick={() => navigate(`/projects/${p.id}`)}
                 >
                   <CardContent className="space-y-3 py-4">
-                    <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0 space-y-1">
                         <p className="truncate text-sm font-semibold text-foreground">
                           {displayLandSection(p)}
@@ -430,8 +458,12 @@ export default function DashboardPage() {
                           <p className="truncate text-xs text-muted-foreground">{displayProjectName(p)}</p>
                         )}
                       </div>
-                      <ProjectStatusBadges status={p.status} />
                     </div>
+                    <ProjectSummaryBadges
+                      workStatus={p.status}
+                      quotationSummary={p.quotationSummary}
+                      billingSummary={p.billingSummary}
+                    />
                     <div className="text-sm text-muted-foreground">{p.clients?.company_name || '—'}</div>
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
                       <span>{formatRocDate(p.updated_at?.slice(0, 10))}</span>
@@ -450,7 +482,9 @@ export default function DashboardPage() {
                     <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">案件名稱</TableHead>
                     <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">客戶名稱</TableHead>
                     <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">金額</TableHead>
-                    <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">狀態</TableHead>
+                    <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">案件狀態</TableHead>
+                    <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">報價狀態</TableHead>
+                    <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">請款狀態</TableHead>
                     <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">更新日期</TableHead>
                     <TableHead className="h-auto p-4 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">操作</TableHead>
                   </TableRow>
@@ -468,6 +502,12 @@ export default function DashboardPage() {
                       <TableCell className="p-4 font-semibold text-foreground">{fmt(p.total_amount)}</TableCell>
                       <TableCell className="p-4" onClick={e => e.stopPropagation()}>
                         <ProjectStatusBadges status={p.status} />
+                      </TableCell>
+                      <TableCell className="p-4" onClick={e => e.stopPropagation()}>
+                        <QuotationSummaryBadges status={p.quotationSummary} />
+                      </TableCell>
+                      <TableCell className="p-4" onClick={e => e.stopPropagation()}>
+                        <BillingSummaryBadges status={p.billingSummary} />
                       </TableCell>
                       <TableCell className="p-4 text-muted-foreground">{formatRocDate(p.updated_at?.slice(0, 10))}</TableCell>
                       <TableCell className="p-4 text-right" onClick={e => e.stopPropagation()}>
@@ -494,7 +534,7 @@ export default function DashboardPage() {
                           <DropdownMenuContent align="end" className="min-w-[140px]">
                             {hasProjectStatusActions(p.status) && (
                               <DropdownMenuGroup>
-                                {(p.status === '已報價' || p.status === '已確認報價') && (
+                                {p.status === '未開工' && (
                                   <DropdownMenuItem
                                     onClick={e => {
                                       e.stopPropagation()
@@ -505,7 +545,7 @@ export default function DashboardPage() {
                                     開工
                                   </DropdownMenuItem>
                                 )}
-                                {p.status === '進行中' && (
+                                {p.status === '已開工' && (
                                   <>
                                     <DropdownMenuItem
                                       onClick={e => {
@@ -530,7 +570,7 @@ export default function DashboardPage() {
                                   <DropdownMenuItem
                                     onClick={e => {
                                       e.stopPropagation()
-                                      updateStatus(p.id, '進行中')
+                                      updateStatus(p.id, '已開工')
                                     }}
                                   >
                                     <Play />

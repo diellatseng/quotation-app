@@ -120,14 +120,12 @@ function Badge({
 
 export { Badge, badgeVariants }
 
-/** Project lifecycle status → badge variant */
+/** ① 案件工程狀態 → badge variant */
 export const PROJECT_STATUS_TO_VARIANT = {
-  未報價: 'draft',
-  已報價: 'quoted',
-  已確認報價: 'confirmed',
-  進行中: 'confirmed',
-  完工: 'closed',
+  未開工: 'draft',
+  已開工: 'confirmed',
   暫停: 'warning',
+  完工: 'closed',
 } as const
 
 export function projectStatusVariant(status: string) {
@@ -135,7 +133,7 @@ export function projectStatusVariant(status: string) {
 }
 
 export function projectStatusLabel(status: string) {
-  return status in PROJECT_STATUS_TO_VARIANT ? status : '未報價'
+  return status in PROJECT_STATUS_TO_VARIANT ? status : '未開工'
 }
 
 export function ProjectStatusBadges({
@@ -149,6 +147,147 @@ export function ProjectStatusBadges({
     <Badge variant={projectStatusVariant(status)} className={cn('rounded-full', className)}>
       {projectStatusLabel(status)}
     </Badge>
+  )
+}
+
+/** ② 案件報價摘要 → badge variant */
+export const QUOTATION_SUMMARY_TO_VARIANT = {
+  無報價: 'outline',
+  草稿: 'draft',
+  已報價: 'quoted',
+  已確認: 'confirmed',
+} as const
+
+export function quotationSummaryVariant(status: string) {
+  return QUOTATION_SUMMARY_TO_VARIANT[status as keyof typeof QUOTATION_SUMMARY_TO_VARIANT] ?? 'outline'
+}
+
+export function quotationSummaryLabel(status: string) {
+  return status in QUOTATION_SUMMARY_TO_VARIANT ? status : '無報價'
+}
+
+export function QuotationSummaryBadges({
+  status,
+  className,
+}: {
+  status: string
+  className?: string
+}) {
+  return (
+    <Badge variant={quotationSummaryVariant(status)} className={cn('rounded-full', className)}>
+      {quotationSummaryLabel(status)}
+    </Badge>
+  )
+}
+
+/** ③ 案件請款摘要 → badge variant */
+export const BILLING_SUMMARY_TO_VARIANT = {
+  未設定: 'outline',
+  未請款: 'draft',
+  請款中: 'quoted',
+  部分收款: 'warning',
+  已結清: 'confirmed',
+} as const
+
+export function billingSummaryVariant(status: string) {
+  return BILLING_SUMMARY_TO_VARIANT[status as keyof typeof BILLING_SUMMARY_TO_VARIANT] ?? 'outline'
+}
+
+export function billingSummaryLabel(status: string) {
+  return status in BILLING_SUMMARY_TO_VARIANT ? status : '未設定'
+}
+
+export function BillingSummaryBadges({
+  status,
+  className,
+}: {
+  status: string
+  className?: string
+}) {
+  return (
+    <Badge variant={billingSummaryVariant(status)} className={cn('rounded-full', className)}>
+      {billingSummaryLabel(status)}
+    </Badge>
+  )
+}
+
+function StatusLabeledRow({
+  label,
+  children,
+  inline = false,
+}: {
+  label: string
+  children: React.ReactNode
+  inline?: boolean
+}) {
+  if (inline) {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-xs">
+        <span className="text-muted-foreground">{label}</span>
+        {children}
+      </span>
+    )
+  }
+
+  return (
+    <div className="flex items-center gap-2 text-xs">
+      <span className="w-[4.5rem] shrink-0 text-muted-foreground">{label}</span>
+      {children}
+    </div>
+  )
+}
+
+export function ProjectSummaryBadges({
+  workStatus,
+  quotationSummary,
+  billingSummary,
+  className,
+  layout = 'labeled',
+}: {
+  workStatus: string
+  quotationSummary: string
+  billingSummary: string
+  className?: string
+  layout?: 'labeled' | 'compact' | 'inline'
+}) {
+  if (layout === 'compact') {
+    return (
+      <span className={cn('inline-flex flex-wrap items-center gap-1.5', className)}>
+        <ProjectStatusBadges status={workStatus} />
+        <QuotationSummaryBadges status={quotationSummary} />
+        <BillingSummaryBadges status={billingSummary} />
+      </span>
+    )
+  }
+
+  if (layout === 'inline') {
+    return (
+      <span className={cn('inline-flex flex-wrap items-center gap-x-3 gap-y-1', className)}>
+        <StatusLabeledRow label="案件狀態" inline>
+          <ProjectStatusBadges status={workStatus} />
+        </StatusLabeledRow>
+        <StatusLabeledRow label="報價狀態" inline>
+          <QuotationSummaryBadges status={quotationSummary} />
+        </StatusLabeledRow>
+        <StatusLabeledRow label="請款狀態" inline>
+          <BillingSummaryBadges status={billingSummary} />
+        </StatusLabeledRow>
+      </span>
+    )
+  }
+
+  return (
+    <div className={cn('space-y-1.5', className)}>
+      <StatusLabeledRow label="案件狀態">
+        <ProjectStatusBadges status={workStatus} />
+      </StatusLabeledRow>
+      <StatusLabeledRow label="報價狀態">
+        <QuotationSummaryBadges status={quotationSummary} />
+      </StatusLabeledRow>
+      <StatusLabeledRow label="請款狀態">
+        <BillingSummaryBadges status={billingSummary} />
+      </StatusLabeledRow>
+    </div>
   )
 }
 

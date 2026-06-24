@@ -59,7 +59,7 @@ export default function ProjectSetupPage() {
     company_profile_id: data.company_profile_id || null,
     total_amount: 0,
     tax_included: false,
-    status: '未報價',
+    status: '未開工',
   })
 
   const saveProject = async () => {
@@ -90,7 +90,7 @@ export default function ProjectSetupPage() {
       const msg = err?.message || '未知錯誤'
       if (msg.includes('projects_status_check')) {
         toast.error(
-          '建立案件失敗：資料庫 status 限制尚未更新。請至 Supabase SQL Editor 重新執行 supabase/migration_project_status.sql，並確認結果包含「未報價」。',
+          '建立案件失敗：資料庫 status 限制尚未更新。請至 Supabase SQL Editor 執行 supabase/migration_project_work_status.sql。',
           { duration: 10000 },
         )
       } else {

@@ -1,9 +1,12 @@
-/** 已報價案件從 Dashboard／詳情頁直接開工前，需確認客戶是否已回傳報價。 */
-export function needsStartWorkConfirmation(projectStatus) {
-  return projectStatus === '已報價'
+/** 有「已報價」且尚無「已確認」時，開工前需確認客戶是否已回傳。 */
+export function needsStartWorkConfirmation(quotations = []) {
+  const active = quotations.filter(q => q.status !== '已刪除')
+  const hasQuoted = active.some(q => q.status === '已報價')
+  const hasConfirmed = active.some(q => q.status === '已確認')
+  return hasQuoted && !hasConfirmed
 }
 
-/** 客戶已回傳確認：報價 → 已確認，案件 → 進行中（略過已確認報價）。 */
+/** 客戶已回傳：已報價 → 已確認，案件 → 已開工 */
 export async function applyStartProjectWork(supabase, projectId) {
   const { error: qErr } = await supabase
     .from('quotations')
@@ -15,7 +18,7 @@ export async function applyStartProjectWork(supabase, projectId) {
 
   const { error: pErr } = await supabase
     .from('projects')
-    .update({ status: '進行中' })
+    .update({ status: '已開工' })
     .eq('id', projectId)
 
   if (pErr) throw pErr

@@ -121,9 +121,9 @@ CREATE TABLE projects (
   project_owner     TEXT,
   total_amount      NUMERIC(14,2) DEFAULT 0,
   tax_included      BOOLEAN DEFAULT FALSE,
-  status            TEXT NOT NULL DEFAULT '未報價'
+  status            TEXT NOT NULL DEFAULT '未開工'
                       CHECK (status IN (
-                        '未報價', '已報價', '已確認報價', '進行中', '完工', '暫停', '已刪除'
+                        '未開工', '已開工', '暫停', '完工', '已刪除'
                       )),
   created_by        UUID REFERENCES auth.users(id),
   created_at        TIMESTAMPTZ DEFAULT NOW(),
