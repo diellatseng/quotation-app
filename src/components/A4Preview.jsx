@@ -189,7 +189,7 @@ function DocHeader({ mode, quotation, client, contactPerson, companyInfo, title 
           <div className="a4-info-grid">
             {quotation.project_owner && <MetaRow label="起　造　人" value={quotation.project_owner} />}
             {quotation.building_permit && <MetaRow label="建照號碼" value={quotation.building_permit} />}
-            {quotation.land_section && <MetaRow label="地　　段" value={quotation.land_section} />}
+            {quotation.land_section && <MetaRow label="地　　號" value={quotation.land_section} />}
             {quotation.project_scale && <MetaRow label="工程規模" value={quotation.project_scale} />}
             {quotation.project_name && <MetaRow label="工程名稱" value={quotation.project_name} />}
           </div>

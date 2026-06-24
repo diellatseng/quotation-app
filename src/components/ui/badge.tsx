@@ -120,6 +120,38 @@ function Badge({
 
 export { Badge, badgeVariants }
 
+/** Project lifecycle status → badge variant */
+export const PROJECT_STATUS_TO_VARIANT = {
+  草稿: 'draft',
+  已報價: 'quoted',
+  已確認報價: 'confirmed',
+  進行中: 'confirmed',
+  完工: 'closed',
+  暫停: 'warning',
+} as const
+
+export function projectStatusVariant(status: string) {
+  return PROJECT_STATUS_TO_VARIANT[status as keyof typeof PROJECT_STATUS_TO_VARIANT] ?? 'draft'
+}
+
+export function projectStatusLabel(status: string) {
+  return status in PROJECT_STATUS_TO_VARIANT ? status : '草稿'
+}
+
+export function ProjectStatusBadges({
+  status,
+  className,
+}: {
+  status: string
+  className?: string
+}) {
+  return (
+    <Badge variant={projectStatusVariant(status)} className={cn('rounded-full', className)}>
+      {projectStatusLabel(status)}
+    </Badge>
+  )
+}
+
 /** Quotation workflow status → badge variant */
 export const QUOTATION_STATUS_TO_VARIANT = {
   草稿: 'draft',

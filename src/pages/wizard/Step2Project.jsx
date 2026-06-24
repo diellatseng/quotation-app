@@ -59,8 +59,7 @@ export default function Step2Project({ data, update }) {
               type="text"
               value={data.project_name || ''}
               onChange={e => update({ project_name: e.target.value })}
-              placeholder="例如：住宅新建工程"
-              required
+              placeholder="可稍後再填，例如：住宅新建工程"
             />
           </Field>
           <Field>

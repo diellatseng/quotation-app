@@ -1,8 +1,8 @@
-# 報價管理系統 — Quotation Management System
+# 專案管理系統 — Project Management System
 
-工程報價單管理系統。支援客戶資料庫、工程範本、服務清單、版本追蹤，並可匯出 PDF。
+工程專案管理系統。整合客戶資料庫、工程範本、服務清單與報價流程，並可匯出 PDF；後續將擴充發票模組。
 
-Construction quotation management system with client database, project templates, service catalog, versioning, and PDF export.
+Construction project management system with client database, project templates, service catalog, quotation workflow, and PDF export; invoice module planned.
 
 ---
 
@@ -112,45 +112,20 @@ npm start
 
 ## 🗂️ 資料庫結構
 
+完整 schema 見 `supabase/schema.sql`（新專案一次性執行）。主要資料表：
+
 ```
-clients                  → 客戶資料
-  ├── id, company_name, address, phone, fax, email
-  └── responsible_person_name, responsible_person_title
+projects                 → 專案主檔（地號、狀態、合約金額）
+  └── status: 草稿 | 已報價 | 已確認報價 | 進行中 | 完工 | 暫停 | 已刪除
 
-contact_persons          → 聯絡人（1-to-many → clients）
-  ├── client_id, name, mobile, office_phone, fax, email
-  └── is_primary
+quotations               → 報價單（project_id 連結專案）
+  └── status: 草稿 | 已報價 | 已確認 | 已結案 | 已刪除
 
-project_templates        → 工程範本
-  └── name, description, category
+payment_stages           → 付款階段（quotation_id + project_id）
+disbursements            → 代墊明細（→ payment_stages）
+invoices                 → 發票（→ project + payment_stage，每階段一張）
 
-services                 → 服務資料庫
-  └── name, category, description
-
-template_services        → 範本 ←→ 服務（many-to-many）
-  └── template_id, service_id, sort_order
-
-service_checklist_items  → 客戶準備清單（1-to-many → services）
-  └── service_id, item_text, sort_order
-
-quotations               → 報價單主檔
-  ├── quote_number, version, parent_id (版本鏈)
-  ├── status: 草稿 | 已報價 | 已確認 | 已結案
-  ├── is_negotiating (bool tag)
-  ├── client_id, contact_person_id
-  ├── 工程資料：building_permit, land_section, project_scale...
-  └── fee_amount, tax_included, quote_date, notes
-
-quotation_services       → 報價單的服務內容
-  ├── quotation_id, service_name, category
-  ├── checklist_items (jsonb snapshot)
-  └── is_added (bool — 差異標示用)
-
-payment_stages           → 付款階段
-  └── quotation_id, stage_name, percentage, amount
-
-negotiation_log          → 議價記錄
-  └── quotation_id, logged_at, old_amount, new_amount, notes
+clients / contact_persons / project_templates / services / …
 ```
 
 ---

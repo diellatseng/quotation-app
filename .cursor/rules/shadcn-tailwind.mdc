@@ -1,0 +1,34 @@
+---
+description: UI must use shadcn/ui and Tailwind CSS; avoid custom components
+alwaysApply: true
+---
+
+# shadcn + Tailwind UI Standards
+
+## Stack
+
+- Use **shadcn/ui** primitives from `src/components/ui/` (Button, Card, Dialog, DropdownMenu, Table, etc.).
+- Style with **Tailwind CSS** utility classes only (`className`, design tokens from `globals.css`).
+- Do not add separate CSS files for page/component styling unless absolutely necessary (e.g. print/PDF layout that cannot be done in Tailwind).
+
+## Custom components
+
+- **Do not** create new wrapper or layout components when shadcn + Tailwind in the page is enough.
+- **Prefer** composing existing `src/components/ui/*` and small domain pages over new abstractions.
+- New files under `src/components/` are allowed only when:
+  - shadcn has no suitable primitive, or
+  - the same non-trivial UI block is reused in multiple places, or
+  - required for app shell / wizard / PDF preview domains already in the codebase.
+
+## Patterns
+
+- Menus: `DropdownMenu`, `DropdownMenuGroup`, `DropdownMenuSeparator` — only show `DropdownMenuSeparator` when there are **two or more groups** with items.
+- Feedback: `sonner` toasts, `AlertDialog` for destructive confirmation.
+- Icons: `lucide-react` with shadcn `data-icon` conventions where applicable.
+- Avoid inline styles, ad-hoc CSS modules, and one-off styled divs that duplicate shadcn patterns.
+
+## Before adding UI code
+
+1. Check `src/components/ui/` for an existing shadcn component.
+2. Implement in the page with Tailwind if it is single-use.
+3. Extract to `src/components/` only if the exception above applies.

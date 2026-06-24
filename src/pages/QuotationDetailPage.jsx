@@ -15,6 +15,8 @@ import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { QuotationDetailSkeleton } from '@/components/skeletons'
 import { AppBreadcrumbBar } from '@/components/AppShellHeader'
+import { projectPrimaryLabel } from '../lib/projectDisplay'
+import { syncProjectStatusFromQuotation } from '../lib/projectStatus'
 import { Pencil, Printer } from 'lucide-react'
 
 
@@ -101,6 +103,9 @@ export default function QuotationDetailPage() {
         .eq('id', id)
 
       if (err) throw err
+      if (qt.project_id) {
+        await syncProjectStatusFromQuotation(supabase, qt.project_id, newStatus)
+      }
       toast.success(`狀態已更新為【${newStatus}】`)
       fetchData()
     } catch (err) {
@@ -138,7 +143,7 @@ export default function QuotationDetailPage() {
   if (!qt) {
     return (
       <div className="min-h-screen bg-background text-foreground">
-        <AppBreadcrumbBar backTo="/dashboard" segments={['找不到報價單']} />
+        <AppBreadcrumbBar backTo="/dashboard" backLabel="專案列表" segments={['找不到報價單']} />
         <main className="mx-auto max-w-7xl px-4 py-12 text-center md:px-8">
           <p className="text-sm font-medium text-muted-foreground">找不到該報價單</p>
         </main>
@@ -146,10 +151,14 @@ export default function QuotationDetailPage() {
     )
   }
 
+  const projectBackTo = qt.project_id ? `/projects/${qt.project_id}?tab=quotations` : '/dashboard'
+  const projectBackLabel = qt.land_section?.trim() || qt.project_name?.trim() || projectPrimaryLabel({ land_section: qt.land_section, name: qt.project_name })
+
   return (
     <div className="min-h-screen bg-background pb-12 text-foreground transition-colors duration-200">
       <AppBreadcrumbBar
-        backTo="/dashboard"
+        backTo={projectBackTo}
+        backLabel={qt.project_id ? projectBackLabel : '專案列表'}
         segments={[
           <span key="quote" className="inline-flex flex-wrap items-center gap-2">
             <span>{qt.quote_number}</span>

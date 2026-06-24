@@ -67,7 +67,7 @@ describe('App', () => {
     // findByText waits for AuthProvider's async getSession to settle
     // before we assert — no manual act() needed since RTL wraps internally.
     render(<App />)
-    await screen.findByText('報價管理系統', {}, { timeout: 2000 })
+    await screen.findByText('專案管理系統', {}, { timeout: 2000 })
     expect(document.body).toBeInTheDocument()
   })
 
@@ -78,17 +78,17 @@ describe('App', () => {
   it('shows the login page heading when there is no active session', async () => {
     // getSession resolves with session: null → AuthProvider sets user to null
     // → ProtectedRoute redirects to /login → LoginPage renders
-    // Expected: main heading "報價管理系統" is visible
+    // Expected: main heading "專案管理系統" is visible
     render(<App />)
-    await screen.findByText('報價管理系統', {}, { timeout: 2000 })
-    expect(screen.getByText('報價管理系統')).toBeInTheDocument()
+    await screen.findByText('專案管理系統', {}, { timeout: 2000 })
+    expect(screen.getByText('專案管理系統')).toBeInTheDocument()
   })
 
   it('shows the English subtitle on the login page', async () => {
-    // Expected: subtitle "Quotation Management" is visible alongside the heading
+    // Expected: subtitle "Project Management" is visible alongside the heading
     render(<App />)
-    await screen.findByText('Quotation Management', {}, { timeout: 2000 })
-    expect(screen.getByText('Quotation Management')).toBeInTheDocument()
+    await screen.findByText('Project Management', {}, { timeout: 2000 })
+    expect(screen.getByText('Project Management')).toBeInTheDocument()
   })
 
   it('renders an email input on the login page', async () => {

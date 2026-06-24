@@ -28,13 +28,13 @@ export default function WizardShell({
   const isFirst = currentStep === 1
   const isLast = currentStep === 4
   const currentStepMeta = STEPS[currentStep - 1]
-  const wizardLabel = headerSubtitle === '編輯草稿' ? '編輯報價' : '新增報價'
+  const wizardLabel = headerSubtitle === '編輯草稿' ? '編輯報價' : headerSubtitle
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <AppBreadcrumbBar
         maxWidth="max-w-5xl"
-        backLabel="報價單列表"
+        backLabel="專案列表"
         onBack={onBackToDashboard}
         backDisabled={saving}
         segments={[wizardLabel, currentStepMeta?.label].filter(Boolean)}

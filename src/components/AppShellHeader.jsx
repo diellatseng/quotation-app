@@ -20,13 +20,13 @@ export function AppBrandMark({ size = 'md', className }) {
       )}
       aria-hidden="true"
     >
-      報
+      專
     </div>
   )
 }
 
 export function AppBrandTitle({
-  title = '報價管理系統',
+  title = '專案管理系統',
   subtitle,
   showVersion = false,
   markSize = 'md',
@@ -51,13 +51,13 @@ export function AppBrandTitle({
 }
 
 /**
- * Slim sticky bar: [← 報價單列表] › segment › segment     [actions]
+ * Slim sticky bar: [← 專案列表] › segment › segment     [actions]
  * Secondary navigation (tabs, stepper) belongs in page content, not here.
  */
 export function AppBreadcrumbBar({
   backTo,
   onBack,
-  backLabel = '報價單列表',
+  backLabel = '專案列表',
   backDisabled = false,
   segments = [],
   actions,

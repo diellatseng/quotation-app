@@ -17,6 +17,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { resolveProjectName } from '../../lib/projectDisplay'
 import Step1Client from './Step1Client'
 import Step2Project from './Step2Project'
 import Step3Services from './Step3Services'
@@ -56,6 +57,7 @@ const initState = () => ({
 export default function WizardPage() {
   const [searchParams] = useSearchParams()
   const editId = searchParams.get('edit')
+  const projectParam = searchParams.get('project')
   // inactive: negotiation — query params from 議價 flow
   // const negAmount = searchParams.get('negAmount')
   // const negNotes = searchParams.get('negNotes') ? decodeURIComponent(searchParams.get('negNotes')) : ''
@@ -69,6 +71,7 @@ export default function WizardPage() {
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(false)
   const [quotationId, setQuotationId] = useState(null)
+  const [linkedProjectId, setLinkedProjectId] = useState(null)
   const [showExitDialog, setShowExitDialog] = useState(false)
   const { user } = useAuth()
   const navigate = useNavigate()
@@ -164,6 +167,7 @@ export default function WizardPage() {
         version: q.version || 1,
       })
       setQuotationId(q.id)
+      if (q.project_id) setLinkedProjectId(q.project_id)
 
       // inactive: versioning — load parent quote services for diff
       if (FEATURE_VERSIONING) {
@@ -183,38 +187,108 @@ export default function WizardPage() {
     loadQuotation()
   }, [editId])
 
+  // Prefill from existing project when adding a quotation to a project
+  useEffect(() => {
+    if (editId || !projectParam) return
+    const loadProject = async () => {
+      setLoading(true)
+      const { data: proj, error: projErr } = await supabase
+        .from('projects')
+        .select(`
+          *,
+          clients(*)
+        `)
+        .eq('id', projectParam)
+        .single()
+
+      if (projErr || !proj) {
+        toast.error('載入專案失敗', { duration: 6000 })
+        setLoading(false)
+        navigate('/dashboard')
+        return
+      }
+
+      let contacts = []
+      if (proj.client_id) {
+        const { data: contactList, error: cErr } = await supabase
+          .from('contact_persons')
+          .select('*')
+          .eq('client_id', proj.client_id)
+          .order('is_primary', { ascending: false })
+        if (cErr) {
+          toast.error('載入聯絡人失敗', { duration: 6000 })
+          setLoading(false)
+          return
+        }
+        contacts = contactList || []
+      }
+
+      setLinkedProjectId(proj.id)
+      setData(d => ({
+        ...d,
+        client: proj.clients,
+        contacts,
+        selectedContactId: proj.contact_person_id,
+        building_permit: proj.building_permit || '',
+        land_section: proj.land_section || '',
+        project_scale: proj.project_scale || '',
+        project_owner: proj.project_owner || '',
+        project_name: proj.name || '',
+        fee_amount: proj.total_amount?.toString() || '',
+        tax_included: proj.tax_included ?? false,
+      }))
+      setLoading(false)
+    }
+    loadProject()
+  }, [editId, projectParam, navigate])
+
+  const projectPayload = () => ({
+    name: resolveProjectName({
+      project_name: data.project_name,
+      land_section: data.land_section,
+    }),
+    client_id: data.client?.id || null,
+    contact_person_id: data.selectedContactId || null,
+    building_permit: data.building_permit,
+    land_section: data.land_section,
+    project_scale: data.project_scale,
+    project_owner: data.project_owner,
+    total_amount: Number(data.fee_amount) || 0,
+    tax_included: data.tax_included,
+  })
+
+  const syncProject = async (projectId) => {
+    if (!projectId) return
+    await supabase.from('projects').update(projectPayload()).eq('id', projectId)
+  }
+
   const saveDraft = async () => {
     setSaving(true)
     // Use a local variable so services/stages always have the correct id,
     // even on the very first save when quotationId state is still null.
     let qid = quotationId
-    let projectId = null
+    let projectId = linkedProjectId
 
     if (!qid) {
-      // 1. Create project first
-      const { data: proj, error: projErr } = await supabase
-        .from('projects')
-        .insert([{
-          name: data.project_name || `Project-${Date.now()}`,
-          client_id: data.client?.id || null,
-          contact_person_id: data.selectedContactId || null,
-          building_permit: data.building_permit,
-          land_section: data.land_section,
-          project_scale: data.project_scale,
-          project_owner: data.project_owner,
-          total_amount: Number(data.fee_amount) || 0,
-          tax_included: data.tax_included,
-          status: '已報價',
-          created_by: user.id,
-        }])
-        .select()
-        .single()
-      if (projErr || !proj) {
-        toast.error('建立專案失敗：' + (projErr?.message || '未知錯誤'), { duration: 6000 })
-        setSaving(false)
-        return null
+      if (!projectId) {
+        // 1. Create project first
+        const { data: proj, error: projErr } = await supabase
+          .from('projects')
+          .insert([{
+            ...projectPayload(),
+            status: '草稿',
+            created_by: user.id,
+          }])
+          .select()
+          .single()
+        if (projErr || !proj) {
+          toast.error('建立專案失敗：' + (projErr?.message || '未知錯誤'), { duration: 6000 })
+          setSaving(false)
+          return null
+        }
+        projectId = proj.id
+        setLinkedProjectId(proj.id)
       }
-      projectId = proj.id
 
       // 2. Insert new draft quotation with project_id
       const { data: q, error: err } = await supabase
@@ -242,6 +316,7 @@ export default function WizardPage() {
       if (!err && q) {
         qid = q.id           // local var available immediately
         setQuotationId(q.id) // also update React state for future calls
+        await syncProject(projectId)
         toast.success('草稿已儲存')
       } else {
         toast.error('儲存草稿失敗：' + (err?.message || '未知錯誤'), { duration: 6000 })
@@ -266,6 +341,17 @@ export default function WizardPage() {
         notes: data.notes,
       }).eq('id', qid)
       if (!err) {
+        let syncId = projectId || linkedProjectId
+        if (!syncId) {
+          const { data: existingQuotation } = await supabase
+            .from('quotations')
+            .select('project_id')
+            .eq('id', qid)
+            .single()
+          syncId = existingQuotation?.project_id || null
+          if (syncId) setLinkedProjectId(syncId)
+        }
+        await syncProject(syncId)
         toast.success('草稿已儲存')
       } else {
         toast.error('儲存草稿失敗：' + err.message, { duration: 6000 })
@@ -361,7 +447,17 @@ export default function WizardPage() {
 
   const handleFinish = async () => {
     const qid = await saveDraft()
-    if (qid) {
+    if (!qid) return
+
+    const { data: row } = await supabase
+      .from('quotations')
+      .select('project_id')
+      .eq('id', qid)
+      .single()
+
+    if (row?.project_id) {
+      navigate(`/projects/${row.project_id}?tab=quotations`)
+    } else {
       navigate(`/quotation/${qid}`)
     }
   }
@@ -403,7 +499,7 @@ export default function WizardPage() {
         saving={saving}
         canNext={canGoNext()}
         nextLabel={step === 4 ? '完成並儲存' : undefined}
-        headerSubtitle={editId ? '編輯草稿' : '新增報價'}
+        headerSubtitle={editId ? '編輯草稿' : projectParam ? '新增報價' : '新增專案'}
       >
         {step === 1 && <Step1Client  {...stepProps} />}
         {step === 2 && <Step2Project {...stepProps} />}

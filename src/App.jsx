@@ -10,6 +10,7 @@ import LoginPage             from './pages/LoginPage'
 import DashboardPage         from './pages/DashboardPage'
 import WizardPage            from './pages/wizard/WizardPage'
 import QuotationDetailPage   from './pages/QuotationDetailPage'
+import ProjectDetailPage     from './pages/ProjectDetailPage'
 import AdminLayout           from './pages/admin/AdminLayout'
 import ClientsAdmin          from './pages/admin/ClientsAdmin'
 import TemplatesAdmin        from './pages/admin/TemplatesAdmin'
@@ -28,6 +29,7 @@ function AppRoutes() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+        <Route path="/projects/:id" element={<ProtectedRoute><ProjectDetailPage /></ProtectedRoute>} />
         <Route path="/quotation/new" element={<ProtectedRoute><WizardPage /></ProtectedRoute>} />
         <Route path="/quotation/:id" element={<ProtectedRoute><QuotationDetailPage /></ProtectedRoute>} />
         <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
