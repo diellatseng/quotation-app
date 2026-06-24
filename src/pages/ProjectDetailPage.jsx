@@ -796,7 +796,7 @@ export default function ProjectDetailPage() {
                     variant="ghost"
                     size="sm"
                     className="h-8 font-semibold"
-                    onClick={() => navigate(`/projects/${id}/edit`)}
+                    onClick={() => navigate(`/projects/${id}/edit?step=1`)}
                   >
                     <Pencil data-icon="inline-start" />
                     編輯
@@ -870,7 +870,7 @@ export default function ProjectDetailPage() {
                   variant="ghost"
                   size="sm"
                   className="h-8 font-semibold"
-                  onClick={() => navigate(`/projects/${id}/edit`)}
+                  onClick={() => navigate(`/projects/${id}/edit?step=2`)}
                 >
                   <Pencil data-icon="inline-start" />
                   編輯

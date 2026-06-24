@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { toast } from 'sonner'
 import WizardShell from '../components/WizardShell'
@@ -23,6 +23,12 @@ const SETUP_STEPS = [
   { num: 2, label: '工程資料' },
 ]
 
+function parseInitialStep(raw) {
+  const n = Number(raw)
+  if (n >= 1 && n <= SETUP_STEPS.length) return n
+  return 1
+}
+
 const initState = () => ({
   client: null,
   contacts: [],
@@ -37,7 +43,8 @@ const initState = () => ({
 
 export default function ProjectEditPage() {
   const { id } = useParams()
-  const [step, setStep] = useState(1)
+  const [searchParams] = useSearchParams()
+  const [step, setStep] = useState(() => parseInitialStep(searchParams.get('step')))
   const [data, setData] = useState(initState)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)

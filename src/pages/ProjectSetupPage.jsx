@@ -87,7 +87,15 @@ export default function ProjectSetupPage() {
       toast.success('案件已建立')
       return proj.id
     } catch (err) {
-      toast.error('建立案件失敗：' + err.message, { duration: 6000 })
+      const msg = err?.message || '未知錯誤'
+      if (msg.includes('projects_status_check')) {
+        toast.error(
+          '建立案件失敗：資料庫 status 限制尚未更新。請至 Supabase SQL Editor 重新執行 supabase/migration_project_status.sql，並確認結果包含「未報價」。',
+          { duration: 10000 },
+        )
+      } else {
+        toast.error('建立案件失敗：' + msg, { duration: 6000 })
+      }
       return null
     } finally {
       setSaving(false)
