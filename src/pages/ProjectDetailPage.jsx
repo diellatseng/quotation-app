@@ -7,7 +7,7 @@ import { toast } from 'sonner'
 import { formatRocDate, todayCe } from '../lib/rocDate'
 import ROCDateInput from '../components/ROCDateInput'
 import { FEATURE_NEGOTIATION, FEATURE_VERSIONING } from '../lib/featureFlags'
-import { ProjectSummaryBadges, QuotationStatusBadges, InvoiceStatusBadges, Badge } from '@/components/ui/badge'
+import { ProjectStatusBadges, QuotationStatusBadges, QuotationSummaryBadges, BillingSummaryBadges, InvoiceStatusBadges, Badge, countBadgeClassName } from '@/components/ui/badge'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -728,12 +728,6 @@ export default function ProjectDetailPage() {
             {secondaryName && (
               <span className="truncate text-sm font-normal text-muted-foreground">{secondaryName}</span>
             )}
-            <ProjectSummaryBadges
-              workStatus={project.status}
-              quotationSummary={quotationSummary}
-              billingSummary={billingSummary}
-              layout="inline"
-            />
           </span>,
         ]}
         actions={
@@ -828,19 +822,22 @@ export default function ProjectDetailPage() {
           <TabsList variant="line" className="h-auto w-full justify-start gap-1 rounded-none border-b border-border bg-transparent p-0">
             <TabsTrigger value="overview" className="rounded-none px-4 py-2">
               概覽
+              <ProjectStatusBadges status={project.status} />
             </TabsTrigger>
             <TabsTrigger value="quotations" className="rounded-none px-4 py-2">
               報價
+              <QuotationSummaryBadges status={quotationSummary} />
               {quotations.length > 0 && (
-                <Badge variant="secondary" className="ml-1.5 font-mono text-[10px]">
+                <Badge variant="secondary" className={countBadgeClassName}>
                   {quotations.length}
                 </Badge>
               )}
             </TabsTrigger>
             <TabsTrigger value="invoices" className="rounded-none px-4 py-2">
-              發票
+              請款單
+              <BillingSummaryBadges status={billingSummary} />
               {invoices.length > 0 && (
-                <Badge variant="secondary" className="ml-1.5 font-mono text-[10px]">
+                <Badge variant="secondary" className={countBadgeClassName}>
                   {receivedCount}/{invoices.length}
                 </Badge>
               )}

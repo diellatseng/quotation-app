@@ -123,7 +123,7 @@ export default function InvoiceDetailPage() {
   if (!project || !invoice || !stage) {
     return (
       <div className="min-h-screen bg-background text-foreground">
-        <AppBreadcrumbBar backTo={`/projects/${projectId}?tab=invoices`} backLabel="發票" segments={['找不到請款紀錄']} />
+        <AppBreadcrumbBar backTo={`/projects/${projectId}?tab=invoices`} backLabel="請款單" segments={['找不到請款紀錄']} />
         <main className="mx-auto max-w-7xl px-4 py-12 text-center md:px-8">
           <p className="text-sm font-medium text-muted-foreground">找不到該請款紀錄</p>
         </main>

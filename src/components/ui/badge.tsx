@@ -120,6 +120,12 @@ function Badge({
 
 export { Badge, badgeVariants }
 
+/** Shared compact pill sizing for status badges (dashboard, project detail tabs, etc.) */
+export const statusBadgeClassName =
+  'h-6 rounded-full px-2 py-0 text-xs font-medium leading-none'
+
+export const countBadgeClassName = cn(statusBadgeClassName, 'font-mono')
+
 /** ① 案件工程狀態 → badge variant */
 export const PROJECT_STATUS_TO_VARIANT = {
   未開工: 'draft',
@@ -144,7 +150,7 @@ export function ProjectStatusBadges({
   className?: string
 }) {
   return (
-    <Badge variant={projectStatusVariant(status)} className={cn('rounded-full', className)}>
+    <Badge variant={projectStatusVariant(status)} className={cn(statusBadgeClassName, className)}>
       {projectStatusLabel(status)}
     </Badge>
   )
@@ -174,7 +180,7 @@ export function QuotationSummaryBadges({
   className?: string
 }) {
   return (
-    <Badge variant={quotationSummaryVariant(status)} className={cn('rounded-full', className)}>
+    <Badge variant={quotationSummaryVariant(status)} className={cn(statusBadgeClassName, className)}>
       {quotationSummaryLabel(status)}
     </Badge>
   )
@@ -205,7 +211,7 @@ export function BillingSummaryBadges({
   className?: string
 }) {
   return (
-    <Badge variant={billingSummaryVariant(status)} className={cn('rounded-full', className)}>
+    <Badge variant={billingSummaryVariant(status)} className={cn(statusBadgeClassName, className)}>
       {billingSummaryLabel(status)}
     </Badge>
   )
@@ -314,7 +320,7 @@ export function InvoiceStatusBadges({
   className?: string
 }) {
   return (
-    <Badge variant={invoiceStatusVariant(status)} className={cn('rounded-full', className)}>
+    <Badge variant={invoiceStatusVariant(status)} className={cn(statusBadgeClassName, className)}>
       {invoiceStatusLabel(status)}
     </Badge>
   )
@@ -346,11 +352,11 @@ export function QuotationStatusBadges({
 }) {
   return (
     <div className="inline-flex items-center gap-1.5">
-      <Badge variant={quotationStatusVariant(status)} className={cn('rounded-full', className)}>
+      <Badge variant={quotationStatusVariant(status)} className={cn(statusBadgeClassName, className)}>
         {quotationStatusLabel(status)}
       </Badge>
       {isNegotiating && (
-        <Badge variant="warning" className={cn('rounded-full', className)}>
+        <Badge variant="warning" className={cn(statusBadgeClassName, className)}>
           議價中
         </Badge>
       )}
