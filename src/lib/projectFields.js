@@ -65,11 +65,12 @@ export function isValidParcel(value) {
 
 /** @param {LandSectionParts} parts */
 export function isLandPartsComplete(parts) {
+  const parcel = parts.parcel?.trim() || ''
   return !!(
     parts.cityName?.trim()
     && parts.district?.trim()
     && parts.section?.trim()
-    && isValidParcel(parts.parcel)
+    && (!parcel || isValidParcel(parcel))
   )
 }
 

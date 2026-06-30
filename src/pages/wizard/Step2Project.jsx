@@ -15,7 +15,6 @@ import {
   sanitizeParcelInput,
   scalePartsFromData,
   structuredFixedTextClassName,
-  structuredFieldTypographyClassName,
   structuredInputClassName,
 } from '../../lib/projectFields'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
@@ -37,6 +36,7 @@ const COMPACT_INPUT_WIDTH = {
   3: 'w-[4rem]',
   4: 'w-[5rem]',
   6: 'w-[6.5rem]',
+  8: 'w-[8rem]',
   12: 'w-[10rem]',
 }
 
@@ -230,7 +230,7 @@ export default function Step2Project({
                 <StructuredFieldRow>
                   <Input
                     type="text"
-                    className={compactInputClass(2)}
+                    className={compactInputClass(4)}
                     placeholder="高雄"
                     value={landParts.cityName}
                     maxLength={2}
@@ -243,7 +243,7 @@ export default function Step2Project({
                     value={landParts.cityType}
                     onValueChange={value => updateLand({ cityType: value })}
                   >
-                    <SelectTrigger className={cn('h-10 w-[3.25rem] shrink-0 px-1', structuredFieldTypographyClassName)}>
+                    <SelectTrigger className={cn(structuredInputClassName, 'w-[3.25rem] shrink-0 px-1 py-0 !h-10')}>
                       {landParts.cityType}
                     </SelectTrigger>
                     <SelectContent>
@@ -257,7 +257,7 @@ export default function Step2Project({
                 <StructuredFieldRow after="區">
                   <Input
                     type="text"
-                    className={compactInputClass(2)}
+                    className={compactInputClass(4)}
                     placeholder="鹽埕"
                     value={landParts.district}
                     maxLength={2}
@@ -271,10 +271,10 @@ export default function Step2Project({
                 <StructuredFieldRow after="段">
                   <Input
                     type="text"
-                    className={compactInputClass(4)}
+                    className={compactInputClass(12)}
                     placeholder="一小"
                     value={landParts.section}
-                    maxLength={4}
+                    maxLength={24}
                     onChange={e => updateLand({ section: e.target.value })}
                     onKeyDown={preventEnterSubmit}
                     aria-label="段名"
@@ -282,7 +282,7 @@ export default function Step2Project({
                   />
                 </StructuredFieldRow>
 
-                <StructuredFieldRow after="號">
+                <StructuredFieldRow after="號（選填）">
                   <Input
                     type="text"
                     className={compactInputClass(12)}
@@ -291,13 +291,12 @@ export default function Step2Project({
                     maxLength={24}
                     onChange={e => updateLand({ parcel: sanitizeParcelInput(e.target.value) })}
                     onKeyDown={preventEnterSubmit}
-                    aria-label="地號編號"
-                    aria-required="true"
+                    aria-label="地號編號（選填）"
                   />
                 </StructuredFieldRow>
               </div>
               {!landComplete && (
-                <p className="mt-2 text-sm text-foreground">請填寫完整地號（縣市、區、段、號）。</p>
+                <p className="mt-2 text-sm text-foreground">請填寫地號（縣市、區、段）；號碼為選填。</p>
               )}
             </StructuredSection>
 

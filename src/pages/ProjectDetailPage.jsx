@@ -63,6 +63,7 @@ import { Check, Eye, FileText, MoreHorizontal, Pencil, Play, Plus, Receipt, Tras
 import { deleteProjectById } from '@/lib/deleteProject'
 import { groupDisbursementsByStage, saveDisbursementsForStage, sumDisbursements } from '@/lib/disbursements'
 import { suggestReturnedDocuments } from '@/lib/invoiceDocument'
+import { paymentSetupSourceLabel } from '@/lib/paymentStages'
 import { bankAccountLabel, pickDefaultBankAccount } from '@/lib/bankAccount'
 import { companyProfileLabel } from '@/lib/companyProfile'
 import {
@@ -111,6 +112,7 @@ export default function ProjectDetailPage() {
 
   const [project, setProject] = useState(null)
   const [quotations, setQuotations] = useState([])
+  const [allQuotations, setAllQuotations] = useState([])
   const [paymentStages, setPaymentStages] = useState([])
   const [invoices, setInvoices] = useState([])
   const [disbursements, setDisbursements] = useState([])
@@ -166,11 +168,12 @@ export default function ProjectDetailPage() {
           quote_date, fee_amount, tax_included, created_at
         `)
         .eq('project_id', id)
-        .neq('status', '已刪除')
         .order('created_at', { ascending: false })
 
       if (qErr) throw qErr
-      setQuotations(quotes || [])
+      const quoteList = quotes || []
+      setAllQuotations(quoteList)
+      setQuotations(quoteList.filter(q => q.status !== '已刪除'))
 
       const { data: stages, error: stErr } = await supabase
         .from('payment_stages')
@@ -460,6 +463,7 @@ export default function ProjectDetailPage() {
   const selectedBankAccount = bankAccounts.find(a => a.id === invoiceForm.bank_account_id)
   const quotationSummary = getQuotationSummary(quotations)
   const billingSummary = getBillingSummary(paymentStages, invoices)
+  const paymentSetupSource = paymentSetupSourceLabel(project, allQuotations)
 
   return (
     <div className="min-h-screen bg-background pb-12 text-foreground transition-colors duration-200">
@@ -1120,6 +1124,9 @@ export default function ProjectDetailPage() {
                           <div>
                             <p className="font-semibold text-foreground">{stage.stage_name}</p>
                             <p className="text-sm text-muted-foreground">{stage.percentage}% · {fmt(stage.amount)}</p>
+                            <p className="mt-1 text-xs text-muted-foreground">
+                              來源：<PaymentSetupSourceText source={paymentSetupSource} />
+                            </p>
                           </div>
                           {invoice ? (
                             <InvoiceStatusBadges status={invoice.status} />
@@ -1129,7 +1136,6 @@ export default function ProjectDetailPage() {
                         </div>
                         {invoice && (
                           <div className="space-y-1 text-xs text-muted-foreground">
-                            <p>編號：{invoice.invoice_number || '—'}</p>
                             <p>請款：{formatRocDate(invoice.invoiced_at) || '—'}</p>
                             {invoice.received_at && (
                               <p>收款：{formatRocDate(invoice.received_at)}</p>
@@ -1165,7 +1171,7 @@ export default function ProjectDetailPage() {
                         <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">付款階段</TableHead>
                         <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">金額</TableHead>
                         <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">代墊</TableHead>
-                        <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">請款編號</TableHead>
+                        <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">建立方式</TableHead>
                         <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">請款日</TableHead>
                         <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">狀態</TableHead>
                         <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">收款日</TableHead>
@@ -1189,8 +1195,8 @@ export default function ProjectDetailPage() {
                           <TableCell className="p-4 text-muted-foreground">
                             {disbursementTotal > 0 ? fmt(disbursementTotal) : '—'}
                           </TableCell>
-                          <TableCell className="p-4 font-mono text-sm text-muted-foreground">
-                            {invoice?.invoice_number || '—'}
+                          <TableCell className="p-4 text-muted-foreground">
+                            <PaymentSetupSourceText source={paymentSetupSource} />
                           </TableCell>
                           <TableCell className="p-4 text-muted-foreground">
                             {invoice?.invoiced_at ? formatRocDate(invoice.invoiced_at) : '—'}
@@ -1389,5 +1395,18 @@ function QuotationActionsMenu({ quotation, onDelete }) {
         </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
+  )
+}
+
+function PaymentSetupSourceText({ source }) {
+  if (source.mode === 'manual') {
+    return <span>手動建立</span>
+  }
+
+  return (
+    <span>
+      報價單
+      <span className="ml-1 font-mono text-foreground">{source.quoteNumber}</span>
+    </span>
   )
 }

@@ -1,4 +1,44 @@
 import { grandTotalFromFee, stageAmountFromPercentage } from './paymentStagePresets'
+import { collectPaymentStageMissing } from './validateQuotation'
+
+function isBlank(value) {
+  return value == null || String(value).trim() === ''
+}
+
+/** Align manual invoice setup validation with quotation Step 4 rules. */
+export function validateManualPaymentSetup({ contractTotal, taxIncluded, stages = [] }) {
+  const missing = []
+
+  if (isBlank(contractTotal) || Number(contractTotal) <= 0) {
+    missing.push('合約金額 (未稅)')
+  }
+
+  missing.push(...collectPaymentStageMissing(stages))
+
+  if (Number(contractTotal) > 0) {
+    stages.forEach((stage, idx) => {
+      if (!(Number(stage.amount) > 0)) {
+        missing.push(`付款階段 ${idx + 1} 金額`)
+      }
+    })
+  }
+
+  return { valid: missing.length === 0, missing }
+}
+
+export function formatManualPaymentValidationMessage(missing) {
+  return `請補齊：${missing.join('、')}`
+}
+
+/** @deprecated Use validateManualPaymentSetup */
+export function validateManualPaymentStages(stages, contractTotal) {
+  const { valid, missing } = validateManualPaymentSetup({
+    contractTotal,
+    taxIncluded: false,
+    stages,
+  })
+  return valid ? null : missing[0]
+}
 
 export async function assertCanReplacePaymentStages(supabase, projectId) {
   const { count, error } = await supabase
@@ -67,30 +107,18 @@ export async function importPaymentStagesFromQuotation(supabase, projectId, quot
     .update({
       total_amount: grand,
       tax_included: !!quotation.tax_included,
+      source_quotation_id: quotationId,
     })
     .eq('id', projectId)
 
   if (projErr) throw projErr
 }
 
-export function validateManualPaymentStages(stages, contractTotal) {
-  if (!stages?.length) return '請至少新增一個付款階段'
-
-  for (const [i, stage] of stages.entries()) {
-    if (!stage.stage_name?.trim()) return `第 ${i + 1} 階段請填寫名稱`
-    if (!(Number(stage.amount) > 0)) return `第 ${i + 1} 階段請填寫金額`
-  }
-
-  if (!(Number(contractTotal) > 0)) return '請填寫合約總金額'
-
-  return null
-}
-
 export async function saveManualPaymentStages(supabase, projectId, stages, { contractTotal, taxIncluded }) {
-  const errMsg = validateManualPaymentStages(stages, contractTotal)
-  if (errMsg) throw new Error(errMsg)
+  const { valid, missing } = validateManualPaymentSetup({ contractTotal, taxIncluded, stages })
+  if (!valid) throw new Error(formatManualPaymentValidationMessage(missing))
 
-  const grand = Number(contractTotal)
+  const grand = grandTotalFromFee(contractTotal, taxIncluded)
   const rows = stages.map((st, i) => ({
     project_id: projectId,
     quotation_id: null,
@@ -109,8 +137,24 @@ export async function saveManualPaymentStages(supabase, projectId, stages, { con
     .update({
       total_amount: grand,
       tax_included: !!taxIncluded,
+      source_quotation_id: null,
     })
     .eq('id', projectId)
 
   if (projErr) throw projErr
+}
+
+export function paymentSetupSourceLabel(project, quotations = []) {
+  const quotationId = project?.source_quotation_id
+  if (!quotationId) {
+    return { mode: 'manual', text: '手動建立' }
+  }
+
+  const quotation = quotations.find(q => q.id === quotationId)
+  const versionSuffix = quotation?.version > 1 ? ` v${quotation.version}` : ''
+  const quoteNumber = quotation?.quote_number
+    ? `${quotation.quote_number}${versionSuffix}`
+    : '—'
+
+  return { mode: 'quotation', text: '報價單', quoteNumber }
 }

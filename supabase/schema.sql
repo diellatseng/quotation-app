@@ -160,6 +160,9 @@ CREATE TABLE quotations (
   updated_at              TIMESTAMPTZ DEFAULT NOW()
 );
 
+ALTER TABLE projects
+  ADD COLUMN IF NOT EXISTS source_quotation_id UUID REFERENCES quotations(id) ON DELETE SET NULL;
+
 -- ── QUOTATION SERVICES (line items) ─────────────────────────────
 CREATE TABLE quotation_services (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),

@@ -184,7 +184,7 @@ export default function ProjectSetupPage() {
 
   return (
     <>
-      <AlertDialog open={showExitDialog} onOpenChange={open => { if (!open) navigate('/dashboard') }}>
+      <AlertDialog open={showExitDialog} onOpenChange={open => { if (!open) setShowExitDialog(false) }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>返回清單</AlertDialogTitle>
@@ -192,7 +192,14 @@ export default function ProjectSetupPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>繼續編輯</AlertDialogCancel>
-            <AlertDialogAction onClick={() => navigate('/dashboard')}>離開</AlertDialogAction>
+            <AlertDialogAction
+              onClick={() => {
+                setShowExitDialog(false)
+                navigate('/dashboard')
+              }}
+            >
+              離開
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

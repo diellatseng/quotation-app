@@ -24,6 +24,7 @@ import {
   validateWizardDataForDraft,
 } from '../../lib/validateQuotation'
 import { projectPrimaryLabel } from '../../lib/projectDisplay'
+import { defaultPaymentStages } from '../../lib/paymentStagePresets'
 import { WizardQuotationSkeleton } from '@/components/skeletons'
 
 const QUOTATION_STEPS = [
@@ -57,11 +58,7 @@ const initState = () => ({
   fee_amount: '',
   tax_included: false,
   notes: '',
-  payment_stages: [
-    { id: crypto.randomUUID(), stage_name: '開工前', percentage: 30 },
-    { id: crypto.randomUUID(), stage_name: '施工中', percentage: 40 },
-    { id: crypto.randomUUID(), stage_name: '完工後', percentage: 30 },
-  ],
+  payment_stages: defaultPaymentStages(),
   version: 1,
 })
 

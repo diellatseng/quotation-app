@@ -2,7 +2,7 @@ function isBlank(value) {
   return value == null || String(value).trim() === ''
 }
 
-function collectPaymentStageMissing(paymentStages = []) {
+export function collectPaymentStageMissing(paymentStages = []) {
   const missing = []
 
   if (!paymentStages.length) {

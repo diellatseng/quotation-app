@@ -116,6 +116,13 @@ describe('land section', () => {
     expect(isLandPartsComplete({
       cityName: '高雄',
       cityType: '市',
+      district: '鹽埕',
+      section: '一小',
+      parcel: '',
+    })).toBe(true)
+    expect(isLandPartsComplete({
+      cityName: '高雄',
+      cityType: '市',
       district: '',
       section: '一小',
       parcel: '100-150',

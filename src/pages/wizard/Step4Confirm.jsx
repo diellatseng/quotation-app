@@ -1,6 +1,7 @@
 // src/pages/wizard/Step4Confirm.jsx
 import { useState } from 'react'
 import ROCDateInput from '../../components/ROCDateInput'
+import PaymentStagesTable, { addPaymentStage } from '../../components/PaymentStagesTable'
 import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
 import {
@@ -21,47 +22,11 @@ import {
   InputGroupText,
 } from '@/components/ui/input-group'
 import { Textarea } from '@/components/ui/textarea'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import IconTooltip from '@/components/IconTooltip'
-import { Plus, X } from 'lucide-react'
+import { Plus } from 'lucide-react'
+import { grandTotalFromFee } from '@/lib/paymentStagePresets'
 import { formatRocDate, formatCeDisplay } from '../../lib/rocDate'
 
 const fmt = (n) => `NT$ ${Number(n || 0).toLocaleString('zh-TW')}`
-
-const PRESETS = [
-  {
-    label: '兩階段（開工/完工）',
-    stages: [
-      { stage_name: '開工前', percentage: 50 },
-      { stage_name: '完工後', percentage: 50 },
-    ],
-  },
-  {
-    label: '三階段（開工/施工/完工）',
-    stages: [
-      { stage_name: '開工前', percentage: 30 },
-      { stage_name: '施工中', percentage: 40 },
-      { stage_name: '完工後', percentage: 30 },
-    ],
-  },
-  {
-    label: '四階段分配',
-    stages: [
-      { stage_name: '開工完成', percentage: 20 },
-      { stage_name: '結構體完成', percentage: 20 },
-      { stage_name: '裝修完成', percentage: 20 },
-      { stage_name: '取得使用執照', percentage: 40 },
-    ],
-  },
-]
 
 export default function Step4Confirm({ data, update, onFinish, saving, title = '步驟 4：報價與付款', description = '確認報價金額、付款階段與備註。' }) {
   const [useRoc, setUseRoc] = useState(true)
@@ -71,45 +36,11 @@ export default function Step4Confirm({ data, update, onFinish, saving, title = '
     ? (useRoc ? formatRocDate(data.quote_date) : formatCeDisplay(data.quote_date))
     : '—'
 
-  const handleApplyPreset = (preset) => {
-    const updated = preset.stages.map(s => ({
-      id: crypto.randomUUID(),
-      stage_name: s.stage_name,
-      percentage: s.percentage,
-    }))
-    update({ payment_stages: updated })
-  }
-
-  const handleStageChange = (id, fields) => {
-    const next = data.payment_stages.map(s => (s.id === id ? { ...s, ...fields } : s))
-    update({ payment_stages: next })
-  }
-
   const handleAddStage = () => {
-    const currentTotal = data.payment_stages.reduce(
-      (sum, s) => sum + Number(s.percentage || 0),
-      0,
-    )
-    const percentage = currentTotal < 100 ? 100 - currentTotal : 0
-
-    update({
-      payment_stages: [
-        ...data.payment_stages,
-        { id: crypto.randomUUID(), stage_name: '', percentage },
-      ],
-    })
+    update({ payment_stages: addPaymentStage(data.payment_stages, 0) })
   }
 
-  const handleRemoveStage = (id) => {
-    update({ payment_stages: data.payment_stages.filter(s => s.id !== id) })
-  }
-
-  const totalPercentage = data.payment_stages.reduce((sum, s) => sum + Number(s.percentage || 0), 0)
-  const isBalanced = totalPercentage === 100
-
-  const totalAmount = Number(data.fee_amount || 0)
-  const taxAmount = data.tax_included ? Math.round(totalAmount * 0.05) : 0
-  const grandTotal = totalAmount + taxAmount
+  const grandTotal = grandTotalFromFee(data.fee_amount, data.tax_included)
 
   return (
     <div className="space-y-6">
@@ -251,142 +182,12 @@ export default function Step4Confirm({ data, update, onFinish, saving, title = '
           </CardAction>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-wrap gap-1.5 mb-4">
-          {PRESETS.map((p, idx) => (
-            <Button
-              key={idx}
-              type="button"
-              variant="outline"
-              size="sm"
-              className="rounded-full px-3 font-medium"
-              onClick={() => handleApplyPreset(p)}
-            >
-              {p.label}
-            </Button>
-          ))}
-        </div>
-
-        <div className="hidden md:block overflow-hidden rounded-lg border border-border">
-          <Table>
-            <TableHeader>
-              <TableRow className="border-border bg-muted/30 hover:bg-muted/30">
-                <TableHead className="h-auto w-10 px-3 py-2 text-center text-xs font-semibold text-muted-foreground">#</TableHead>
-                <TableHead className="h-auto px-3 py-2 text-xs font-semibold text-muted-foreground">階段名稱</TableHead>
-                <TableHead className="h-auto w-32 px-3 py-2 text-right text-xs font-semibold text-muted-foreground">百分比</TableHead>
-                <TableHead className="h-auto w-36 px-3 py-2 text-right text-xs font-semibold text-muted-foreground">金額</TableHead>
-                <TableHead className="h-auto w-10 px-2 py-2" aria-label="操作" />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.payment_stages.map((stage, sIdx) => {
-                const stageShare = Math.round(grandTotal * (Number(stage.percentage || 0) / 100))
-                return (
-                  <TableRow key={stage.id} className="border-border">
-                    <TableCell className="px-3 py-2 text-center text-xs font-bold text-muted-foreground">
-                      {sIdx + 1}
-                    </TableCell>
-                    <TableCell className="px-3 py-2">
-                      <Input
-                        type="text"
-                        placeholder="請輸入階段名稱（例：開工前）"
-                        className="w-full"
-                        value={stage.stage_name}
-                        onChange={e => handleStageChange(stage.id, { stage_name: e.target.value })}
-                        required
-                      />
-                    </TableCell>
-                    <TableCell className="px-3 py-2">
-                      <div className="flex items-center justify-end gap-1.5">
-                        <Input
-                          type="number"
-                          placeholder="0"
-                          className="w-20 text-right font-medium"
-                          value={stage.percentage || ''}
-                          onChange={e => handleStageChange(stage.id, { percentage: e.target.value })}
-                          max="100"
-                          required
-                        />
-                        <span className="text-sm font-medium text-muted-foreground">%</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="px-3 py-2 text-right text-xs font-semibold whitespace-nowrap text-muted-foreground">
-                      {fmt(stageShare)}
-                    </TableCell>
-                    <TableCell className="px-2 py-2 text-center">
-                      <IconTooltip label="刪除此階段">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          aria-label="刪除此階段"
-                          onClick={() => handleRemoveStage(stage.id)}
-                          disabled={data.payment_stages.length <= 1}
-                          className="text-muted-foreground hover:text-destructive-muted-text disabled:opacity-30 disabled:hover:text-muted-foreground"
-                        >
-                          <X />
-                        </Button>
-                      </IconTooltip>
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
-        </div>
-
-        <div className="md:hidden space-y-2">
-          {data.payment_stages.map((stage, sIdx) => {
-            const stageShare = Math.round(grandTotal * (Number(stage.percentage || 0) / 100))
-            return (
-              <div key={stage.id} className="flex flex-wrap items-center gap-3 p-3 bg-muted/20 border border-border rounded-xl">
-                <span className="text-xs font-bold text-muted-foreground w-5 text-center">{sIdx + 1}</span>
-                <Input
-                  type="text"
-                  placeholder="請輸入階段名稱（例：開工前）"
-                  className="flex-1 min-w-[160px]"
-                  value={stage.stage_name}
-                  onChange={e => handleStageChange(stage.id, { stage_name: e.target.value })}
-                  required
-                />
-                <div className="flex items-center gap-2 w-28 shrink-0">
-                  <Input
-                    type="number"
-                    placeholder="0"
-                    className="w-full text-right font-medium"
-                    value={stage.percentage || ''}
-                    onChange={e => handleStageChange(stage.id, { percentage: e.target.value })}
-                    max="100"
-                    required
-                  />
-                  <span className="text-sm text-muted-foreground font-medium">%</span>
-                </div>
-                <div className="text-xs font-semibold text-muted-foreground w-28 text-right shrink-0">
-                  {fmt(stageShare)}
-                </div>
-                <IconTooltip label="刪除此階段">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    aria-label="刪除此階段"
-                    onClick={() => handleRemoveStage(stage.id)}
-                    disabled={data.payment_stages.length <= 1}
-                    className="ml-auto text-muted-foreground hover:text-destructive-muted-text disabled:opacity-30 disabled:hover:text-muted-foreground"
-                  >
-                    <X />
-                  </Button>
-                </IconTooltip>
-              </div>
-            )
-          })}
-        </div>
-
-        <Alert variant={isBalanced ? 'success' : 'warning'} className="mt-4">
-          <AlertDescription className="flex items-center justify-between text-xs font-medium text-current">
-            <span>目前設定百分比總和：</span>
-            <span className="text-sm font-bold">{totalPercentage} % / 100 %</span>
-          </AlertDescription>
-        </Alert>
+          <PaymentStagesTable
+            stages={data.payment_stages}
+            onStagesChange={payment_stages => update({ payment_stages })}
+            grandTotal={grandTotal}
+            showAddButton={false}
+          />
         </CardContent>
       </Card>
 

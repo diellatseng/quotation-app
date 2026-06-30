@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { toast } from 'sonner'
 import PaymentStageEditor, { grandTotalFromFee, initialManualStageState } from './PaymentStageEditor'
 import {
+  formatManualPaymentValidationMessage,
   importPaymentStagesFromQuotation,
   saveManualPaymentStages,
+  validateManualPaymentSetup,
 } from '@/lib/paymentStages'
 import { stageAmountFromPercentage } from '@/lib/paymentStagePresets'
 import { Button } from '@/components/ui/button'
@@ -95,6 +97,15 @@ export default function InvoiceSetupDialog({
 
   const selectedQuotation = usableQuotations.find(q => q.id === selectedQuotationId)
 
+  const manualValidation = useMemo(
+    () => validateManualPaymentSetup({
+      contractTotal: manual.contractTotal,
+      taxIncluded: manual.taxIncluded,
+      stages: manual.stages,
+    }),
+    [manual.contractTotal, manual.taxIncluded, manual.stages],
+  )
+
   const handleSaveQuotation = async () => {
     if (!selectedQuotationId) {
       toast.warning('請選擇報價單')
@@ -119,6 +130,11 @@ export default function InvoiceSetupDialog({
   }
 
   const handleSaveManual = async () => {
+    if (!manualValidation.valid) {
+      toast.warning(formatManualPaymentValidationMessage(manualValidation.missing))
+      return
+    }
+
     setSaving(true)
     try {
       await saveManualPaymentStages(supabase, projectId, manual.stages, {
@@ -273,7 +289,11 @@ export default function InvoiceSetupDialog({
                 variant="default"
                 size="sm"
                 className="font-semibold"
-                disabled={saving}
+                disabled={
+                  saving
+                  || (mode === 'manual' && !manualValidation.valid)
+                  || (mode === 'quotation' && (!selectedQuotationId || !previewStages.length))
+                }
                 onClick={mode === 'quotation' ? handleSaveQuotation : handleSaveManual}
               >
                 {saving ? '儲存中…' : (mode === 'quotation' ? '匯入付款階段' : '建立付款階段')}

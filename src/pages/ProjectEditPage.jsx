@@ -198,7 +198,7 @@ export default function ProjectEditPage() {
       section: data.land_section_name,
       parcel: data.land_parcel,
     })) {
-      toast.warning('請輸入完整地號（市/縣、區、段、號）')
+      toast.warning('請輸入完整地號（市/縣、區、段）')
       return false
     }
 
@@ -288,7 +288,7 @@ export default function ProjectEditPage() {
 
   return (
     <>
-      <AlertDialog open={showExitDialog} onOpenChange={open => { if (!open) navigate(`/projects/${id}`) }}>
+      <AlertDialog open={showExitDialog} onOpenChange={open => { if (!open) setShowExitDialog(false) }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>返回案件</AlertDialogTitle>
@@ -296,7 +296,14 @@ export default function ProjectEditPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>繼續編輯</AlertDialogCancel>
-            <AlertDialogAction onClick={() => navigate(`/projects/${id}`)}>離開</AlertDialogAction>
+            <AlertDialogAction
+              onClick={() => {
+                setShowExitDialog(false)
+                navigate(`/projects/${id}`)
+              }}
+            >
+              離開
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
