@@ -50,10 +50,10 @@ export function formatQuotationValidationMessage(missing) {
 }
 
 /** Map wizard state to validation input. */
-export function validateWizardDataForSend(data) {
+export function validateWizardDataForSend(data, { projectLandSection } = {}) {
   return validateQuotationForSend({
     clientId: data.client?.id,
-    landSection: data.land_section,
+    landSection: projectLandSection,
     quoteNumber: data.quote_number,
     quoteDate: data.quote_date,
     feeAmount: data.fee_amount,
@@ -65,7 +65,7 @@ export function validateWizardDataForSend(data) {
 export function validateQuotationRecordForSend(quotation, paymentStages) {
   return validateQuotationForSend({
     clientId: quotation.client_id,
-    landSection: quotation.land_section,
+    landSection: quotation.projects?.land_section,
     quoteNumber: quotation.quote_number,
     quoteDate: quotation.quote_date,
     feeAmount: quotation.fee_amount,

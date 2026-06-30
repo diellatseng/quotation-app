@@ -479,7 +479,7 @@ export default function DashboardPage() {
                 <TableHeader>
                   <TableRow className="border-border bg-muted/40 hover:bg-muted/40">
                     <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">地號</TableHead>
-                    <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">工程名稱</TableHead>
+                    <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">案件名稱</TableHead>
                     <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">客戶名稱</TableHead>
                     <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">金額</TableHead>
                     <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">案件狀態</TableHead>

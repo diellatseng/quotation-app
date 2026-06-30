@@ -44,6 +44,7 @@ export default function QuotationDetailPage() {
           clients(*),
           contact_persons(*),
           projects(
+            land_section,
             company_profiles(*)
           )
         `)

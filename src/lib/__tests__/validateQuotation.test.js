@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   formatQuotationValidationMessage,
   validateQuotationForSend,
+  validateQuotationRecordForSend,
 } from '../validateQuotation'
 
 const complete = {
@@ -45,6 +46,38 @@ describe('validateQuotationForSend', () => {
     expect(result.missing).toContain('付款階段 1 名稱')
     expect(result.missing).toContain('付款階段 1 百分比')
     expect(result.missing).toContain('付款階段百分比總和（需為 100%）')
+  })
+})
+
+describe('validateQuotationRecordForSend', () => {
+  it('uses linked project land_section, not quotation snapshot', () => {
+    const result = validateQuotationRecordForSend(
+      {
+        client_id: 'client-1',
+        land_section: '',
+        quote_number: 'QT-2025-00001',
+        quote_date: '2025-06-14',
+        fee_amount: 100000,
+        projects: { land_section: '鹽埕段一小段 123' },
+      },
+      complete.paymentStages,
+    )
+    expect(result).toEqual({ valid: true, missing: [] })
+  })
+
+  it('reports missing land section when project has none', () => {
+    const result = validateQuotationRecordForSend(
+      {
+        client_id: 'client-1',
+        land_section: '鹽埕段一小段 123',
+        quote_number: 'QT-2025-00001',
+        quote_date: '2025-06-14',
+        fee_amount: 100000,
+        projects: { land_section: '' },
+      },
+      complete.paymentStages,
+    )
+    expect(result.missing).toContain('地號')
   })
 })
 
