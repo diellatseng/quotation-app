@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useAppearance } from '../context/AppearanceContext'
-import { APP_THEMES, getThemeLabel } from '@/lib/themes'
+import { APP_THEMES } from '@/lib/themes'
 import { toast } from 'sonner'
 import { formatRocDate } from '../lib/rocDate'
 import { deleteProjectById } from '../lib/deleteProject'
@@ -46,15 +46,14 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-} from '@/components/ui/select'
 import { BillingSummaryBadges, ProjectStatusBadges, QuotationSummaryBadges, ProjectSummaryBadges } from '@/components/ui/badge'
 import {
   enrichProjectWithSummaries,
@@ -66,7 +65,7 @@ import { AppEmptyState } from '@/components/AppEmptyState'
 import { DashboardQuotationsSkeleton } from '@/components/skeletons'
 import IconTooltip from '@/components/IconTooltip'
 import { AppBrandTitle, AppShellHeader } from '@/components/AppShellHeader'
-import { FolderKanban, MoreHorizontal, Palette, Pause, Play, Plus, Search, Trash2 } from 'lucide-react'
+import { FolderKanban, MoreHorizontal, Palette, Pause, Play, Plus, Search, Settings, Trash2 } from 'lucide-react'
 
 import { displayLandSection, displayProjectName } from '@/lib/projectDisplay'
 
@@ -308,36 +307,43 @@ export default function DashboardPage() {
               </Button>
             </IconTooltip>
           </div>
-          <div className="flex items-center rounded-md border border-border bg-muted px-1.5 py-0.5">
-            <Select value={theme} onValueChange={setTheme}>
-              <SelectTrigger
-                size="sm"
-                className="h-7 min-w-[11rem] max-w-[12rem] gap-1 border-0 bg-transparent px-1.5 font-semibold shadow-none focus-visible:ring-2"
-                aria-label="切換主題色彩"
-              >
-                <Palette className="size-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
-                <span className="truncate">{getThemeLabel(theme)}</span>
-              </SelectTrigger>
-              <SelectContent align="end" side="bottom" alignItemWithTrigger={false}>
-                {APP_THEMES.map(({ value, label }) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <IconTooltip label="管理介面">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="font-semibold"
-              onClick={() => navigate('/admin/clients')}
-              aria-label="管理介面"
-            >
-              管理
-            </Button>
-          </IconTooltip>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="font-semibold"
+                  aria-label="設定"
+                >
+                  <Settings data-icon="inline-start" />
+                  設定
+                </Button>
+              }
+            />
+            <DropdownMenuContent align="end" className="min-w-[11rem]">
+              <DropdownMenuGroup>
+                <DropdownMenuItem onClick={() => navigate('/admin/clients')}>
+                  管理資料庫
+                </DropdownMenuItem>
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    <Palette />
+                    佈景主題
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent>
+                    <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
+                      {APP_THEMES.map(({ value, label }) => (
+                        <DropdownMenuRadioItem key={value} value={value}>
+                          {label}
+                        </DropdownMenuRadioItem>
+                      ))}
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+              </DropdownMenuGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <IconTooltip label="登出">
             <Button
               variant="ghost"
