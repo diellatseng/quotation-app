@@ -176,7 +176,7 @@ export default function ClientsAdmin() {
                 onClick={() => selectClient(c)}
                 className={`p-4 border-b border-border cursor-pointer transition-colors ${selected?.id === c.id
                     ? 'bg-primary/10 border-l-4 border-l-primary'
-                    : 'border-l-4 border-l-transparent hover:bg-muted/50'
+                    : 'border-l-4 border-l-transparent hover:bg-accent'
                   }`}>
                 <div className="font-semibold">{c.company_name}</div>
                 <div className="text-xs text-muted-foreground">{c.phone} {c.email}</div>

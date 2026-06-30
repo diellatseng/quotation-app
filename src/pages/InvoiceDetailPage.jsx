@@ -190,7 +190,7 @@ export default function InvoiceDetailPage() {
         </p>
 
         <div className="flex justify-center overflow-auto rounded-xl border border-border bg-muted/30 p-4 shadow-inner md:p-6">
-          <div className="max-w-full origin-top scale-100 transform rounded-sm border border-border bg-white shadow-md">
+          <div className="max-w-full origin-top scale-100 transform rounded-sm border border-border bg-card shadow-md">
             <InvoicePreview
               ref={previewRef}
               project={project}

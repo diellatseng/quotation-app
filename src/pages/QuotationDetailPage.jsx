@@ -1,5 +1,5 @@
 // src/pages/QuotationDetailPage.jsx
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { toast } from 'sonner'
@@ -14,6 +14,7 @@ import A4Preview from '../components/A4Preview'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { QuotationDetailSkeleton } from '@/components/skeletons'
+import { Skeleton } from '@/components/ui/skeleton'
 import { AppBreadcrumbBar } from '@/components/AppShellHeader'
 import { projectPrimaryLabel } from '../lib/projectDisplay'
 import { syncProjectStatusFromQuotation } from '../lib/projectStatus'
@@ -29,58 +30,76 @@ export default function QuotationDetailPage() {
   const [services, setServices] = useState([])
   const [paymentStages, setPaymentStages] = useState([])
   const [loading, setLoading] = useState(true)
+  const [previewReady, setPreviewReady] = useState(false)
   // const [negDialog, setNegDialog] = useState(null) // inactive: negotiation / versioning
   const [activeTab, setActiveTab] = useState('quotation')
 
   const { exporting, exportPDF } = useExportPDF()
 
-  const fetchData = async () => {
-    setLoading(true)
-    try {
-      const { data: qData, error: qErr } = await supabase
-        .from('quotations')
-        .select(`
-          *,
-          clients(*),
-          contact_persons(*),
-          projects(
-            land_section,
-            company_profiles(*)
-          )
-        `)
-        .eq('id', id)
-        .single()
-
-      if (qErr) throw qErr
-      setQt(qData)
-
-      const { data: sData, error: sErr } = await supabase
-        .from('quotation_services')
-        .select('*')
-        .eq('quotation_id', id)
-        .order('sort_order', { ascending: true })
-
-      if (sErr) throw sErr
-      setServices(sData)
-
-      const { data: stageData, error: stErr } = await supabase
-        .from('payment_stages')
-        .select('stage_name, percentage')
-        .eq('quotation_id', id)
-        .order('sort_order')
-
-      if (stErr) throw stErr
-      setPaymentStages(stageData || [])
-    } catch (err) {
-      toast.error('載入失敗: ' + err.message, { duration: 6000 })
-    } finally {
-      setLoading(false)
-    }
-  }
+  const handlePreviewLayoutComplete = useCallback(() => {
+    setPreviewReady(true)
+  }, [])
 
   useEffect(() => {
+    let cancelled = false
+
+    async function fetchData() {
+      setLoading(true)
+      setPreviewReady(false)
+      setQt(null)
+      setServices([])
+      setPaymentStages([])
+
+      try {
+        const { data: qData, error: qErr } = await supabase
+          .from('quotations')
+          .select(`
+            *,
+            clients(*),
+            contact_persons(*),
+            projects(
+              land_section,
+              company_profiles(*)
+            )
+          `)
+          .eq('id', id)
+          .single()
+
+        if (qErr) throw qErr
+
+        const { data: sData, error: sErr } = await supabase
+          .from('quotation_services')
+          .select('*')
+          .eq('quotation_id', id)
+          .order('sort_order', { ascending: true })
+
+        if (sErr) throw sErr
+
+        const { data: stageData, error: stErr } = await supabase
+          .from('payment_stages')
+          .select('stage_name, percentage')
+          .eq('quotation_id', id)
+          .order('sort_order')
+
+        if (stErr) throw stErr
+
+        if (cancelled) return
+
+        setQt(qData)
+        setServices(sData || [])
+        setPaymentStages(stageData || [])
+      } catch (err) {
+        if (!cancelled) {
+          toast.error('載入失敗: ' + err.message, { duration: 6000 })
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+
     fetchData()
-  }, [id]) // eslint-disable-line
+    return () => { cancelled = true }
+  }, [id])
 
   const handleSendQuotation = () => {
     const { valid, missing } = validateQuotationRecordForSend(qt, paymentStages)
@@ -103,7 +122,7 @@ export default function QuotationDetailPage() {
         await syncProjectStatusFromQuotation(supabase, qt.project_id, newStatus)
       }
       toast.success(`狀態已更新為【${newStatus}】`)
-      fetchData()
+      setQt(prev => (prev ? { ...prev, status: newStatus } : prev))
     } catch (err) {
       toast.error('更新失敗: ' + err.message, { duration: 6000 })
     }
@@ -177,7 +196,7 @@ export default function QuotationDetailPage() {
               size="sm"
               className="font-semibold"
               onClick={handleExport}
-              disabled={exporting}
+              disabled={exporting || !previewReady}
             >
               <Printer data-icon="inline-start" />
               {exporting ? '匯出中…' : '匯出 PDF'}
@@ -214,7 +233,10 @@ export default function QuotationDetailPage() {
           客戶：{qt.clients?.company_name || '—'}
         </p>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
+        <Tabs value={activeTab} onValueChange={(tab) => {
+          setPreviewReady(false)
+          setActiveTab(tab)
+        }} className="mb-6">
           <TabsList variant="line" className="h-auto w-full justify-start gap-1 rounded-none border-b border-border bg-transparent p-0">
             <TabsTrigger value="quotation" className="rounded-none px-4 py-2">
               報價單
@@ -228,9 +250,17 @@ export default function QuotationDetailPage() {
           </TabsList>
         </Tabs>
 
-        <div className="flex justify-center overflow-auto rounded-xl border border-border bg-muted/30 p-4 shadow-inner md:p-6">
-          <div className="max-w-full origin-top scale-100 transform rounded-sm border border-border bg-white shadow-md">
+        <div className="relative flex justify-center overflow-auto rounded-xl border border-border bg-muted/30 p-4 shadow-inner md:p-6">
+          {!previewReady && (
+            <Skeleton
+              className="absolute inset-4 z-10 mx-auto h-[640px] w-full max-w-[794px] rounded-xl md:inset-6"
+              aria-busy="true"
+              aria-label="載入報價預覽"
+            />
+          )}
+          <div className={`max-w-full origin-top scale-100 transform rounded-sm border border-border bg-card shadow-md ${previewReady ? '' : 'invisible'}`}>
             <A4Preview
+              key={`${id}-${activeTab}`}
               ref={previewRef}
               quotation={qt}
               services={services}
@@ -239,6 +269,7 @@ export default function QuotationDetailPage() {
               contactPerson={qt.contact_persons}
               companyInfo={companyInfo}
               mode={activeTab}
+              onLayoutComplete={handlePreviewLayoutComplete}
             />
           </div>
         </div>

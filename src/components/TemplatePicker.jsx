@@ -1,12 +1,16 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Field, FieldLabel } from '@/components/ui/field'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+} from '@/components/ui/select'
 
 const NO_TEMPLATE = '__none__'
 
-export default function TemplatePicker({ data, update }) {
+export default function TemplatePicker({ data, update, className }) {
   const [templates, setTemplates] = useState([])
 
   useEffect(() => {
@@ -37,62 +41,46 @@ export default function TemplatePicker({ data, update }) {
     update({ project_template_id: tmpl.id, services })
   }
 
-  return (
-    <Card className="shadow-sm">
-      <CardHeader>
-        <CardTitle className="font-semibold">選擇服務範本</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <RadioGroup
-          value={data.project_template_id ?? NO_TEMPLATE}
-          onValueChange={(v) => {
-            if (v === NO_TEMPLATE) selectTemplate(null)
-            else selectTemplate(templates.find(t => t.id === v))
-          }}
-          className="flex flex-col gap-3"
-        >
-          <label
-            className={`flex items-start gap-4 p-4 border rounded-xl cursor-pointer transition-all hover:bg-muted/40 select-none ${
-              data.project_template_id === null
-                ? 'border-primary bg-primary/[0.02] ring-1 ring-primary'
-                : 'border-border bg-background'
-            }`}
-          >
-            <RadioGroupItem value={NO_TEMPLATE} id="template-none" className="mt-0.5" />
-            <div>
-              <div className="text-sm font-semibold text-foreground">不使用範本</div>
-              <div className="text-xs text-muted-foreground mt-0.5">服務內容與查核項目將手動新增與編輯</div>
-            </div>
-          </label>
+  const selectedTemplate = templates.find(t => t.id === data.project_template_id)
+  const selectedLabel = data.project_template_id
+    ? (selectedTemplate?.name ?? '已選範本')
+    : '不使用範本'
 
-          {templates.map(tmpl => (
-            <label
-              key={tmpl.id}
-              className={`flex items-start gap-4 p-4 border rounded-xl cursor-pointer transition-all hover:bg-muted/40 select-none ${
-                data.project_template_id === tmpl.id
-                  ? 'border-primary bg-primary/[0.02] ring-1 ring-primary'
-                  : 'border-border bg-background'
-              }`}
-            >
-              <RadioGroupItem value={tmpl.id} id={`template-${tmpl.id}`} className="mt-0.5" />
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-semibold text-foreground">{tmpl.name}</div>
-                {tmpl.description && (
-                  <div className="text-xs text-muted-foreground mt-0.5 line-clamp-2 leading-relaxed">{tmpl.description}</div>
+  return (
+    <Field className={className}>
+      <FieldLabel htmlFor="project_template" className="text-xs text-muted-foreground">
+        服務範本
+      </FieldLabel>
+      <Select
+        value={data.project_template_id ?? NO_TEMPLATE}
+        onValueChange={(v) => {
+          if (v === NO_TEMPLATE) selectTemplate(null)
+          else selectTemplate(templates.find(t => t.id === v))
+        }}
+      >
+        <SelectTrigger id="project_template" className="h-9 w-full min-w-[12rem] font-medium">
+          {selectedLabel}
+        </SelectTrigger>
+        <SelectContent align="end" className="max-w-[min(24rem,calc(100vw-2rem))]">
+          <SelectItem value={NO_TEMPLATE}>不使用範本</SelectItem>
+          {templates.length === 0 ? (
+            <SelectItem value="__empty__" disabled>
+              尚無範本
+            </SelectItem>
+          ) : (
+            templates.map(tmpl => (
+              <SelectItem key={tmpl.id} value={tmpl.id}>
+                <span className="truncate">{tmpl.name}</span>
+                {(tmpl.template_services || []).length > 0 && (
+                  <span className="text-muted-foreground">
+                    {' '}· {(tmpl.template_services || []).length} 項
+                  </span>
                 )}
-                <Badge variant="outline" className="mt-2 rounded-md border-primary/10 bg-primary/5 font-semibold text-primary">
-                  {(tmpl.template_services || []).length} 項服務
-                </Badge>
-              </div>
-              {tmpl.category && (
-                <Badge variant="secondary" className="shrink-0 rounded-full">
-                  {tmpl.category}
-                </Badge>
-              )}
-            </label>
-          ))}
-        </RadioGroup>
-      </CardContent>
-    </Card>
+              </SelectItem>
+            ))
+          )}
+        </SelectContent>
+      </Select>
+    </Field>
   )
 }

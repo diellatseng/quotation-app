@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest'
 import {
   formatQuotationValidationMessage,
   validateQuotationForSend,
+  validateQuotationForDraft,
   validateQuotationRecordForSend,
+  formatQuotationDraftValidationMessage,
 } from '../validateQuotation'
 
 const complete = {
@@ -46,6 +48,52 @@ describe('validateQuotationForSend', () => {
     expect(result.missing).toContain('付款階段 1 名稱')
     expect(result.missing).toContain('付款階段 1 百分比')
     expect(result.missing).toContain('付款階段百分比總和（需為 100%）')
+  })
+})
+
+const draftComplete = {
+  clientId: 'client-1',
+  quoteNumber: 'QT-2025-00001',
+  quoteDate: '2025-06-14',
+  feeAmount: 100000,
+  paymentStages: complete.paymentStages,
+}
+
+describe('validateQuotationForDraft', () => {
+  it('passes when required draft fields are present', () => {
+    expect(validateQuotationForDraft(draftComplete)).toEqual({ valid: true, missing: [] })
+  })
+
+  it('reports missing fee amount', () => {
+    const result = validateQuotationForDraft({
+      ...draftComplete,
+      feeAmount: 0,
+    })
+    expect(result.valid).toBe(false)
+    expect(result.missing).toContain('報價金額 (未稅)')
+  })
+
+  it('reports missing payment stages', () => {
+    const result = validateQuotationForDraft({
+      ...draftComplete,
+      paymentStages: [],
+    })
+    expect(result.missing).toContain('付款階段')
+  })
+
+  it('reports payment stage total not equal to 100%', () => {
+    const result = validateQuotationForDraft({
+      ...draftComplete,
+      paymentStages: [{ stage_name: '開工前', percentage: 40 }],
+    })
+    expect(result.missing).toContain('付款階段百分比總和（需為 100%）')
+  })
+})
+describe('formatQuotationDraftValidationMessage', () => {
+  it('joins missing labels for toast display', () => {
+    expect(formatQuotationDraftValidationMessage(['報價金額 (未稅)'])).toBe(
+      '無法儲存草稿，請補齊：報價金額 (未稅)',
+    )
   })
 })
 

@@ -168,7 +168,7 @@ export default function BankAccountsAdmin() {
                 className={`w-full rounded-lg border px-3 py-2 text-left text-sm transition-colors ${
                   selected?.id === a.id
                     ? 'border-primary bg-primary/5'
-                    : 'border-border hover:bg-muted/40'
+                    : 'border-border hover:bg-accent'
                 }`}
               >
                 <div className="font-medium text-foreground">{a.label}</div>

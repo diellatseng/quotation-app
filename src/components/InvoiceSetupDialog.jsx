@@ -242,7 +242,7 @@ export default function InvoiceSetupDialog({
                   </table>
                 </div>
               ) : selectedQuotationId && (
-                <p className="text-sm text-amber-600">此報價單尚無付款階段，請先完成報價設定。</p>
+                <p className="text-sm text-status-warning-text">此報價單尚無付款階段，請先完成報價設定。</p>
               )}
             </div>
           )}

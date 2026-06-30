@@ -27,7 +27,8 @@ const A4Preview = forwardRef(function A4Preview(
     contactPerson,
     companyInfo,
     negLogs = [],
-    mode = 'quotation'
+    mode = 'quotation',
+    onLayoutComplete,
   },
   ref,
 ) {
@@ -54,6 +55,7 @@ const A4Preview = forwardRef(function A4Preview(
     const sectionEls = measureRef.current.querySelectorAll('[data-section]')
     const heights = Array.from(sectionEls).map(el => el.getBoundingClientRect().height + 2)
     setPages(paginate(sections, heights))
+    onLayoutComplete?.()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [depsKey])
 

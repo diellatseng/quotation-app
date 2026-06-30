@@ -7,6 +7,12 @@ import WizardShell from '../components/WizardShell'
 import Step1Client from './wizard/Step1Client'
 import Step2Project from './wizard/Step2Project'
 import {
+  DEFAULT_LAND_CITY_NAME,
+  DEFAULT_LAND_CITY_TYPE,
+  formatLandSection,
+  isLandPartsComplete,
+} from '../lib/projectFields'
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -28,7 +34,15 @@ const initState = () => ({
   selectedContactId: null,
   company_profile_id: null,
   building_permit: '',
+  land_city_name: DEFAULT_LAND_CITY_NAME,
+  land_city_type: DEFAULT_LAND_CITY_TYPE,
+  land_district_name: '',
+  land_section_name: '',
+  land_parcel: '',
   land_section: '',
+  scale_above_ground: '',
+  scale_underground: '',
+  scale_notes: '',
   project_scale: '',
   project_owner: '',
   marketing_name: '',
@@ -54,7 +68,13 @@ export default function ProjectSetupPage() {
     client_id: data.client?.id || null,
     contact_person_id: data.selectedContactId || null,
     building_permit: data.building_permit,
-    land_section: data.land_section.trim(),
+    land_section: formatLandSection({
+      cityName: data.land_city_name,
+      cityType: data.land_city_type,
+      district: data.land_district_name,
+      section: data.land_section_name,
+      parcel: data.land_parcel,
+    }).trim(),
     project_scale: data.project_scale,
     project_owner: data.project_owner,
     company_profile_id: data.company_profile_id || null,
@@ -72,7 +92,13 @@ export default function ProjectSetupPage() {
       toast.warning('請選擇公司抬頭')
       return null
     }
-    if (!data.land_section?.trim()) {
+    if (!isLandPartsComplete({
+      cityName: data.land_city_name,
+      cityType: data.land_city_type,
+      district: data.land_district_name,
+      section: data.land_section_name,
+      parcel: data.land_parcel,
+    })) {
       toast.warning('請輸入地號')
       return null
     }
@@ -111,7 +137,15 @@ export default function ProjectSetupPage() {
 
   const canGoNext = () => {
     if (step === 1) return !!data.client
-    if (step === 2) return !!data.company_profile_id && !!data.land_section?.trim()
+    if (step === 2) {
+      return !!data.company_profile_id && isLandPartsComplete({
+        cityName: data.land_city_name,
+        cityType: data.land_city_type,
+        district: data.land_district_name,
+        section: data.land_section_name,
+        parcel: data.land_parcel,
+      })
+    }
     return true
   }
 

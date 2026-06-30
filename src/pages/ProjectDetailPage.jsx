@@ -59,7 +59,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Check, Eye, FileText, MoreHorizontal, Pencil, Plus, Receipt, Trash2 } from 'lucide-react'
+import { Check, Eye, FileText, MoreHorizontal, Pencil, Play, Plus, Receipt, Trash2 } from 'lucide-react'
 import { deleteProjectById } from '@/lib/deleteProject'
 import { groupDisbursementsByStage, saveDisbursementsForStage, sumDisbursements } from '@/lib/disbursements'
 import { suggestReturnedDocuments } from '@/lib/invoiceDocument'
@@ -254,11 +254,7 @@ export default function ProjectDetailPage() {
   }
 
   const requestStartWork = () => {
-    if (needsStartWorkConfirmation(quotations)) {
-      setShowStartDialog(true)
-      return
-    }
-    updateProjectStatus('已開工')
+    setShowStartDialog(true)
   }
 
   const handleStartCancel = () => {
@@ -268,7 +264,15 @@ export default function ProjectDetailPage() {
   const handleStartConfirm = async () => {
     setShowStartDialog(false)
     try {
-      await applyStartProjectWork(supabase, id)
+      if (needsStartWorkConfirmation(quotations)) {
+        await applyStartProjectWork(supabase, id)
+      } else {
+        const { error } = await supabase
+          .from('projects')
+          .update({ status: '已開工' })
+          .eq('id', id)
+        if (error) throw error
+      }
       toast.success('案件狀態已更新為【已開工】')
       fetchData()
     } catch (err) {
@@ -487,16 +491,18 @@ export default function ProjectDetailPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>開始進行案件</AlertDialogTitle>
+            <AlertDialogTitle>案件開工</AlertDialogTitle>
             <AlertDialogDescription>
-              「{projectPrimaryLabel(project)}」— 客戶是否已回傳報價確認？
-              已回傳可直接開工；若尚未回傳，請先完成報價確認後再開工。
+              確定要將「{projectPrimaryLabel(project)}」的案件狀態改為【已開工】嗎？
+              {needsStartWorkConfirmation(quotations) && (
+                <> 此案件有已報價但尚未確認的報價單；若客戶已回傳確認，開工時將一併將報價標記為【已確認】。</>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>尚未回傳</AlertDialogCancel>
+            <AlertDialogCancel>取消</AlertDialogCancel>
             <AlertDialogAction onClick={handleStartConfirm}>
-              已回傳，案件開工
+              確認開工
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -741,20 +747,6 @@ export default function ProjectDetailPage() {
               <Pencil data-icon="inline-start" />
               編輯案件
             </Button>
-            {quotationSummary === '草稿' && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="font-semibold"
-                onClick={() => {
-                  const draft = quotations.find(q => q.status === '草稿')
-                  if (draft) navigate(`/quotation/new?edit=${draft.id}`)
-                }}
-              >
-                <Pencil data-icon="inline-start" />
-                編輯草稿
-              </Button>
-            )}
             {project.status === '未開工' && (
               <Button
                 variant="outline"
@@ -762,6 +754,7 @@ export default function ProjectDetailPage() {
                 className="font-semibold"
                 onClick={requestStartWork}
               >
+                <Play data-icon="inline-start" />
                 開工
               </Button>
             )}
@@ -795,15 +788,6 @@ export default function ProjectDetailPage() {
                 恢復進行
               </Button>
             )}
-            <Button
-              variant="default"
-              size="sm"
-              className="font-semibold"
-              onClick={() => navigate(`/quotation/new?project=${id}`)}
-            >
-              <Plus data-icon="inline-start" />
-              新增報價
-            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -974,13 +958,25 @@ export default function ProjectDetailPage() {
                     className="font-semibold"
                     onClick={() => navigate(`/quotation/new?project=${id}`)}
                   >
-                    建立報價
+                    <Plus data-icon="inline-start" />
+                    新增報價單
                   </Button>
                 }
                 className="shadow-sm"
               />
             ) : (
               <>
+                <div className="mb-4 flex flex-wrap items-center justify-end gap-3">
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="font-semibold"
+                    onClick={() => navigate(`/quotation/new?project=${id}`)}
+                  >
+                    <Plus data-icon="inline-start" />
+                    新增報價單
+                  </Button>
+                </div>
                 <div className="mb-4 block md:hidden space-y-3">
                   {quotations.map(q => (
                     <Card
@@ -1036,7 +1032,7 @@ export default function ProjectDetailPage() {
                       {quotations.map(q => (
                         <TableRow
                           key={q.id}
-                          className="cursor-pointer border-border hover:bg-muted/30"
+                          className="cursor-pointer border-border hover:bg-accent"
                           onClick={() =>
                             q.status === '草稿'
                               ? navigate(`/quotation/new?edit=${q.id}`)
@@ -1114,7 +1110,7 @@ export default function ProjectDetailPage() {
                     <Card
                       key={stage.id}
                       size="sm"
-                      className={`gap-0 py-0 shadow-sm ${invoice ? 'cursor-pointer hover:bg-muted/20' : ''}`}
+                      className={`gap-0 py-0 shadow-sm ${invoice ? 'cursor-pointer hover:bg-accent' : ''}`}
                       onClick={() => {
                         if (invoice) navigate(`/projects/${id}/invoices/${invoice.id}`)
                       }}
@@ -1180,7 +1176,7 @@ export default function ProjectDetailPage() {
                       {invoiceRows.map(({ stage, invoice, disbursementTotal }) => (
                         <TableRow
                           key={stage.id}
-                          className={`border-border ${invoice ? 'cursor-pointer hover:bg-muted/30' : ''}`}
+                          className={`border-border ${invoice ? 'cursor-pointer hover:bg-accent' : ''}`}
                           onClick={() => {
                             if (invoice) navigate(`/projects/${id}/invoices/${invoice.id}`)
                           }}

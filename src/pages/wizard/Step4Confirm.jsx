@@ -86,10 +86,16 @@ export default function Step4Confirm({ data, update, onFinish, saving, title = '
   }
 
   const handleAddStage = () => {
+    const currentTotal = data.payment_stages.reduce(
+      (sum, s) => sum + Number(s.percentage || 0),
+      0,
+    )
+    const percentage = currentTotal < 100 ? 100 - currentTotal : 0
+
     update({
       payment_stages: [
         ...data.payment_stages,
-        { id: crypto.randomUUID(), stage_name: '', percentage: 0 },
+        { id: crypto.randomUUID(), stage_name: '', percentage },
       ],
     })
   }
@@ -315,7 +321,7 @@ export default function Step4Confirm({ data, update, onFinish, saving, title = '
                           aria-label="刪除此階段"
                           onClick={() => handleRemoveStage(stage.id)}
                           disabled={data.payment_stages.length <= 1}
-                          className="text-muted-foreground hover:text-rose-600 disabled:opacity-30 disabled:hover:text-muted-foreground"
+                          className="text-muted-foreground hover:text-destructive-muted-text disabled:opacity-30 disabled:hover:text-muted-foreground"
                         >
                           <X />
                         </Button>
@@ -365,7 +371,7 @@ export default function Step4Confirm({ data, update, onFinish, saving, title = '
                     aria-label="刪除此階段"
                     onClick={() => handleRemoveStage(stage.id)}
                     disabled={data.payment_stages.length <= 1}
-                    className="ml-auto text-muted-foreground hover:text-rose-600 disabled:opacity-30 disabled:hover:text-muted-foreground"
+                    className="ml-auto text-muted-foreground hover:text-destructive-muted-text disabled:opacity-30 disabled:hover:text-muted-foreground"
                   >
                     <X />
                   </Button>

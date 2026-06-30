@@ -95,6 +95,27 @@ export function QuotationDetailSkeleton() {
   )
 }
 
+export function WizardQuotationSkeleton() {
+  return (
+    <div className="space-y-6" aria-busy="true" aria-label="載入中">
+      <div className="space-y-2">
+        <Skeleton className="h-7 w-44" />
+        <Skeleton className="h-4 w-full max-w-md" />
+      </div>
+      <Card className="gap-0 py-0 shadow-sm">
+        <div className="border-b border-border bg-muted/30 px-4 py-3 sm:px-6">
+          <Skeleton className="h-9 w-56" />
+        </div>
+        <div className="space-y-3 px-4 py-4 sm:px-6">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+      </Card>
+    </div>
+  )
+}
+
 export function Step1ClientSkeleton() {
   return (
     <div className="space-y-3 py-4" aria-busy="true" aria-label="載入中">

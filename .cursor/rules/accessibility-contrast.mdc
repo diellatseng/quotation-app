@@ -1,0 +1,50 @@
+---
+description: 視力不佳、打字慢的使用者 — 高對比 + 最少輸入
+alwaysApply: true
+---
+
+# 無障礙：對比度與輸入簡易度
+
+本專案主要使用者是**視力不佳、打字慢**的長輩。所有 UI 變更必須同時考慮**可讀性**與**減少打字量**。
+
+## 對比度
+
+- **必讀內容**（標籤、表格、欄位值、固定提示文字）用 `text-foreground`，禁止用灰色呈現必讀資訊。
+- `text-muted-foreground` 僅限真正次要的輔助說明，且仍須符合 WCAG AA。
+- 結構化表單的**固定字**（如 `建築字第`、`地號`、`(` `)`）用 `structuredFixedTextClassName` 或 `text-foreground font-semibold`，不可變成淡灰。
+
+## 結構化輸入（減少打字）
+
+當欄位有固定格式時，**必須拆成多個短輸入 + 固定文字**，使用者只填會變動的部分。**各欄位獨立存 state，不可每次 keystroke 把組合字串 parse 回其他欄位**（例如地號打 `-` 時不可污染段名）。
+
+```tsx
+// ❌ BAD — 三個欄位都要打完整句子，等於沒省時間
+<Input placeholder="高雄市" />
+<Input placeholder="鹽埕段一小段" />
+
+// ✅ GOOD — 固定字由系統顯示，只填變動部分
+[高雄] [市▼]  +  段名輸入  +  [123] 地號
+( 115 ) [高市] 建築字第 [961] 號
+地上 [5] 層，地下 [1] 層
+```
+
+### 規則
+
+1. **固定文字不可編輯**：括號、`建築字第`、`號`、`地上`、`層`、`地下`、`地號` 等用 `InputGroupText` 顯示，不要放進 placeholder。
+2. **Placeholder 只示範最短變動值**：如 `961`、`123`、`5`，不要放整句範例。
+3. **合理預填**：常用預設（如 `高雄`+`市`、`高市`、今年民國年）在空表單即顯示，使用者不必重打。
+4. **數字欄**用 `inputMode="numeric"`，能 strip 非數字就 strip。
+5. **短輸入框**：`max-w-[4rem]`～`max-w-[8rem]`，避免使用者以為要打長句。
+6. **組合預覽**：顯示 `組合結果：…` 用 `text-foreground font-medium`，讓使用者確認不必自己拼字串。
+7. **儲存仍用單一 DB 欄位**：UI 拆分、後端 `format*` / `parse*` 組合（見 `src/lib/projectFields.js`）。
+
+## 表單尺寸
+
+- 結構化短輸入：`min-h-10 text-base font-medium`（`structuredInputClassName`）。
+- 欄位標籤：`text-base font-semibold text-foreground`。
+
+## 修改 UI 時
+
+1. 這段文字必須清楚閱讀嗎？→ `text-foreground`。
+2. 這段文字使用者需要打嗎？否 → 固定 label，不是 input placeholder。
+3. 能否用 select / 預填 / 數字框代替自由文字？→ 優先採用。

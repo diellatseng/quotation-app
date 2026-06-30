@@ -180,7 +180,7 @@ export default function PaymentStageEditor({
                       aria-label="刪除此階段"
                       onClick={() => handleRemoveStage(stage.id)}
                       disabled={stages.length <= 1}
-                      className="text-muted-foreground hover:text-rose-600 disabled:opacity-30"
+                      className="text-muted-foreground hover:text-destructive-muted-text disabled:opacity-30 disabled:hover:text-muted-foreground"
                     >
                       <X />
                     </Button>
@@ -231,7 +231,7 @@ export default function PaymentStageEditor({
           <p className="text-xs text-muted-foreground">
             階段合計 {fmt(stageTotal)}
             {Math.abs(stageTotal - grandTotal) > 1 && (
-              <span className="ml-1 text-amber-600">（與合約總額 {fmt(grandTotal)} 不一致）</span>
+              <span className="ml-1 text-status-warning-text">（與合約總額 {fmt(grandTotal)} 不一致）</span>
             )}
           </p>
         )}

@@ -128,14 +128,14 @@ export const countBadgeClassName = cn(statusBadgeClassName, 'font-mono')
 
 /** ① 案件工程狀態 → badge variant */
 export const PROJECT_STATUS_TO_VARIANT = {
-  未開工: 'draft',
+  未開工: 'outline',
   已開工: 'confirmed',
   暫停: 'warning',
   完工: 'closed',
 } as const
 
 export function projectStatusVariant(status: string) {
-  return PROJECT_STATUS_TO_VARIANT[status as keyof typeof PROJECT_STATUS_TO_VARIANT] ?? 'draft'
+  return PROJECT_STATUS_TO_VARIANT[status as keyof typeof PROJECT_STATUS_TO_VARIANT] ?? 'outline'
 }
 
 export function projectStatusLabel(status: string) {
@@ -189,7 +189,7 @@ export function QuotationSummaryBadges({
 /** ③ 案件請款摘要 → badge variant */
 export const BILLING_SUMMARY_TO_VARIANT = {
   未設定: 'outline',
-  未請款: 'draft',
+  未請款: 'secondary',
   請款中: 'quoted',
   部分收款: 'warning',
   已結清: 'confirmed',

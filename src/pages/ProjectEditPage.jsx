@@ -6,6 +6,14 @@ import WizardShell from '../components/WizardShell'
 import Step1Client from './wizard/Step1Client'
 import Step2Project from './wizard/Step2Project'
 import { marketingNameForEdit } from '../lib/projectDisplay'
+import {
+  DEFAULT_LAND_CITY_NAME,
+  DEFAULT_LAND_CITY_TYPE,
+  formatLandSection,
+  isLandPartsComplete,
+  parseLandSection,
+  parseProjectScale,
+} from '../lib/projectFields'
 import { QuotationDetailSkeleton } from '@/components/skeletons'
 import {
   AlertDialog,
@@ -35,7 +43,15 @@ const initState = () => ({
   selectedContactId: null,
   company_profile_id: null,
   building_permit: '',
+  land_city_name: DEFAULT_LAND_CITY_NAME,
+  land_city_type: DEFAULT_LAND_CITY_TYPE,
+  land_district_name: '',
+  land_section_name: '',
+  land_parcel: '',
   land_section: '',
+  scale_above_ground: '',
+  scale_underground: '',
+  scale_notes: '',
   project_scale: '',
   project_owner: '',
   marketing_name: '',
@@ -47,6 +63,11 @@ function snapshotState(data) {
     selectedContactId: data.selectedContactId || null,
     company_profile_id: data.company_profile_id || null,
     building_permit: data.building_permit || '',
+    land_city_name: data.land_city_name || '',
+    land_city_type: data.land_city_type || DEFAULT_LAND_CITY_TYPE,
+    land_district_name: data.land_district_name || '',
+    land_section_name: data.land_section_name || '',
+    land_parcel: data.land_parcel || '',
     land_section: data.land_section || '',
     project_scale: data.project_scale || '',
     project_owner: data.project_owner || '',
@@ -104,13 +125,23 @@ export default function ProjectEditPage() {
 
         if (cancelled) return
 
+        const land = parseLandSection(proj.land_section || '')
+        const scale = parseProjectScale(proj.project_scale || '')
         const loaded = {
           client: proj.clients || null,
           contacts,
           selectedContactId: proj.contact_person_id || null,
           company_profile_id: proj.company_profile_id || null,
           building_permit: proj.building_permit || '',
+          land_city_name: land.cityName || DEFAULT_LAND_CITY_NAME,
+          land_city_type: land.cityType || DEFAULT_LAND_CITY_TYPE,
+          land_district_name: land.district,
+          land_section_name: land.section,
+          land_parcel: land.parcel,
           land_section: proj.land_section || '',
+          scale_above_ground: scale.aboveGround,
+          scale_underground: scale.underground,
+          scale_notes: scale.notes,
           project_scale: proj.project_scale || '',
           project_owner: proj.project_owner || '',
           marketing_name: marketingNameForEdit(proj),
@@ -134,7 +165,13 @@ export default function ProjectEditPage() {
     client_id: data.client?.id || null,
     contact_person_id: data.selectedContactId || null,
     building_permit: data.building_permit,
-    land_section: data.land_section.trim(),
+    land_section: formatLandSection({
+      cityName: data.land_city_name,
+      cityType: data.land_city_type,
+      district: data.land_district_name,
+      section: data.land_section_name,
+      parcel: data.land_parcel,
+    }).trim(),
     project_scale: data.project_scale,
     project_owner: data.project_owner,
     company_profile_id: data.company_profile_id || null,
@@ -154,8 +191,14 @@ export default function ProjectEditPage() {
       toast.warning('請選擇公司抬頭')
       return false
     }
-    if (!data.land_section?.trim()) {
-      toast.warning('請輸入地號')
+    if (!isLandPartsComplete({
+      cityName: data.land_city_name,
+      cityType: data.land_city_type,
+      district: data.land_district_name,
+      section: data.land_section_name,
+      parcel: data.land_parcel,
+    })) {
+      toast.warning('請輸入完整地號（市/縣、區、段、號）')
       return false
     }
 
@@ -185,7 +228,15 @@ export default function ProjectEditPage() {
 
   const canGoNext = () => {
     if (step === 1) return !!data.client
-    if (step === 2) return !!data.company_profile_id && !!data.land_section?.trim()
+    if (step === 2) {
+      return !!data.company_profile_id && isLandPartsComplete({
+        cityName: data.land_city_name,
+        cityType: data.land_city_type,
+        district: data.land_district_name,
+        section: data.land_section_name,
+        parcel: data.land_parcel,
+      })
+    }
     return true
   }
 

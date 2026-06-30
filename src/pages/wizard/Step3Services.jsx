@@ -3,7 +3,7 @@ import { useEffect } from 'react'
 import { MessageSquare } from 'lucide-react'
 import { Badge, DiffBadge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import ServiceTable from '../../components/ServiceTable'
 import TemplatePicker from '../../components/TemplatePicker'
 import { FEATURE_NEGOTIATION, FEATURE_VERSIONING } from '../../lib/featureFlags'
@@ -47,9 +47,10 @@ export default function Step3Services({
   parentServices = null,
   negContext = null,
   title = '步驟 3：服務內容',
-  description = '選擇服務範本，並配置、調整各項服務及查核清單細節項目。',
+  description = '選擇範本匯入服務，或直接編輯下方服務項目與查核清單。',
 }) {
   const isVersionEdit = FEATURE_VERSIONING && parentServices !== null
+  const serviceCount = data.services.filter(s => !s._removed).length
 
   useEffect(() => {
     if (!isVersionEdit) return
@@ -74,13 +75,11 @@ export default function Step3Services({
   const showDiffBanner = isVersionEdit && (addedCount > 0 || modifiedCount > 0 || removedCount > 0)
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div>
         <h2 className="text-xl font-bold text-foreground tracking-tight mb-1">{title}</h2>
         <p className="text-sm text-muted-foreground">{description}</p>
       </div>
-
-      <TemplatePicker data={data} update={update} />
 
       {showDiffBanner && (
         <Alert>
@@ -103,20 +102,23 @@ export default function Step3Services({
         </Alert>
       )}
 
-      <Card className="shadow-sm">
-        <CardHeader>
-          <CardTitle className="font-semibold">服務項目列表</CardTitle>
-          <CardAction>
-            <Badge variant="secondary" className="rounded-full">
-              已加入 {data.services.filter(s => !s._removed).length} 項
-            </Badge>
-          </CardAction>
+      <Card className="gap-0 py-0 shadow-sm">
+        <CardHeader className="border-b border-border bg-muted/30 px-4 py-3 sm:px-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div className="flex min-w-0 flex-1 flex-wrap items-end gap-x-4 gap-y-3">
+              <TemplatePicker data={data} update={update} className="w-full sm:w-auto sm:min-w-[14rem]" />
+              <Badge variant="secondary" className="mb-0.5 rounded-full">
+                已加入 {serviceCount} 項
+              </Badge>
+            </div>
+          </div>
         </CardHeader>
-        <CardContent>
-        <ServiceTable
-          services={data.services}
-          onChange={handleChange}
-        />
+        <CardContent className="px-4 py-4 sm:px-6">
+          <CardTitle className="sr-only">服務項目列表</CardTitle>
+          <ServiceTable
+            services={data.services}
+            onChange={handleChange}
+          />
         </CardContent>
       </Card>
     </div>

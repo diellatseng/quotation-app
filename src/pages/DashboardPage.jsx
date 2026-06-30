@@ -150,12 +150,8 @@ export default function DashboardPage() {
 
   const requestStartWork = (project) => {
     setActionMenuId(null)
-    if (needsStartWorkConfirmation(project.quotations ?? [])) {
-      setProjectToStart(project)
-      setShowStartDialog(true)
-      return
-    }
-    updateStatus(project.id, '已開工')
+    setProjectToStart(project)
+    setShowStartDialog(true)
   }
 
   const handleStartCancel = () => {
@@ -166,11 +162,20 @@ export default function DashboardPage() {
   const handleStartConfirm = async () => {
     if (!projectToStart) return
     const projectId = projectToStart.id
+    const quotations = projectToStart.quotations ?? []
     setShowStartDialog(false)
     setProjectToStart(null)
 
     try {
-      await applyStartProjectWork(supabase, projectId)
+      if (needsStartWorkConfirmation(quotations)) {
+        await applyStartProjectWork(supabase, projectId)
+      } else {
+        const { error } = await supabase
+          .from('projects')
+          .update({ status: '已開工' })
+          .eq('id', projectId)
+        if (error) throw error
+      }
       toast.success('狀態已更新為【已開工】')
       fetchProjects()
     } catch (err) {
@@ -261,16 +266,18 @@ export default function DashboardPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>開始進行案件</AlertDialogTitle>
+            <AlertDialogTitle>案件開工</AlertDialogTitle>
             <AlertDialogDescription>
-              「{projectToStart ? projectPrimaryLabel(projectToStart) : ''}」— 客戶是否已回傳報價確認？
-              已回傳可直接開工；若尚未回傳，請先完成報價確認後再開工。
+              確定要將「{projectToStart ? projectPrimaryLabel(projectToStart) : ''}」的案件狀態改為【已開工】嗎？
+              {projectToStart && needsStartWorkConfirmation(projectToStart.quotations ?? []) && (
+                <> 此案件有已報價但尚未確認的報價單；若客戶已回傳確認，開工時將一併將報價標記為【已確認】。</>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>尚未回傳</AlertDialogCancel>
+            <AlertDialogCancel>取消</AlertDialogCancel>
             <AlertDialogAction onClick={handleStartConfirm}>
-              已回傳，案件開工
+              確認開工
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -451,7 +458,7 @@ export default function DashboardPage() {
                 <Card
                   key={p.id}
                   size="sm"
-                  className="cursor-pointer gap-0 py-0 shadow-sm transition-all hover:ring-muted-foreground/30"
+                  className="cursor-pointer gap-0 py-0 shadow-sm transition-all hover:bg-accent"
                   onClick={() => navigate(`/projects/${p.id}`)}
                 >
                   <CardContent className="space-y-3 py-4">
@@ -461,7 +468,7 @@ export default function DashboardPage() {
                           {displayLandSection(p)}
                         </p>
                         {p.marketing_name?.trim() && (
-                          <p className="truncate text-xs text-muted-foreground">{displayProjectName(p)}</p>
+                          <p className="truncate text-xs text-foreground">{displayProjectName(p)}</p>
                         )}
                       </div>
                     </div>
@@ -470,8 +477,8 @@ export default function DashboardPage() {
                       quotationSummary={p.quotationSummary}
                       billingSummary={p.billingSummary}
                     />
-                    <div className="text-sm text-muted-foreground">{p.clients?.company_name || '—'}</div>
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <div className="text-sm text-foreground">{p.clients?.company_name || '—'}</div>
+                    <div className="flex items-center justify-between text-xs text-foreground">
                       <span>{formatRocDate(p.updated_at?.slice(0, 10))}</span>
                       <span className="font-semibold text-foreground">{fmt(p.total_amount)}</span>
                     </div>
@@ -484,27 +491,27 @@ export default function DashboardPage() {
               <Table>
                 <TableHeader>
                   <TableRow className="border-border bg-muted/40 hover:bg-muted/40">
-                    <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">地號</TableHead>
-                    <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">案件名稱</TableHead>
-                    <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">客戶名稱</TableHead>
-                    <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">金額</TableHead>
-                    <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">案件狀態</TableHead>
-                    <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">報價狀態</TableHead>
-                    <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">請款狀態</TableHead>
-                    <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">更新日期</TableHead>
-                    <TableHead className="h-auto p-4 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">操作</TableHead>
+                    <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider">地號</TableHead>
+                    <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider">案件名稱</TableHead>
+                    <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider">客戶名稱</TableHead>
+                    <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider">金額</TableHead>
+                    <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider">案件狀態</TableHead>
+                    <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider">報價狀態</TableHead>
+                    <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider">請款狀態</TableHead>
+                    <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider">更新日期</TableHead>
+                    <TableHead className="h-auto p-4 text-right text-xs font-semibold uppercase tracking-wider">操作</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filtered.map(p => (
                     <TableRow
                       key={p.id}
-                      className="cursor-pointer border-border hover:bg-muted/30"
+                      className="cursor-pointer border-border hover:bg-accent"
                       onClick={() => navigate(`/projects/${p.id}`)}
                     >
                       <TableCell className="p-4 font-medium text-foreground">{displayLandSection(p)}</TableCell>
-                      <TableCell className="p-4 text-muted-foreground">{displayProjectName(p)}</TableCell>
-                      <TableCell className="p-4 text-muted-foreground">{p.clients?.company_name || '—'}</TableCell>
+                      <TableCell className="p-4 text-foreground">{displayProjectName(p)}</TableCell>
+                      <TableCell className="p-4 text-foreground">{p.clients?.company_name || '—'}</TableCell>
                       <TableCell className="p-4 font-semibold text-foreground">{fmt(p.total_amount)}</TableCell>
                       <TableCell className="p-4" onClick={e => e.stopPropagation()}>
                         <ProjectStatusBadges status={p.status} />
@@ -515,7 +522,7 @@ export default function DashboardPage() {
                       <TableCell className="p-4" onClick={e => e.stopPropagation()}>
                         <BillingSummaryBadges status={p.billingSummary} />
                       </TableCell>
-                      <TableCell className="p-4 text-muted-foreground">{formatRocDate(p.updated_at?.slice(0, 10))}</TableCell>
+                      <TableCell className="p-4 text-foreground">{formatRocDate(p.updated_at?.slice(0, 10))}</TableCell>
                       <TableCell className="p-4 text-right" onClick={e => e.stopPropagation()}>
                         <DropdownMenu
                           open={actionMenuId === p.id}

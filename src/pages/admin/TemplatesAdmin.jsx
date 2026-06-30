@@ -140,7 +140,7 @@ export default function TemplatesAdmin() {
           ) : templates.map(t => (
             <div key={t.id} onClick={() => select(t)} className={`p-4 border-b border-border cursor-pointer transition-colors ${selected?.id === t.id
               ? 'bg-primary/10 border-l-4 border-l-primary'
-              : 'border-l-4 border-l-transparent hover:bg-muted/50'
+              : 'border-l-4 border-l-transparent hover:bg-accent'
               }`}>
               <div className="font-semibold">{t.name}</div>
               <div className="text-xs text-muted-foreground">
@@ -184,7 +184,7 @@ export default function TemplatesAdmin() {
                     {cat}
                   </div>
                   {svcs.map(svc => (
-                    <label key={svc.id} className={`flex items-center gap-3 px-4 py-3 border-b border-border cursor-pointer min-h-[44px] ${linkedServices.includes(svc.id) ? 'bg-primary/10' : 'hover:bg-muted/50'
+                    <label key={svc.id} className={`flex items-center gap-3 px-4 py-3 border-b border-border cursor-pointer min-h-[44px] ${linkedServices.includes(svc.id) ? 'bg-primary/10' : 'hover:bg-accent'
                       }`}>
                       <Checkbox
                         checked={linkedServices.includes(svc.id)}

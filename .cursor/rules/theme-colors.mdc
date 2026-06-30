@@ -1,0 +1,54 @@
+---
+description: UI 用色僅能使用 theme tokens；互動回饋優先 accent / highlight
+alwaysApply: true
+---
+
+# Theme Colors（用色規範）
+
+所有 UI 用色**只能**來自 `src/styles/globals.css` 定義的 CSS 變數（Tailwind 語意 class 或 `var(--token)`）。
+
+## 允許的 token 類別
+
+| 用途 | Token / class |
+|------|----------------|
+| 頁面底色、主要文字 | `background`, `foreground`, `card`, `card-foreground` |
+| 次要表面、輔助文字 | `muted`, `muted-foreground`（輔助文字須符合無障礙規則） |
+| 主要 CTA、品牌、連結 | `primary`, `primary-foreground`, `cta-hover` |
+| **互動 hover / 列表 highlight** | `accent`, `accent-foreground` |
+| 強調區塊、wizard 下一步 | `highlight`, `highlight-text`, `highlight-border` |
+| 刪除、錯誤 | `destructive`, `destructive-muted*` |
+| 狀態 badge | `status-*`（draft / quoted / confirmed / closed / warning） |
+| 版本 diff | `diff-*` |
+| 邊框、focus | `border`, `ring`, `input` |
+
+## 禁止
+
+- Tailwind 調色盤：`text-gray-*`, `bg-blue-*`, `text-amber-*`, `text-rose-*`, `text-zinc-*` 等
+- 硬編碼 hex/rgb 在 JSX（**例外**：RichEditor 使用者選色、A4/Invoice 列印 CSS 模擬紙張）
+
+## Accent 的 UX 用途（互動回饋，非裝飾）
+
+**適合 `hover:bg-accent` / `hover:text-accent-foreground`：**
+- 可點擊列（表格 row、admin 清單 item）
+- Wizard 步驟導覽 hover
+- 麵包屑返回、ghost 按鈕 hover
+- 聯絡人卡片、模式選擇卡片 hover
+- Dropdown / Select 已 focus 的選項（shadcn 預設）
+
+**適合 `bg-highlight` / `variant="accent"` 按鈕：**
+- 流程中的主要下一步（WizardShell）
+- 新增列、inline CTA badge
+
+**保留 `primary/10` + 邊框：**
+- **已選中**狀態（admin 清單選取、聯絡人 ring）— 比 hover 更強
+
+**不要用 accent 取代：**
+- 狀態 badge（用 `status-*`）
+- 刪除操作（用 `destructive-muted*`）
+- 警告訊息（用 `status-warning-*` 或 `<Alert variant="warning">`）
+
+## 修改 checklist
+
+1. 新 UI 先查 `globals.css` 是否有對應 token
+2. 缺 token 時在 `:root` 與 `[data-theme="high-contrast"]` **成對**新增，並加入 `@theme inline`
+3. 互動元素預設 hover 用 `accent`，不要用 `muted` 代替

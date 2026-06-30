@@ -16,7 +16,7 @@ export default function WizardStepNav({ steps, currentStep, onStepClick }) {
               <button
                 type="button"
                 onClick={() => onStepClick?.(stepNum)}
-                className="group flex items-center gap-2 rounded-md px-1 py-1 text-left transition-colors hover:bg-muted/50"
+                className="group flex items-center gap-2 rounded-md px-1 py-1 text-left transition-colors hover:bg-accent hover:text-accent-foreground"
               >
                 <span
                   className={cn(

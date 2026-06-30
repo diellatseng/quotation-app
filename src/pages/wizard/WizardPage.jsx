@@ -1,5 +1,5 @@
 // src/pages/wizard/WizardPage.jsx
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
@@ -19,6 +19,12 @@ import {
 } from '@/components/ui/alert-dialog'
 import Step3Services from './Step3Services'
 import Step4Confirm from './Step4Confirm'
+import {
+  formatQuotationDraftValidationMessage,
+  validateWizardDataForDraft,
+} from '../../lib/validateQuotation'
+import { projectPrimaryLabel } from '../../lib/projectDisplay'
+import { WizardQuotationSkeleton } from '@/components/skeletons'
 
 const QUOTATION_STEPS = [
   { num: 1, label: '服務內容' },
@@ -59,6 +65,39 @@ const initState = () => ({
   version: 1,
 })
 
+function snapshotWizardState(data) {
+  return JSON.stringify({
+    clientId: data.client?.id || null,
+    selectedContactId: data.selectedContactId || null,
+    project_template_id: data.project_template_id || null,
+    building_permit: data.building_permit || '',
+    land_section: data.land_section || '',
+    project_scale: data.project_scale || '',
+    project_owner: data.project_owner || '',
+    marketing_name: data.marketing_name || '',
+    company_profile_id: data.company_profile_id || null,
+    services: (data.services || []).map(s => ({
+      service_id: s.service_id || null,
+      service_name: s.service_name,
+      category: s.category || null,
+      description: s.description || '',
+      checklist_items: s.checklist_items || [],
+      is_added: s.is_added || false,
+      diff_status: s.diff_status || null,
+    })),
+    quote_number: data.quote_number || '',
+    quote_date: data.quote_date || '',
+    fee_amount: data.fee_amount?.toString() || '',
+    tax_included: !!data.tax_included,
+    notes: data.notes || '',
+    payment_stages: (data.payment_stages || []).map(st => ({
+      stage_name: st.stage_name,
+      percentage: Number(st.percentage),
+    })),
+    version: data.version || 1,
+  })
+}
+
 export default function WizardPage() {
   const [searchParams] = useSearchParams()
   const editId = searchParams.get('edit')
@@ -74,10 +113,12 @@ export default function WizardPage() {
   // inactive: negotiation — amount/notes carried into wizard
   const [negContext] = useState(null)
   const [saving, setSaving] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(() => !!(editId || projectParam))
   const [quotationId, setQuotationId] = useState(null)
   const [linkedProjectId, setLinkedProjectId] = useState(null)
+  const [linkedProject, setLinkedProject] = useState(null)
   const [showExitDialog, setShowExitDialog] = useState(false)
+  const initialSnapshot = useRef(null)
   const { user } = useAuth()
   const navigate = useNavigate()
 
@@ -99,6 +140,7 @@ export default function WizardPage() {
     if (!editId) return
     const loadQuotation = async () => {
       setLoading(true)
+      initialSnapshot.current = null
       // Load quotation
       const { data: q, error: qErr } = await supabase
         .from('quotations')
@@ -149,8 +191,24 @@ export default function WizardPage() {
         contacts = contactList || []
       }
 
-      // Set data
-      setData({
+      let companyProfileId = null
+      if (q.project_id) {
+        setLinkedProjectId(q.project_id)
+        const { data: proj } = await supabase
+          .from('projects')
+          .select('id, land_section, marketing_name, company_profile_id')
+          .eq('id', q.project_id)
+          .single()
+        if (proj) {
+          setLinkedProject({
+            land_section: proj.land_section,
+            marketing_name: proj.marketing_name,
+          })
+          companyProfileId = proj.company_profile_id || null
+        }
+      }
+
+      const loadedData = {
         client: q.clients,
         contacts,
         selectedContactId: q.contact_person_id,
@@ -160,7 +218,7 @@ export default function WizardPage() {
         project_scale: q.project_scale || '',
         project_owner: q.project_owner || '',
         marketing_name: q.marketing_name || '',
-        company_profile_id: null,
+        company_profile_id: companyProfileId,
         payment_stages: stages.map(st => ({ id: crypto.randomUUID(), stage_name: st.stage_name, percentage: st.percentage })),
         services: services.map(s => ({
           service_id: s.service_id,
@@ -177,19 +235,10 @@ export default function WizardPage() {
         tax_included: q.tax_included,
         notes: q.notes || '',
         version: q.version || 1,
-      })
-      setQuotationId(q.id)
-      if (q.project_id) {
-        setLinkedProjectId(q.project_id)
-        const { data: proj } = await supabase
-          .from('projects')
-          .select('company_profile_id')
-          .eq('id', q.project_id)
-          .single()
-        if (proj?.company_profile_id) {
-          setData(d => ({ ...d, company_profile_id: proj.company_profile_id }))
-        }
       }
+      setData(loadedData)
+      initialSnapshot.current = snapshotWizardState(loadedData)
+      setQuotationId(q.id)
 
       // inactive: versioning — load parent quote services for diff
       if (FEATURE_VERSIONING) {
@@ -214,6 +263,7 @@ export default function WizardPage() {
     if (editId || !projectParam) return
     const loadProject = async () => {
       setLoading(true)
+      initialSnapshot.current = null
       const { data: proj, error: projErr } = await supabase
         .from('projects')
         .select(`
@@ -246,8 +296,12 @@ export default function WizardPage() {
       }
 
       setLinkedProjectId(proj.id)
-      setData(d => ({
-        ...d,
+      setLinkedProject({
+        land_section: proj.land_section,
+        marketing_name: proj.marketing_name,
+      })
+      const loadedData = {
+        ...initState(),
         client: proj.clients,
         contacts,
         selectedContactId: proj.contact_person_id,
@@ -259,7 +313,9 @@ export default function WizardPage() {
         company_profile_id: proj.company_profile_id || null,
         fee_amount: proj.total_amount?.toString() || '',
         tax_included: proj.tax_included ?? false,
-      }))
+      }
+      setData(loadedData)
+      initialSnapshot.current = snapshotWizardState(loadedData)
       setLoading(false)
     }
     loadProject()
@@ -284,6 +340,12 @@ export default function WizardPage() {
   }
 
   const saveDraft = async () => {
+    const { valid, missing } = validateWizardDataForDraft(data)
+    if (!valid) {
+      toast.error(formatQuotationDraftValidationMessage(missing), { duration: 8000 })
+      return null
+    }
+
     setSaving(true)
     // Use a local variable so services/stages always have the correct id,
     // even on the very first save when quotationId state is still null.
@@ -411,8 +473,14 @@ export default function WizardPage() {
         }))
       )
     }
+    initialSnapshot.current = snapshotWizardState(data)
     setSaving(false)
     return qid
+  }
+
+  const isDirty = () => {
+    if (!initialSnapshot.current) return false
+    return snapshotWizardState(data) !== initialSnapshot.current
   }
 
   const canGoNext = () => {
@@ -438,18 +506,32 @@ export default function WizardPage() {
   }
 
   const handleBackToDashboard = () => {
-    setShowExitDialog(true)
+    if (isDirty()) setShowExitDialog(true)
+    else navigateBack()
   }
+
+  const wizardBackTo = linkedProjectId
+    ? `/projects/${linkedProjectId}?tab=quotations`
+    : '/dashboard'
+
+  const wizardBackLabel = linkedProjectId
+    ? projectPrimaryLabel(linkedProject ?? {
+      land_section: data.land_section,
+      marketing_name: data.marketing_name,
+    })
+    : '案件列表'
+
+  const navigateBack = () => navigate(wizardBackTo)
 
   const handleExitConfirm = async () => {
     setShowExitDialog(false)
-    await saveDraft()
-    navigate('/dashboard')
+    const qid = await saveDraft()
+    if (qid) navigateBack()
   }
 
   const handleExitCancel = () => {
     setShowExitDialog(false)
-    navigate('/dashboard')
+    navigateBack()
   }
 
   const handleFinish = async () => {
@@ -467,6 +549,21 @@ export default function WizardPage() {
     ...(FEATURE_NEGOTIATION ? { negContext } : {}),
   }
 
+  const wizardShellProps = {
+    steps: QUOTATION_STEPS,
+    currentStep: step,
+    onNext: step === QUOTATION_STEPS.length ? handleFinish : handleNext,
+    onBack: handleBack,
+    onSaveDraft: loading || step === QUOTATION_STEPS.length ? null : saveDraft,
+    onBackToDashboard: handleBackToDashboard,
+    onStepClick: handleStepClick,
+    saving,
+    canNext: !loading && canGoNext(),
+    nextLabel: step === QUOTATION_STEPS.length ? '完成並儲存' : undefined,
+    headerSubtitle: editId ? '編輯草稿' : '新增報價',
+    navBackLabel: wizardBackLabel,
+  }
+
   return (
     <>
       <AlertDialog
@@ -477,7 +574,7 @@ export default function WizardPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>返回清單</AlertDialogTitle>
+            <AlertDialogTitle>{linkedProjectId ? '離開報價' : '返回清單'}</AlertDialogTitle>
             <AlertDialogDescription>是否儲存目前的草稿？</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -486,24 +583,17 @@ export default function WizardPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      <WizardShell
-        steps={QUOTATION_STEPS}
-        currentStep={step}
-        onNext={step === QUOTATION_STEPS.length ? handleFinish : handleNext}
-        onBack={handleBack}
-        onSaveDraft={step === QUOTATION_STEPS.length ? null : saveDraft}
-        onBackToDashboard={handleBackToDashboard}
-        onStepClick={handleStepClick}
-        saving={saving}
-        canNext={canGoNext()}
-        nextLabel={step === QUOTATION_STEPS.length ? '完成並儲存' : undefined}
-        headerSubtitle={editId ? '編輯草稿' : '新增報價'}
-      >
+      {loading ? (
+        <WizardShell {...wizardShellProps}>
+          <WizardQuotationSkeleton />
+        </WizardShell>
+      ) : (
+      <WizardShell {...wizardShellProps}>
         {step === 1 && (
           <Step3Services
             {...stepProps}
             title="步驟 1：服務內容"
-            description="選擇服務範本，並配置、調整各項服務及查核清單細節項目。"
+            description="選擇範本匯入服務，或直接編輯下方服務項目與查核清單。"
           />
         )}
         {step === 2 && (
@@ -516,6 +606,7 @@ export default function WizardPage() {
           />
         )}
       </WizardShell>
+      )}
     </>
   )
 }

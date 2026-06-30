@@ -179,7 +179,7 @@ export default function ServicesAdmin() {
               {svcs.map(svc => (
                 <div key={svc.id} onClick={() => select(svc)} className={`p-3 px-4 border-b border-border cursor-pointer transition-colors ${selected?.id === svc.id
                   ? 'bg-primary/10 border-l-4 border-l-primary'
-                  : 'border-l-4 border-l-transparent hover:bg-muted/50'
+                  : 'border-l-4 border-l-transparent hover:bg-accent'
                   }`}>
                   <div className="font-medium">{svc.name}</div>
                 </div>
