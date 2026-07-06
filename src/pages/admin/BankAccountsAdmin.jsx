@@ -14,6 +14,14 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -41,7 +49,7 @@ export default function BankAccountsAdmin() {
   const [form, setForm] = useState(emptyAccount())
   const [loading, setLoading] = useState(false)
   const [fetchLoading, setFetchLoading] = useState(true)
-  const [showForm, setShowForm] = useState(false)
+  const [dialogOpen, setDialogOpen] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
   const load = async () => {
@@ -57,10 +65,22 @@ export default function BankAccountsAdmin() {
 
   useEffect(() => { load() }, [])
 
-  const selectAccount = (account) => {
+  const openCreate = () => {
+    setSelected(null)
+    setForm(emptyAccount())
+    setDialogOpen(true)
+  }
+
+  const openEdit = (account) => {
     setSelected(account)
     setForm(account)
-    setShowForm(true)
+    setDialogOpen(true)
+  }
+
+  const closeDialog = () => {
+    setDialogOpen(false)
+    setSelected(null)
+    setForm(emptyAccount())
   }
 
   const clearDefaultOthers = async (keepId) => {
@@ -108,9 +128,7 @@ export default function BankAccountsAdmin() {
     }
 
     await load()
-    setShowForm(false)
-    setSelected(null)
-    setForm(emptyAccount())
+    closeDialog()
     setLoading(false)
   }
 
@@ -119,13 +137,12 @@ export default function BankAccountsAdmin() {
     await supabase.from('bank_accounts').delete().eq('id', selected.id)
     toast.success('已刪除')
     setShowDeleteDialog(false)
-    setShowForm(false)
-    setSelected(null)
+    closeDialog()
     load()
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
+    <>
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -141,55 +158,22 @@ export default function BankAccountsAdmin() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <Card className="shadow-sm">
-        <CardHeader className="flex flex-row items-center justify-between gap-2">
-          <CardTitle className="font-semibold">銀行帳戶</CardTitle>
-          <Button
-            variant="default"
-            size="sm"
-            className="font-semibold"
-            onClick={() => { setSelected(null); setForm(emptyAccount()); setShowForm(true) }}
-          >
-            <Plus data-icon="inline-start" />
-            新增
-          </Button>
-        </CardHeader>
-        <CardContent className="space-y-1">
-          {fetchLoading ? (
-            <AdminListSkeleton />
-          ) : accounts.length === 0 ? (
-            <AppEmptyState icon={Landmark} title="尚無銀行帳戶" description="新增後可在建立請款時選擇" />
-          ) : (
-            accounts.map(a => (
-              <button
-                key={a.id}
-                type="button"
-                onClick={() => selectAccount(a)}
-                className={`w-full rounded-lg border px-3 py-2 text-left text-sm transition-colors ${
-                  selected?.id === a.id
-                    ? 'border-primary bg-primary/5'
-                    : 'border-border hover:bg-surface-hover'
-                }`}
-              >
-                <div className="font-medium text-foreground">{a.label}</div>
-                <div className="text-xs text-muted-foreground">
-                  {a.bank_name} · {a.account_number}
-                </div>
-                {a.is_default && (
-                  <div className="mt-1 text-xs font-medium text-primary">預設</div>
-                )}
-              </button>
-            ))
-          )}
-        </CardContent>
-      </Card>
-
-      {showForm && (
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle className="font-semibold">{selected ? '編輯銀行帳戶' : '新增銀行帳戶'}</CardTitle>
-          </CardHeader>
-          <CardContent>
+      <Dialog
+        open={dialogOpen}
+        onOpenChange={open => {
+          if (!open) closeDialog()
+        }}
+      >
+        <DialogContent className="flex max-h-[min(90vh,720px)] flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl">
+          <DialogHeader className="shrink-0 border-b border-border px-5 py-4">
+            <DialogTitle>{selected ? '編輯銀行帳戶' : '新增銀行帳戶'}</DialogTitle>
+            <DialogDescription>
+              {selected
+                ? `識別名稱：${selected.label}`
+                : '填寫帳戶資訊後，建立請款時可選擇此帳戶。'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
             <FieldGroup className="grid gap-4 sm:grid-cols-2">
               <Field>
                 <FieldLabel>識別名稱</FieldLabel>
@@ -228,20 +212,67 @@ export default function BankAccountsAdmin() {
                 <Label htmlFor="bank_default" className="cursor-pointer">設為預設帳戶</Label>
               </div>
             </FieldGroup>
-            <div className="mt-6 flex flex-wrap gap-2">
-              <Button variant="default" size="sm" className="font-semibold" onClick={saveAccount} disabled={loading}>
-                {loading ? '儲存中…' : '儲存'}
-              </Button>
-              <Button variant="outline" size="sm" className="font-semibold" onClick={() => setShowForm(false)}>取消</Button>
-              {selected && (
-                <Button variant="destructive" size="sm" className="font-semibold ml-auto" onClick={() => setShowDeleteDialog(true)}>
+          </div>
+          <DialogFooter className="shrink-0 border-t border-border px-5 py-3">
+            <div className="flex w-full flex-wrap items-center justify-between gap-2">
+              {selected ? (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="font-semibold"
+                  onClick={() => setShowDeleteDialog(true)}
+                >
                   刪除
                 </Button>
+              ) : (
+                <span aria-hidden="true" />
               )}
+              <div className="flex flex-wrap gap-2">
+                <Button variant="outline" size="sm" className="font-semibold" onClick={closeDialog}>
+                  取消
+                </Button>
+                <Button variant="default" size="sm" className="font-semibold" onClick={saveAccount} disabled={loading}>
+                  {loading ? '儲存中…' : '儲存'}
+                </Button>
+              </div>
             </div>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Card className="shadow-sm">
+        <CardHeader className="flex flex-row items-center justify-between gap-2">
+          <CardTitle className="font-semibold">銀行帳戶</CardTitle>
+          <Button variant="default" size="sm" className="font-semibold" onClick={openCreate}>
+            <Plus data-icon="inline-start" />
+            新增
+          </Button>
+        </CardHeader>
+        <CardContent className="space-y-1">
+          {fetchLoading ? (
+            <AdminListSkeleton />
+          ) : accounts.length === 0 ? (
+            <AppEmptyState icon={Landmark} title="尚無銀行帳戶" description="新增後可在建立請款時選擇" />
+          ) : (
+            accounts.map(a => (
+              <button
+                key={a.id}
+                type="button"
+                onClick={() => openEdit(a)}
+                className="w-full rounded-lg border border-border px-3 py-2 text-left text-sm transition-colors hover:bg-surface-hover"
+              >
+                <div className="font-medium text-foreground">{a.label}</div>
+                <div className="text-xs text-muted-foreground">
+                  {a.bank_name} · {a.account_number}
+                </div>
+                {a.is_default && (
+                  <div className="mt-1 text-xs font-medium text-primary">預設</div>
+                )}
+              </button>
+            ))
+          )}
+        </CardContent>
+      </Card>
+    </>
   )
 }

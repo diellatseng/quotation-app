@@ -153,7 +153,7 @@ export default function ProjectDetailPage() {
           *,
           clients(company_name, address, phone, email),
           contact_persons(name, mobile, email),
-          company_profiles(id, label, name)
+          company_profiles(id, name)
         `)
         .eq('id', id)
         .single()
@@ -930,11 +930,6 @@ export default function ProjectDetailPage() {
                         ? companyProfileLabel(project.company_profiles)
                         : '—'}
                     </dd>
-                    {project.company_profiles?.name && (
-                      <dd className="mt-0.5 text-sm text-muted-foreground">
-                        {project.company_profiles.name}
-                      </dd>
-                    )}
                   </div>
                   {OVERVIEW_ENGINEERING_FIELDS.map(({ key, label, display }) => (
                     <div key={key} className={key === 'project_scale' ? 'sm:col-span-2' : undefined}>

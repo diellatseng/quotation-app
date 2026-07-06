@@ -101,7 +101,7 @@ export default function Step2Project({
     supabase
       .from('company_profiles')
       .select('*')
-      .order('sort_order', { ascending: true })
+      .order('name', { ascending: true })
       .order('label', { ascending: true })
       .then(({ data: profiles }) => {
         const list = profiles || []
@@ -172,7 +172,7 @@ export default function Step2Project({
                 <SelectContent>
                   {companyProfiles.map(profile => (
                     <SelectItem key={profile.id} value={profile.id}>
-                      {companyProfileLabel(profile)} — {profile.name}
+                      {companyProfileLabel(profile)}
                     </SelectItem>
                   ))}
                 </SelectContent>

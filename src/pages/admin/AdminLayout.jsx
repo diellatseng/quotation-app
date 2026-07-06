@@ -7,14 +7,14 @@ const ADMIN_TABS = [
   { value: 'clients', to: '/admin/clients', label: '客戶資料庫' },
   { value: 'templates', to: '/admin/templates', label: '工程範本' },
   { value: 'services', to: '/admin/services', label: '服務資料庫' },
-  { value: 'companies', to: '/admin/companies', label: '公司抬頭' },
-  { value: 'banks', to: '/admin/banks', label: '銀行帳戶' },
+  { value: 'other', to: '/admin/other', label: '其他' },
 ]
 
 export default function AdminLayout() {
   const location = useLocation()
   const navigate = useNavigate()
-  const activeTab = ADMIN_TABS.find(tab => location.pathname.startsWith(tab.to))?.value ?? 'clients'
+  const activeTab = ADMIN_TABS.find(tab => location.pathname.startsWith(tab.to))?.value
+    ?? (['/admin/companies', '/admin/banks'].some(path => location.pathname.startsWith(path)) ? 'other' : 'clients')
 
   return (
     <div className="min-h-screen bg-background text-foreground">

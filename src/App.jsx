@@ -18,8 +18,7 @@ import AdminLayout           from './pages/admin/AdminLayout'
 import ClientsAdmin          from './pages/admin/ClientsAdmin'
 import TemplatesAdmin        from './pages/admin/TemplatesAdmin'
 import ServicesAdmin         from './pages/admin/ServicesAdmin'
-import CompanyProfilesAdmin  from './pages/admin/CompanyProfilesAdmin'
-import BankAccountsAdmin     from './pages/admin/BankAccountsAdmin'
+import OtherAdmin              from './pages/admin/OtherAdmin'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -46,8 +45,9 @@ function AppRoutes() {
           <Route path="clients"   element={<ClientsAdmin />} />
           <Route path="templates" element={<TemplatesAdmin />} />
           <Route path="services"  element={<ServicesAdmin />} />
-          <Route path="companies" element={<CompanyProfilesAdmin />} />
-          <Route path="banks"     element={<BankAccountsAdmin />} />
+          <Route path="other"     element={<OtherAdmin />} />
+          <Route path="companies" element={<Navigate to="/admin/other" replace />} />
+          <Route path="banks"     element={<Navigate to="/admin/other" replace />} />
         </Route>
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>

@@ -34,8 +34,8 @@ describe('pickDefaultCompanyProfile', () => {
 })
 
 describe('companyProfileLabel', () => {
-  it('uses label then name', () => {
-    expect(companyProfileLabel({ label: '主公司', name: 'X' })).toBe('主公司')
-    expect(companyProfileLabel({ name: 'X' })).toBe('X')
+  it('uses company name', () => {
+    expect(companyProfileLabel({ label: '主公司', name: '甲營造股份有限公司' })).toBe('甲營造股份有限公司')
+    expect(companyProfileLabel({ name: '乙工程行' })).toBe('乙工程行')
   })
 })

@@ -24,7 +24,7 @@ export function envCompanyInfoFallback() {
 
 export function companyProfileLabel(profile) {
   if (!profile) return '—'
-  return profile.label?.trim() || profile.name?.trim() || '—'
+  return profile.name?.trim() || profile.label?.trim() || '—'
 }
 
 /** Pick default profile, else first row. */
