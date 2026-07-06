@@ -9,6 +9,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 // https://vite.dev/config/
 export default defineConfig({
   // Served under /quotation-app/ on GitHub Pages (see package.json "homepage").
+  // Changing `base`? Sync the same path in index.html (inline script) and public/404.html.
   base: '/quotation-app/',
   plugins: [react(), tailwindcss()],
   resolve: {

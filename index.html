@@ -13,6 +13,23 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      // GitHub Pages: restore deep link before the app bundle (see src/lib/spaRedirect.js).
+      // Must match vite.config.js `base` (no trailing slash) and public/404.html `BASE`.
+      (function () {
+        try {
+          var stored = sessionStorage.getItem('spaRedirect')
+          if (!stored) return
+          sessionStorage.removeItem('spaRedirect')
+          var base = '/quotation-app'
+          var path = stored.charAt(0) === '/' ? stored : '/' + stored
+          var next = base + path
+          if (location.pathname + location.search + location.hash !== next) {
+            history.replaceState(null, '', next)
+          }
+        } catch (e) {}
+      })()
+    </script>
     <script type="module" src="/src/index.jsx"></script>
   </body>
 </html>

@@ -1,5 +1,4 @@
 // src/App.js
-import { useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import { AppearanceProvider } from './context/AppearanceContext'
@@ -29,21 +28,6 @@ function ProtectedRoute({ children }) {
 }
 
 function AppRoutes() {
-  const [spaRedirect] = useState(() => {
-    const stored = sessionStorage.getItem('spaRedirect')
-    if (stored) sessionStorage.removeItem('spaRedirect')
-    return stored
-  })
-
-  if (spaRedirect) {
-    return (
-      <>
-        <Toaster richColors />
-        <Navigate to={spaRedirect} replace />
-      </>
-    )
-  }
-
   return (
     <>
       <Toaster richColors />
