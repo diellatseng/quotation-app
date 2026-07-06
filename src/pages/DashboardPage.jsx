@@ -49,7 +49,7 @@ import {
   DATA_TABLE_TOOLBAR_BUTTON_SIZE,
   dataTableToolbarButtonClassName,
 } from '@/components/data-table/toolbar-styles'
-import { FolderKanban, Palette, Plus, Settings } from 'lucide-react'
+import { Database, FolderKanban, LogOut, Palette, Plus, Settings } from 'lucide-react'
 
 export default function DashboardPage() {
   const [projects, setProjects] = useState([])
@@ -295,6 +295,8 @@ export default function DashboardPage() {
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger
+              openOnHover
+              delay={100}
               render={
                 <Button
                   variant="shell"
@@ -310,6 +312,7 @@ export default function DashboardPage() {
             <DropdownMenuContent align="end" className="min-w-[11rem]">
               <DropdownMenuGroup>
                 <DropdownMenuItem onClick={() => navigate('/admin/clients')}>
+                  <Database />
                   管理資料庫
                 </DropdownMenuItem>
                 <DropdownMenuSub>
@@ -330,17 +333,16 @@ export default function DashboardPage() {
               </DropdownMenuGroup>
             </DropdownMenuContent>
           </DropdownMenu>
-          <IconTooltip label="登出">
-            <Button
-              variant="shell"
-              size="sm"
-              className="font-semibold"
-              onClick={signOut}
-              aria-label="登出"
-            >
-              登出
-            </Button>
-          </IconTooltip>
+          <Button
+            variant="shell"
+            size="sm"
+            className="font-semibold"
+            onClick={signOut}
+            aria-label="登出"
+          >
+            <LogOut data-icon="inline-start" />
+            登出
+          </Button>
         </div>
       </AppShellHeader>
 

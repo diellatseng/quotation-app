@@ -30,6 +30,7 @@ export default function ClientsDataTable({
     columns,
     pageSize: 20,
     globalFilterFn: clientGlobalFilterFn,
+    columnVisibilityStorageKey: 'clients',
     initialColumnVisibility: { address: false },
   })
 

@@ -37,6 +37,7 @@ export default function ProjectsDataTable({
     columns,
     pageSize: 20,
     globalFilterFn: projectGlobalFilterFn,
+    columnVisibilityStorageKey: 'dashboard-projects',
     initialSorting: [{ id: 'updated_at', desc: true }],
     initialColumnVisibility: {
       marketing_name: true,

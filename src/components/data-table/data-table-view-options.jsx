@@ -1,4 +1,4 @@
-import { Settings2 } from 'lucide-react'
+import { SlidersHorizontal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -13,7 +13,7 @@ import {
   dataTableToolbarButtonClassName,
 } from './toolbar-styles'
 
-export function DataTableViewOptions({ table, label = '欄位顯示' }) {
+export function DataTableViewOptions({ table, label = '欄位顯示', iconOnly = true }) {
   const hideable = table
     .getAllColumns()
     .filter(column => typeof column.accessorFn !== 'undefined' && column.getCanHide())
@@ -22,17 +22,20 @@ export function DataTableViewOptions({ table, label = '欄位顯示' }) {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          type="button"
-          variant="outline"
-          size={DATA_TABLE_TOOLBAR_BUTTON_SIZE}
-          className={dataTableToolbarButtonClassName}
-        >
-          <Settings2 data-icon="inline-start" />
-          {label}
-        </Button>
-      </DropdownMenuTrigger>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            type="button"
+            variant="outline"
+            size={iconOnly ? 'icon-sm' : DATA_TABLE_TOOLBAR_BUTTON_SIZE}
+            className={iconOnly ? undefined : dataTableToolbarButtonClassName}
+            aria-label={label}
+          >
+            <SlidersHorizontal data-icon={iconOnly ? undefined : 'inline-start'} />
+            {iconOnly ? <span className="sr-only">{label}</span> : label}
+          </Button>
+        }
+      />
       <DropdownMenuContent align="end" className="w-44">
         <DropdownMenuGroup>
           <DropdownMenuLabel>{label}</DropdownMenuLabel>

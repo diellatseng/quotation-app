@@ -30,6 +30,7 @@ export default function ServicesDataTable({
     columns,
     pageSize: 20,
     globalFilterFn: serviceGlobalFilterFn,
+    columnVisibilityStorageKey: 'services',
     initialSorting: [{ id: 'category', desc: false }],
     initialColumnVisibility: { description_preview: false },
   })

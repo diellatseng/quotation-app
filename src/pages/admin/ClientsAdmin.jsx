@@ -19,14 +19,13 @@ import { Field, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import AdminMasterDetailLayout from '@/components/admin/admin-master-detail-layout'
-import ClientImportDialog, { ClientImportToolbarButton } from '@/components/ClientImportDialog'
-import { downloadClientImportTemplate } from '@/lib/clientImport'
+import ClientImportDialog, { ClientImportToolbarMenu } from '@/components/ClientImportDialog'
 import ClientsDataTable from './clients/clients-data-table'
 import {
   DATA_TABLE_TOOLBAR_BUTTON_SIZE,
   dataTableToolbarButtonClassName,
 } from '@/components/data-table/toolbar-styles'
-import { Download, Plus } from 'lucide-react'
+import { Plus } from 'lucide-react'
 
 function emptyClient() {
   return { company_name: '', address: '', phone: '', fax: '', email: '', responsible_person_name: '', responsible_person_mobile: '', responsible_person_title: '' }
@@ -140,19 +139,7 @@ export default function ClientsAdmin() {
 
   const toolbarActions = (
     <>
-      <Button
-        type="button"
-        variant="ghost"
-        size={DATA_TABLE_TOOLBAR_BUTTON_SIZE}
-        className={dataTableToolbarButtonClassName}
-        onClick={() => downloadClientImportTemplate().catch(err => {
-          toast.error('下載範本失敗：' + (err.message || '未知錯誤'), { duration: 6000 })
-        })}
-      >
-        <Download data-icon="inline-start" />
-        下載範本
-      </Button>
-      <ClientImportToolbarButton onClick={() => setImportOpen(true)} />
+      <ClientImportToolbarMenu onUploadClick={() => setImportOpen(true)} />
       <Button
         variant="default"
         size={DATA_TABLE_TOOLBAR_BUTTON_SIZE}

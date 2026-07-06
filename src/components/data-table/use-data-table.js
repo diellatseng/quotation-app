@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   getCoreRowModel,
   getFilteredRowModel,
@@ -6,6 +6,10 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
+import {
+  loadColumnVisibility,
+  saveColumnVisibility,
+} from '@/lib/dataTableColumnVisibility'
 
 export function useDataTable({
   data,
@@ -13,12 +17,19 @@ export function useDataTable({
   pageSize = 20,
   globalFilterFn,
   initialColumnVisibility = {},
+  columnVisibilityStorageKey,
   initialSorting = [],
   ...options
 }) {
   const [sorting, setSorting] = useState(initialSorting)
   const [globalFilter, setGlobalFilter] = useState('')
-  const [columnVisibility, setColumnVisibility] = useState(initialColumnVisibility)
+  const [columnVisibility, setColumnVisibility] = useState(() =>
+    loadColumnVisibility(columnVisibilityStorageKey, initialColumnVisibility),
+  )
+
+  useEffect(() => {
+    saveColumnVisibility(columnVisibilityStorageKey, columnVisibility)
+  }, [columnVisibilityStorageKey, columnVisibility])
 
   return useReactTable({
     data,

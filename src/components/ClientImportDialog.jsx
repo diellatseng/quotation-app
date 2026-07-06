@@ -12,6 +12,17 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
+  DATA_TABLE_TOOLBAR_BUTTON_SIZE,
+  dataTableToolbarButtonClassName,
+} from '@/components/data-table/toolbar-styles'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -27,7 +38,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Download, FileSpreadsheet, Upload } from 'lucide-react'
+import { ChevronDown, Download, FileSpreadsheet, Import, Upload } from 'lucide-react'
 
 function statusBadgeVariant(status) {
   if (status === 'ready') return 'default'
@@ -314,18 +325,42 @@ export default function ClientImportDialog({ open, onOpenChange, existingClients
   )
 }
 
-export function ClientImportToolbarButton({ onClick, ...props }) {
+export function ClientImportToolbarMenu({ onUploadClick }) {
+  const handleDownload = () => {
+    downloadClientImportTemplate().catch(err => {
+      toast.error('下載範本失敗：' + (err.message || '未知錯誤'), { duration: 6000 })
+    })
+  }
+
   return (
-    <Button
-      type="button"
-      variant="outline"
-      size="sm"
-      className="font-medium"
-      onClick={onClick}
-      {...props}
-    >
-      <FileSpreadsheet data-icon="inline-start" />
-      上傳 Excel
-    </Button>
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            type="button"
+            variant="outline"
+            size={DATA_TABLE_TOOLBAR_BUTTON_SIZE}
+            className={dataTableToolbarButtonClassName}
+            aria-label="匯入客戶資料"
+          >
+            <Import data-icon="inline-start" />
+            匯入
+            <ChevronDown data-icon="inline-end" />
+          </Button>
+        }
+      />
+      <DropdownMenuContent align="end" className="min-w-[11rem]">
+        <DropdownMenuGroup>
+          <DropdownMenuItem onClick={handleDownload}>
+            <Download />
+            下載範本
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={onUploadClick}>
+            <FileSpreadsheet />
+            上傳 Excel
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }

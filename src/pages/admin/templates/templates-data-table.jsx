@@ -30,6 +30,7 @@ export default function TemplatesDataTable({
     columns,
     pageSize: 20,
     globalFilterFn: templateGlobalFilterFn,
+    columnVisibilityStorageKey: 'templates',
     initialColumnVisibility: { description: false },
   })
 
