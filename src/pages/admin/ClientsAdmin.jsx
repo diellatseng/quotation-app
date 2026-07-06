@@ -20,7 +20,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { AppEmptyState } from '@/components/AppEmptyState'
 import { AdminListSkeleton } from '@/components/skeletons'
-import { Building2, Plus } from 'lucide-react'
+import ClientImportDialog, { ClientImportToolbarButton } from '@/components/ClientImportDialog'
+import { downloadClientImportTemplate } from '@/lib/clientImport'
+import { Building2, Download, Plus } from 'lucide-react'
 
 function emptyClient() {
   return { company_name: '', address: '', phone: '', fax: '', email: '', responsible_person_name: '', responsible_person_mobile: '', responsible_person_title: '' }
@@ -36,6 +38,7 @@ export default function ClientsAdmin() {
   const [showForm, setShowForm] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [contactDeleteId, setContactDeleteId] = useState(null)
+  const [importOpen, setImportOpen] = useState(false)
 
   const load = async () => {
     setFetchLoading(true)
@@ -145,7 +148,27 @@ export default function ClientsAdmin() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <div className="mb-6 flex justify-end">
+      <ClientImportDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        existingClients={clients}
+        onSuccess={load}
+      />
+
+      <div className="mb-6 flex flex-wrap justify-end gap-3">
+        <Button
+          type="button"
+          variant="ghost"
+          size="md"
+          className="font-semibold"
+          onClick={() => downloadClientImportTemplate().catch(err => {
+            toast.error('下載範本失敗：' + (err.message || '未知錯誤'), { duration: 6000 })
+          })}
+        >
+          <Download data-icon="inline-start" />
+          下載範本
+        </Button>
+        <ClientImportToolbarButton onClick={() => setImportOpen(true)} />
         <Button
           variant="default"
           size="md"
