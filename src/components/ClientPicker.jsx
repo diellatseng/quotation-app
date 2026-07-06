@@ -18,15 +18,7 @@ import {
   ComboboxItem,
   ComboboxList,
 } from '@/components/ui/combobox'
-
-function matchesClient(client, query) {
-  const q = query.toLowerCase()
-  return (
-    client.company_name.toLowerCase().includes(q) ||
-    (client.phone || '').includes(query) ||
-    (client.email || '').toLowerCase().includes(q)
-  )
-}
+import { matchesClientSearch } from '@/lib/clientSearch'
 
 export default function ClientPicker({ value, onChange, disabled = false }) {
   const inputId = useId()
@@ -138,7 +130,7 @@ export default function ClientPicker({ value, onChange, disabled = false }) {
               onValueChange={handleSelect}
               itemToStringLabel={(client) => client.company_name}
               isItemEqualToValue={(a, b) => a.id === b.id}
-              filter={matchesClient}
+              filter={matchesClientSearch}
               autoHighlight
               modal={false}
               disabled={disabled || showCreate}

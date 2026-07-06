@@ -167,7 +167,7 @@ export default function CompanyProfilesAdmin() {
                 className={`w-full rounded-lg border px-3 py-2 text-left text-sm transition-colors ${
                   selected?.id === p.id
                     ? 'border-primary bg-primary/5'
-                    : 'border-border hover:bg-accent'
+                    : 'border-border hover:bg-surface-hover'
                 }`}
               >
                 <div className="font-medium text-foreground">{p.label}</div>

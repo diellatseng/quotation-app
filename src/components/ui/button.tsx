@@ -9,19 +9,21 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: 'bg-primary text-primary-foreground hover:bg-primary/80',
+        default: 'bg-primary text-primary-foreground hover:bg-cta-hover active:bg-primary-active',
         outline:
-          'border-border bg-background hover:bg-accent hover:text-accent-foreground aria-expanded:bg-accent aria-expanded:text-accent-foreground dark:border-input dark:bg-input/30 dark:hover:bg-accent/80',
+          'border-border bg-card text-secondary shadow-elevation-sm hover:border-primary/30 hover:bg-card hover:text-foreground hover:shadow-elevation-md aria-expanded:bg-surface-hover aria-expanded:text-surface-hover-foreground',
         secondary:
           'bg-secondary text-secondary-foreground hover:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_5%)] aria-expanded:bg-secondary aria-expanded:text-secondary-foreground',
         ghost:
-          'bg-transparent text-muted-foreground hover:bg-accent hover:text-accent-foreground aria-expanded:bg-accent aria-expanded:text-accent-foreground dark:hover:bg-accent/80',
+          'bg-transparent text-muted-foreground hover:bg-surface-hover hover:text-surface-hover-foreground aria-expanded:bg-surface-hover aria-expanded:text-surface-hover-foreground',
+        shell:
+          'bg-transparent text-foreground hover:bg-surface-hover hover:text-surface-hover-foreground aria-expanded:bg-surface-hover aria-expanded:text-surface-hover-foreground',
         'ghost-inverse':
           'bg-transparent text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground aria-expanded:bg-primary-foreground/10 aria-expanded:text-primary-foreground border-transparent shadow-none',
         destructive:
           'bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40',
         accent:
-          'bg-highlight-border text-primary-foreground hover:bg-cta-hover shadow-sm focus-visible:ring-highlight-border/40',
+          'bg-accent text-accent-foreground shadow-elevation-sm hover:bg-accent-hover active:bg-[color-mix(in_oklch,var(--accent),#000_8%)]',
         link: 'text-primary underline-offset-4 hover:underline',
       },
       size: {

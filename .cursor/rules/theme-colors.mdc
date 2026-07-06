@@ -13,13 +13,16 @@ alwaysApply: true
 |------|----------------|
 | 頁面底色、主要文字 | `background`, `foreground`, `card`, `card-foreground` |
 | 次要表面、輔助文字 | `muted`, `muted-foreground`（輔助文字須符合無障礙規則） |
-| 主要 CTA、品牌、連結 | `primary`, `primary-foreground`, `cta-hover` |
-| **互動 hover / 列表 highlight** | `accent`, `accent-foreground` |
+| 列表 / 列 hover 底色 | `surface-hover`, `surface-hover-foreground` |
+| 主要 CTA、品牌、連結 | `primary`, `primary-foreground`, `cta-hover`, `primary-active` |
+| **品牌 Accent（粉紅）** | `accent`, `accent-foreground`, `accent-hover` — 僅 accent 按鈕、badge、裝飾強調 |
+| **互動 hover / 列表 highlight** | `surface-hover`（勿用 `accent` 代替） |
 | 強調區塊、wizard 下一步 | `highlight`, `highlight-text`, `highlight-border` |
 | 刪除、錯誤 | `destructive`, `destructive-muted*` |
 | 狀態 badge | `status-*`（draft / quoted / confirmed / closed / warning） |
 | 版本 diff | `diff-*` |
 | 邊框、focus | `border`, `ring`, `input` |
+| 陰影（卡片、pill） | `shadow-elevation-sm` … `shadow-elevation-xl` |
 
 ## 禁止
 
@@ -28,7 +31,7 @@ alwaysApply: true
 
 ## Accent 的 UX 用途（互動回饋，非裝飾）
 
-**適合 `hover:bg-accent` / `hover:text-accent-foreground`：**
+**適合 `hover:bg-surface-hover` / `hover:text-surface-hover-foreground`：**
 - 可點擊列（表格 row、admin 清單 item）
 - Wizard 步驟導覽 hover
 - 麵包屑返回、ghost 按鈕 hover
@@ -51,4 +54,4 @@ alwaysApply: true
 
 1. 新 UI 先查 `globals.css` 是否有對應 token
 2. 缺 token 時在 `:root` 與 `[data-theme="high-contrast"]` **成對**新增，並加入 `@theme inline`
-3. 互動元素預設 hover 用 `accent`，不要用 `muted` 代替
+3. 互動元素預設 hover 用 `surface-hover`，不要用 `muted` 或 `accent` 代替

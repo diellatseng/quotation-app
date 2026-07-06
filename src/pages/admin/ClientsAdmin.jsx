@@ -1,5 +1,5 @@
 // src/pages/admin/ClientsAdmin.jsx
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -18,11 +18,15 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Field, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { AppEmptyState } from '@/components/AppEmptyState'
-import { AdminListSkeleton } from '@/components/skeletons'
+import AdminMasterDetailLayout from '@/components/admin/admin-master-detail-layout'
 import ClientImportDialog, { ClientImportToolbarButton } from '@/components/ClientImportDialog'
 import { downloadClientImportTemplate } from '@/lib/clientImport'
-import { Building2, Download, Plus } from 'lucide-react'
+import ClientsDataTable from './clients/clients-data-table'
+import {
+  DATA_TABLE_TOOLBAR_BUTTON_SIZE,
+  dataTableToolbarButtonClassName,
+} from '@/components/data-table/toolbar-styles'
+import { Download, Plus } from 'lucide-react'
 
 function emptyClient() {
   return { company_name: '', address: '', phone: '', fax: '', email: '', responsible_person_name: '', responsible_person_mobile: '', responsible_person_title: '' }
@@ -39,6 +43,7 @@ export default function ClientsAdmin() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [contactDeleteId, setContactDeleteId] = useState(null)
   const [importOpen, setImportOpen] = useState(false)
+  const [clientToDelete, setClientToDelete] = useState(null)
 
   const load = async () => {
     setFetchLoading(true)
@@ -49,15 +54,40 @@ export default function ClientsAdmin() {
 
   useEffect(() => { load() }, [])
 
-  const selectClient = async (c) => {
+  const selectClient = useCallback(async (c) => {
     setSelected(c)
     setForm(c)
-    const { data } = await supabase.from('contact_persons').select('*').eq('client_id', c.id).order('is_primary', { ascending: false })
+    const { data } = await supabase
+      .from('contact_persons')
+      .select('*')
+      .eq('client_id', c.id)
+      .order('is_primary', { ascending: false })
     setContacts(data || [])
     setShowForm(true)
-  }
+  }, [])
+
+  const openCreate = useCallback(() => {
+    setSelected(null)
+    setForm(emptyClient())
+    setContacts([])
+    setShowForm(true)
+  }, [])
+
+  const handleEdit = useCallback((client) => {
+    selectClient(client)
+  }, [selectClient])
+
+  const handleDeleteRequest = useCallback((client) => {
+    setClientToDelete(client)
+    setShowDeleteDialog(true)
+  }, [])
 
   const saveClient = async () => {
+    if (!form.company_name?.trim()) {
+      toast.warning('請填寫公司名稱')
+      return
+    }
+
     setLoading(true)
     if (selected) {
       const { error: e } = await supabase.from('clients').update(form).eq('id', selected.id)
@@ -76,12 +106,16 @@ export default function ClientsAdmin() {
   }
 
   const deleteClient = async () => {
-    if (!selected) return
-    await supabase.from('clients').delete().eq('id', selected.id)
+    const target = clientToDelete ?? selected
+    if (!target) return
+    await supabase.from('clients').delete().eq('id', target.id)
     toast.success('已刪除')
     setShowDeleteDialog(false)
-    setShowForm(false)
-    setSelected(null)
+    setClientToDelete(null)
+    if (selected?.id === target.id) {
+      setShowForm(false)
+      setSelected(null)
+    }
     load()
   }
 
@@ -103,6 +137,33 @@ export default function ClientsAdmin() {
     setContacts(prev => prev.filter(c => c.id !== id))
     setContactDeleteId(null)
   }
+
+  const toolbarActions = (
+    <>
+      <Button
+        type="button"
+        variant="ghost"
+        size={DATA_TABLE_TOOLBAR_BUTTON_SIZE}
+        className={dataTableToolbarButtonClassName}
+        onClick={() => downloadClientImportTemplate().catch(err => {
+          toast.error('下載範本失敗：' + (err.message || '未知錯誤'), { duration: 6000 })
+        })}
+      >
+        <Download data-icon="inline-start" />
+        下載範本
+      </Button>
+      <ClientImportToolbarButton onClick={() => setImportOpen(true)} />
+      <Button
+        variant="default"
+        size={DATA_TABLE_TOOLBAR_BUTTON_SIZE}
+        className={dataTableToolbarButtonClassName}
+        onClick={openCreate}
+      >
+        <Plus data-icon="inline-start" />
+        新增客戶
+      </Button>
+    </>
+  )
 
   return (
     <div>
@@ -136,7 +197,7 @@ export default function ClientsAdmin() {
           <AlertDialogHeader>
             <AlertDialogTitle>刪除客戶</AlertDialogTitle>
             <AlertDialogDescription>
-              確定刪除？相關報價單的客戶連結將被清除。
+              確定刪除「{clientToDelete?.company_name || selected?.company_name}」？相關報價單的客戶連結將被清除。
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -155,61 +216,20 @@ export default function ClientsAdmin() {
         onSuccess={load}
       />
 
-      <div className="mb-6 flex flex-wrap justify-end gap-3">
-        <Button
-          type="button"
-          variant="ghost"
-          size="md"
-          className="font-semibold"
-          onClick={() => downloadClientImportTemplate().catch(err => {
-            toast.error('下載範本失敗：' + (err.message || '未知錯誤'), { duration: 6000 })
-          })}
-        >
-          <Download data-icon="inline-start" />
-          下載範本
-        </Button>
-        <ClientImportToolbarButton onClick={() => setImportOpen(true)} />
-        <Button
-          variant="default"
-          size="md"
-          className="font-semibold"
-          onClick={() => { setSelected(null); setForm(emptyClient()); setContacts([]); setShowForm(true) }}
-        >
-          <Plus data-icon="inline-start" />
-          新增客戶
-        </Button>
-      </div>
-
-      <div className={`grid gap-5 ${showForm ? 'grid-cols-[1fr_1.4fr]' : 'grid-cols-1'}`}>
-        {/* List */}
-        <Card className="gap-0 py-0 shadow-sm">
-          {fetchLoading ? (
-            <AdminListSkeleton rows={8} />
-          ) : clients.length === 0 ? (
-            <AppEmptyState
-              compact
-              embedded
-              icon={Building2}
-              title="尚無客戶"
-              description="點選上方「新增客戶」建立第一筆資料"
-            />
-          ) : (
-            clients.map(c => (
-              <div key={c.id}
-                onClick={() => selectClient(c)}
-                className={`p-4 border-b border-border cursor-pointer transition-colors ${selected?.id === c.id
-                    ? 'bg-primary/10 border-l-4 border-l-primary'
-                    : 'border-l-4 border-l-transparent hover:bg-accent'
-                  }`}>
-                <div className="font-semibold">{c.company_name}</div>
-                <div className="text-xs text-muted-foreground">{c.phone} {c.email}</div>
-              </div>
-            ))
-          )}
-        </Card>
-
-        {/* Form */}
-        {showForm && (
+      <AdminMasterDetailLayout
+        showDetail={showForm}
+        list={(
+          <ClientsDataTable
+            clients={clients}
+            loading={fetchLoading}
+            selectedRowId={selected?.id}
+            onRowClick={selectClient}
+            onEdit={handleEdit}
+            onDelete={handleDeleteRequest}
+            toolbarActions={toolbarActions}
+          />
+        )}
+        detail={showForm && (
           <Card className="shadow-sm">
             <CardHeader>
               <CardTitle className="font-semibold">{selected ? '編輯客戶' : '新增客戶'}</CardTitle>
@@ -226,7 +246,6 @@ export default function ClientsAdmin() {
             </div>
             <F label="地址" value={form.address} onChange={v => setForm(f => ({ ...f, address: v }))} />
 
-            {/* Contacts */}
             {selected && (
               <div className="mt-6">
                 <div className="flex justify-between items-center mb-3">
@@ -237,7 +256,7 @@ export default function ClientsAdmin() {
                   </Button>
                 </div>
                 {contacts.map((ct, idx) => (
-                  <div key={ct.id} className="border border-border rounded-lg p-3 mb-3">
+                  <div key={ct.id} className="mb-3 rounded-lg border border-border p-3">
                     <div className="grid grid-cols-2 gap-2 mb-2">
                       <F label="姓名" value={ct.name} onChange={v => updateContact(idx, 'name', v)} compact />
                       <F label="手機" value={ct.mobile || ''} onChange={v => updateContact(idx, 'mobile', v)} compact />
@@ -265,7 +284,7 @@ export default function ClientsAdmin() {
             <div className="flex gap-3 mt-5">
               <Button variant="default" size="md" className="font-semibold" onClick={saveClient} disabled={loading}>{loading ? '儲存中…' : '儲存'}</Button>
               {selected && (
-                <Button variant="destructive" size="md" className="font-semibold" onClick={() => setShowDeleteDialog(true)}>
+                <Button variant="destructive" size="md" className="font-semibold" onClick={() => handleDeleteRequest(selected)}>
                   刪除客戶
                 </Button>
               )}
@@ -274,7 +293,7 @@ export default function ClientsAdmin() {
             </CardContent>
           </Card>
         )}
-      </div>
+      />
     </div>
   )
 }

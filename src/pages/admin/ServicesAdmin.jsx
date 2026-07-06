@@ -1,5 +1,5 @@
 // src/pages/admin/ServicesAdmin.jsx
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
 import { toast } from 'sonner'
 import RichEditor from '../../components/RichEditor.jsx'
@@ -21,18 +21,27 @@ import {
   FieldLabel,
 } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { AppEmptyState } from '@/components/AppEmptyState'
-import { AdminListSkeleton } from '@/components/skeletons'
+import AdminMasterDetailLayout from '@/components/admin/admin-master-detail-layout'
+import ServicesDataTable from './services/services-data-table'
+import {
+  DATA_TABLE_TOOLBAR_BUTTON_SIZE,
+  dataTableToolbarButtonClassName,
+} from '@/components/data-table/toolbar-styles'
 import IconTooltip from '@/components/IconTooltip'
-import { Layers, Plus, X } from 'lucide-react'
+import { Plus, X } from 'lucide-react'
+
+function emptyService() {
+  return { name: '', category: '', description: '' }
+}
 
 export default function ServicesAdmin() {
   const [services, setServices] = useState([])
   const [selected, setSelected] = useState(null)
   const [checklistItems, setChecklistItems] = useState([])
-  const [form, setForm] = useState({ name: '', category: '', description: '' })
+  const [form, setForm] = useState(emptyService())
   const [showForm, setShowForm] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [serviceToDelete, setServiceToDelete] = useState(null)
   const [checklistDeleteId, setChecklistDeleteId] = useState(null)
   const [loading, setLoading] = useState(false)
   const [fetchLoading, setFetchLoading] = useState(true)
@@ -46,32 +55,63 @@ export default function ServicesAdmin() {
 
   useEffect(() => { load() }, [])
 
-  const select = async (svc) => {
+  const selectService = useCallback(async (svc) => {
     setSelected(svc)
     setForm({ name: svc.name, category: svc.category || '', description: svc.description || '' })
     const { data } = await supabase.from('service_checklist_items').select('*').eq('service_id', svc.id).order('sort_order')
     setChecklistItems(data || [])
     setShowForm(true)
-  }
+  }, [])
+
+  const openCreate = useCallback(() => {
+    setSelected(null)
+    setForm(emptyService())
+    setChecklistItems([])
+    setShowForm(true)
+  }, [])
+
+  const handleEdit = useCallback((service) => {
+    selectService(service)
+  }, [selectService])
+
+  const handleDeleteRequest = useCallback((service) => {
+    setServiceToDelete(service)
+    setShowDeleteDialog(true)
+  }, [])
 
   const save = async () => {
+    if (!form.name?.trim()) {
+      toast.warning('請填寫服務名稱')
+      return
+    }
+
     setLoading(true)
     if (selected) {
-      await supabase.from('services').update(form).eq('id', selected.id)
+      const { error: e } = await supabase.from('services').update(form).eq('id', selected.id)
+      if (e) { toast.error('儲存失敗：' + e.message, { duration: 6000 }); setLoading(false); return }
       toast.success('已更新')
     } else {
-      await supabase.from('services').insert([form])
+      const { error: e } = await supabase.from('services').insert([form])
+      if (e) { toast.error('新增失敗：' + e.message, { duration: 6000 }); setLoading(false); return }
       toast.success('已新增')
     }
-    await load(); setShowForm(false); setSelected(null); setLoading(false)
+    await load()
+    setShowForm(false)
+    setSelected(null)
+    setLoading(false)
   }
 
   const deleteSvc = async () => {
-    await supabase.from('services').delete().eq('id', selected.id)
+    const target = serviceToDelete ?? selected
+    if (!target) return
+    await supabase.from('services').delete().eq('id', target.id)
     toast.success('已刪除')
     setShowDeleteDialog(false)
-    setShowForm(false)
-    setSelected(null)
+    setServiceToDelete(null)
+    if (selected?.id === target.id) {
+      setShowForm(false)
+      setSelected(null)
+    }
     load()
   }
 
@@ -95,13 +135,17 @@ export default function ServicesAdmin() {
     setChecklistDeleteId(null)
   }
 
-  // Group by category
-  const grouped = services.reduce((acc, s) => {
-    const cat = s.category || '未分類'
-    if (!acc[cat]) acc[cat] = []
-    acc[cat].push(s)
-    return acc
-  }, {})
+  const toolbarActions = (
+    <Button
+      variant="default"
+      size={DATA_TABLE_TOOLBAR_BUTTON_SIZE}
+      className={dataTableToolbarButtonClassName}
+      onClick={openCreate}
+    >
+      <Plus data-icon="inline-start" />
+      新增服務
+    </Button>
+  )
 
   return (
     <div>
@@ -134,7 +178,9 @@ export default function ServicesAdmin() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>刪除服務</AlertDialogTitle>
-            <AlertDialogDescription>確定刪除此服務？</AlertDialogDescription>
+            <AlertDialogDescription>
+              確定刪除「{serviceToDelete?.name || selected?.name}」？
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>取消</AlertDialogCancel>
@@ -145,52 +191,20 @@ export default function ServicesAdmin() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <div className="mb-6 flex justify-end">
-        <Button
-          variant="default"
-          size="md"
-          className="font-semibold"
-          onClick={() => { setSelected(null); setForm({ name: '', category: '', description: '' }); setChecklistItems([]); setShowForm(true) }}
-        >
-          <Plus data-icon="inline-start" />
-          新增服務
-        </Button>
-      </div>
-
-      <div className={`grid gap-5 ${showForm ? 'grid-cols-[1fr_1.4fr]' : 'grid-cols-1'}`}>
-        {/* List */}
-        <Card className="gap-0 py-0 shadow-sm">
-          {fetchLoading ? (
-            <AdminListSkeleton rows={8} />
-          ) : services.length === 0 ? (
-            <AppEmptyState
-              compact
-              embedded
-              icon={Layers}
-              title="尚無服務項目"
-              description="點選上方「新增服務」建立第一筆資料"
-            />
-          ) : (
-            Object.entries(grouped).map(([cat, svcs]) => (
-            <div key={cat}>
-              <div className="px-4 py-2 bg-muted text-xs font-bold text-muted-foreground uppercase tracking-wide">
-                {cat}
-              </div>
-              {svcs.map(svc => (
-                <div key={svc.id} onClick={() => select(svc)} className={`p-3 px-4 border-b border-border cursor-pointer transition-colors ${selected?.id === svc.id
-                  ? 'bg-primary/10 border-l-4 border-l-primary'
-                  : 'border-l-4 border-l-transparent hover:bg-accent'
-                  }`}>
-                  <div className="font-medium">{svc.name}</div>
-                </div>
-              ))}
-            </div>
-          ))
-          )}
-        </Card>
-
-        {/* Form */}
-        {showForm && (
+      <AdminMasterDetailLayout
+        showDetail={showForm}
+        list={(
+          <ServicesDataTable
+            services={services}
+            loading={fetchLoading}
+            selectedRowId={selected?.id}
+            onRowClick={selectService}
+            onEdit={handleEdit}
+            onDelete={handleDeleteRequest}
+            toolbarActions={toolbarActions}
+          />
+        )}
+        detail={showForm && (
           <Card className="shadow-sm">
             <CardHeader>
               <CardTitle className="font-semibold">{selected ? '編輯服務' : '新增服務'}</CardTitle>
@@ -214,7 +228,6 @@ export default function ServicesAdmin() {
               </Field>
             </FieldGroup>
 
-            {/* Checklist items */}
             {selected && (
               <div className="mt-2">
                 <div className="flex justify-between items-center mb-3">
@@ -246,7 +259,7 @@ export default function ServicesAdmin() {
             <div className="flex gap-3 mt-5">
               <Button variant="default" size="md" className="font-semibold" onClick={save} disabled={loading}>{loading ? '儲存中…' : '儲存'}</Button>
               {selected && (
-                <Button variant="destructive" size="md" className="font-semibold" onClick={() => setShowDeleteDialog(true)}>
+                <Button variant="destructive" size="md" className="font-semibold" onClick={() => handleDeleteRequest(selected)}>
                   刪除
                 </Button>
               )}
@@ -255,7 +268,7 @@ export default function ServicesAdmin() {
             </CardContent>
           </Card>
         )}
-      </div>
+      />
     </div>
   )
 }

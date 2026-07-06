@@ -1036,7 +1036,7 @@ export default function ProjectDetailPage() {
                       {quotations.map(q => (
                         <TableRow
                           key={q.id}
-                          className="cursor-pointer border-border hover:bg-accent"
+                          className="cursor-pointer border-border hover:bg-surface-hover"
                           onClick={() =>
                             q.status === '草稿'
                               ? navigate(`/quotation/new?edit=${q.id}`)
@@ -1114,7 +1114,7 @@ export default function ProjectDetailPage() {
                     <Card
                       key={stage.id}
                       size="sm"
-                      className={`gap-0 py-0 shadow-sm ${invoice ? 'cursor-pointer hover:bg-accent' : ''}`}
+                      className={`gap-0 py-0 shadow-sm ${invoice ? 'cursor-pointer hover:bg-surface-hover' : ''}`}
                       onClick={() => {
                         if (invoice) navigate(`/projects/${id}/invoices/${invoice.id}`)
                       }}
@@ -1182,7 +1182,7 @@ export default function ProjectDetailPage() {
                       {invoiceRows.map(({ stage, invoice, disbursementTotal }) => (
                         <TableRow
                           key={stage.id}
-                          className={`border-border ${invoice ? 'cursor-pointer hover:bg-accent' : ''}`}
+                          className={`border-border ${invoice ? 'cursor-pointer hover:bg-surface-hover' : ''}`}
                           onClick={() => {
                             if (invoice) navigate(`/projects/${id}/invoices/${invoice.id}`)
                           }}

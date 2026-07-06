@@ -111,7 +111,7 @@ export default function DisbursementEditor({ rows, onRowsChange, loading = false
           </TableHeader>
           <TableBody>
             {rows.map(row => (
-              <TableRow key={row.id} className="border-border hover:bg-accent">
+              <TableRow key={row.id} className="border-border hover:bg-surface-hover">
                 <TableCell className="px-2 py-2">
                   <FieldGroup>
                     <Field>

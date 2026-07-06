@@ -86,7 +86,7 @@ export function AppBreadcrumbBar({
               type="button"
               onClick={handleBack}
               disabled={backDisabled}
-              className="inline-flex shrink-0 items-center gap-0.5 rounded-md px-1 py-1 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-40"
+              className="inline-flex shrink-0 items-center gap-0.5 rounded-md px-1 py-1 font-medium text-foreground transition-colors hover:bg-surface-hover hover:text-surface-hover-foreground disabled:pointer-events-none disabled:opacity-40"
               aria-label={`返回${backLabel}`}
             >
               <ChevronLeft className="size-4 shrink-0" aria-hidden="true" />

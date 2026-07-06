@@ -84,7 +84,7 @@ export default function Step1Client({
                   {data.contacts.map(c => (
                     <label
                       key={c.id}
-                      className={`flex items-center gap-3 p-4 border rounded-xl cursor-pointer transition-all hover:bg-accent select-none ${data.selectedContactId === c.id
+                      className={`flex items-center gap-3 p-4 border rounded-xl cursor-pointer transition-all hover:bg-surface-hover select-none ${data.selectedContactId === c.id
                         ? 'border-primary bg-primary/[0.02] ring-1 ring-primary'
                         : 'border-border bg-background'
                         }`}

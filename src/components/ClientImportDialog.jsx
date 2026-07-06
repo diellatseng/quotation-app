@@ -316,7 +316,14 @@ export default function ClientImportDialog({ open, onOpenChange, existingClients
 
 export function ClientImportToolbarButton({ onClick, ...props }) {
   return (
-    <Button type="button" variant="outline" size="md" className="font-semibold" onClick={onClick} {...props}>
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      className="font-medium"
+      onClick={onClick}
+      {...props}
+    >
       <FileSpreadsheet data-icon="inline-start" />
       上傳 Excel
     </Button>

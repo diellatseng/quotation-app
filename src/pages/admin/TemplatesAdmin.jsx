@@ -1,5 +1,5 @@
 // src/pages/admin/TemplatesAdmin.jsx
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -18,18 +18,28 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { AppEmptyState } from '@/components/AppEmptyState'
-import { AdminListSkeleton } from '@/components/skeletons'
-import { Layers, LayoutTemplate, Plus } from 'lucide-react'
+import AdminMasterDetailLayout from '@/components/admin/admin-master-detail-layout'
+import TemplatesDataTable from './templates/templates-data-table'
+import {
+  DATA_TABLE_TOOLBAR_BUTTON_SIZE,
+  dataTableToolbarButtonClassName,
+} from '@/components/data-table/toolbar-styles'
+import { Layers, Plus } from 'lucide-react'
+
+function emptyTemplate() {
+  return { name: '', description: '', category: '' }
+}
 
 export default function TemplatesAdmin() {
   const [templates, setTemplates] = useState([])
   const [allServices, setAllServices] = useState([])
-  const [selected, setSelected]   = useState(null)
+  const [selected, setSelected] = useState(null)
   const [linkedServices, setLinkedServices] = useState([])
-  const [form, setForm]           = useState({ name: '', description: '', category: '' })
-  const [showForm, setShowForm]   = useState(false)
+  const [form, setForm] = useState(emptyTemplate())
+  const [showForm, setShowForm] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [loading, setLoading]     = useState(false)
+  const [templateToDelete, setTemplateToDelete] = useState(null)
+  const [loading, setLoading] = useState(false)
   const [fetchLoading, setFetchLoading] = useState(true)
 
   const load = async () => {
@@ -45,55 +55,99 @@ export default function TemplatesAdmin() {
 
   useEffect(() => { load() }, [])
 
-  const select = async (tmpl) => {
+  const selectTemplate = useCallback(async (tmpl) => {
     setSelected(tmpl)
     setForm({ name: tmpl.name, description: tmpl.description || '', category: tmpl.category || '' })
     const { data } = await supabase.from('template_services')
       .select('service_id, sort_order').eq('template_id', tmpl.id).order('sort_order')
     setLinkedServices((data || []).map(ts => ts.service_id))
     setShowForm(true)
-  }
+  }, [])
+
+  const openCreate = useCallback(() => {
+    setSelected(null)
+    setForm(emptyTemplate())
+    setLinkedServices([])
+    setShowForm(true)
+  }, [])
+
+  const handleEdit = useCallback((template) => {
+    selectTemplate(template)
+  }, [selectTemplate])
+
+  const handleDeleteRequest = useCallback((template) => {
+    setTemplateToDelete(template)
+    setShowDeleteDialog(true)
+  }, [])
 
   const save = async () => {
+    if (!form.name?.trim()) {
+      toast.warning('請填寫範本名稱')
+      return
+    }
+
     setLoading(true)
     let tmplId = selected?.id
     if (selected) {
-      await supabase.from('project_templates').update(form).eq('id', selected.id)
+      const { error: e } = await supabase.from('project_templates').update(form).eq('id', selected.id)
+      if (e) { toast.error('儲存失敗：' + e.message, { duration: 6000 }); setLoading(false); return }
+      tmplId = selected.id
     } else {
-      const { data } = await supabase.from('project_templates').insert([form]).select().single()
+      const { data, error: e } = await supabase.from('project_templates').insert([form]).select().single()
+      if (e) { toast.error('新增失敗：' + e.message, { duration: 6000 }); setLoading(false); return }
       tmplId = data.id
     }
-    // Sync linked services
     await supabase.from('template_services').delete().eq('template_id', tmplId)
     if (linkedServices.length) {
       await supabase.from('template_services').insert(
-        linkedServices.map((sid, i) => ({ template_id: tmplId, service_id: sid, sort_order: i }))
+        linkedServices.map((sid, i) => ({ template_id: tmplId, service_id: sid, sort_order: i })),
       )
     }
     toast.success(selected ? '範本已更新' : '範本已新增')
     await load()
-    setShowForm(false); setSelected(null); setLoading(false)
+    setShowForm(false)
+    setSelected(null)
+    setLoading(false)
   }
 
   const deleteTmpl = async () => {
-    await supabase.from('project_templates').delete().eq('id', selected.id)
+    const target = templateToDelete ?? selected
+    if (!target) return
+    await supabase.from('project_templates').delete().eq('id', target.id)
     toast.success('已刪除')
     setShowDeleteDialog(false)
-    setShowForm(false)
-    setSelected(null)
+    setTemplateToDelete(null)
+    if (selected?.id === target.id) {
+      setShowForm(false)
+      setSelected(null)
+    }
     load()
   }
 
   const toggleService = (svcId) => {
     setLinkedServices(prev =>
-      prev.includes(svcId) ? prev.filter(id => id !== svcId) : [...prev, svcId]
+      prev.includes(svcId) ? prev.filter(id => id !== svcId) : [...prev, svcId],
     )
   }
 
-  // Group services by category for display
   const grouped = allServices.reduce((acc, s) => {
-    const cat = s.category || '未分類'; if (!acc[cat]) acc[cat] = []; acc[cat].push(s); return acc
+    const cat = s.category || '未分類'
+    if (!acc[cat]) acc[cat] = []
+    acc[cat].push(s)
+    return acc
   }, {})
+
+  const toolbarActions = (
+    <Button
+      variant="default"
+      size={DATA_TABLE_TOOLBAR_BUTTON_SIZE}
+      className={dataTableToolbarButtonClassName}
+      onClick={openCreate}
+    >
+      <Plus data-icon="inline-start" />
+      新增範本
+    </Button>
+  )
 
   return (
     <div>
@@ -101,7 +155,9 @@ export default function TemplatesAdmin() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>刪除範本</AlertDialogTitle>
-            <AlertDialogDescription>確定刪除此範本？</AlertDialogDescription>
+            <AlertDialogDescription>
+              確定刪除「{templateToDelete?.name || selected?.name}」？
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>取消</AlertDialogCancel>
@@ -112,46 +168,20 @@ export default function TemplatesAdmin() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <div className="mb-6 flex justify-end">
-        <Button
-          variant="default"
-          size="md"
-          className="font-semibold"
-          onClick={() => { setSelected(null); setForm({ name: '', description: '', category: '' }); setLinkedServices([]); setShowForm(true) }}
-        >
-          <Plus data-icon="inline-start" />
-          新增範本
-        </Button>
-      </div>
-
-      <div className={`grid gap-5 ${showForm ? 'grid-cols-[1fr_1.6fr]' : 'grid-cols-1'}`}>
-        {/* Template list */}
-        <Card className="gap-0 py-0 shadow-sm">
-          {fetchLoading ? (
-            <AdminListSkeleton rows={8} />
-          ) : templates.length === 0 ? (
-            <AppEmptyState
-              compact
-              embedded
-              icon={LayoutTemplate}
-              title="尚無工程範本"
-              description="點選上方「新增範本」建立第一筆資料"
-            />
-          ) : templates.map(t => (
-            <div key={t.id} onClick={() => select(t)} className={`p-4 border-b border-border cursor-pointer transition-colors ${selected?.id === t.id
-              ? 'bg-primary/10 border-l-4 border-l-primary'
-              : 'border-l-4 border-l-transparent hover:bg-accent'
-              }`}>
-              <div className="font-semibold">{t.name}</div>
-              <div className="text-xs text-muted-foreground">
-                {t.category} ／ {(t.template_services || []).length} 項服務
-              </div>
-            </div>
-          ))}
-        </Card>
-
-        {/* Edit form */}
-        {showForm && (
+      <AdminMasterDetailLayout
+        showDetail={showForm}
+        list={(
+          <TemplatesDataTable
+            templates={templates}
+            loading={fetchLoading}
+            selectedRowId={selected?.id}
+            onRowClick={selectTemplate}
+            onEdit={handleEdit}
+            onDelete={handleDeleteRequest}
+            toolbarActions={toolbarActions}
+          />
+        )}
+        detail={showForm && (
           <Card className="shadow-sm">
             <CardHeader>
               <CardTitle className="font-semibold">{selected ? '編輯範本' : '新增範本'}</CardTitle>
@@ -172,7 +202,6 @@ export default function TemplatesAdmin() {
               </Field>
             </FieldGroup>
 
-            {/* Service linking */}
             <p className="text-base font-semibold text-foreground mb-1">連結服務項目</p>
             <p className="text-sm text-muted-foreground mb-3">
               已選擇 {linkedServices.length} 項服務
@@ -184,13 +213,13 @@ export default function TemplatesAdmin() {
                     {cat}
                   </div>
                   {svcs.map(svc => (
-                    <label key={svc.id} className={`flex items-center gap-3 px-4 py-3 border-b border-border cursor-pointer min-h-[44px] ${linkedServices.includes(svc.id) ? 'bg-primary/10' : 'hover:bg-accent'
+                    <label key={svc.id} className={`flex items-center gap-3 px-4 py-3 border-b border-border cursor-pointer min-h-[44px] ${linkedServices.includes(svc.id) ? 'bg-primary/10' : 'hover:bg-surface-hover'
                       }`}>
                       <Checkbox
                         checked={linkedServices.includes(svc.id)}
                         onCheckedChange={() => toggleService(svc.id)}
                       />
-                      <span className={`text-sm ${linkedServices.includes(svc.id) ? 'font-semibold' : 'font-normal'}`}>
+                      <span className={`text-sm ${linkedServices.includes(svc.id) ? 'font-semibold text-foreground' : 'font-normal text-foreground'}`}>
                         {svc.name}
                       </span>
                     </label>
@@ -211,7 +240,7 @@ export default function TemplatesAdmin() {
             <div className="flex gap-3 mt-5">
               <Button variant="default" size="md" className="font-semibold" onClick={save} disabled={loading}>{loading ? '儲存中…' : '儲存範本'}</Button>
               {selected && (
-                <Button variant="destructive" size="md" className="font-semibold" onClick={() => setShowDeleteDialog(true)}>
+                <Button variant="destructive" size="md" className="font-semibold" onClick={() => handleDeleteRequest(selected)}>
                   刪除
                 </Button>
               )}
@@ -220,7 +249,7 @@ export default function TemplatesAdmin() {
             </CardContent>
           </Card>
         )}
-      </div>
+      />
     </div>
   )
 }
