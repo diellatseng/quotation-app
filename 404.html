@@ -1,15 +1,22 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-TW">
   <head>
     <meta charset="utf-8">
     <title>案件管理系統</title>
     <script>
-      // Redirect to index.html so React Router can handle the route
-      const path = window.location.pathname.replace(/\/$/, '') || '/';
-      const redirect = path + (path.includes('?') ? '&' : '?') + 'redirect=' + encodeURIComponent(window.location.search);
-      window.location.replace(path + '/');
+      // GitHub Pages SPA fallback — preserve deep links (e.g. /quotation-app/dashboard).
+      (function () {
+        var BASE = '/quotation-app'
+        var path = window.location.pathname
+        var suffix = path.startsWith(BASE) ? path.slice(BASE.length) : path
+        suffix = suffix.replace(/\/$/, '') || ''
+        var target = suffix + window.location.search + window.location.hash
+        if (target && target !== '/') {
+          sessionStorage.setItem('spaRedirect', target)
+        }
+        window.location.replace(BASE + '/')
+      })()
     </script>
   </head>
-  <body>
-  </body>
+  <body></body>
 </html>
