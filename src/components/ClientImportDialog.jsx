@@ -12,8 +12,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
-  DATA_TABLE_TOOLBAR_BUTTON_SIZE,
-  dataTableToolbarButtonClassName,
+  dataTableToolbarControlClassName,
 } from '@/components/data-table/toolbar-styles'
 import {
   DropdownMenu,
@@ -339,8 +338,7 @@ export function ClientImportToolbarMenu({ onUploadClick }) {
           <Button
             type="button"
             variant="outline"
-            size={DATA_TABLE_TOOLBAR_BUTTON_SIZE}
-            className={dataTableToolbarButtonClassName}
+            className={dataTableToolbarControlClassName}
             aria-label="匯入客戶資料"
           >
             <Import data-icon="inline-start" />

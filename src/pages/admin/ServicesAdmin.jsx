@@ -24,8 +24,7 @@ import { Input } from '@/components/ui/input'
 import AdminMasterDetailLayout from '@/components/admin/admin-master-detail-layout'
 import ServicesDataTable from './services/services-data-table'
 import {
-  DATA_TABLE_TOOLBAR_BUTTON_SIZE,
-  dataTableToolbarButtonClassName,
+  dataTableToolbarControlClassName,
 } from '@/components/data-table/toolbar-styles'
 import IconTooltip from '@/components/IconTooltip'
 import { Plus, X } from 'lucide-react'
@@ -138,8 +137,7 @@ export default function ServicesAdmin() {
   const toolbarActions = (
     <Button
       variant="default"
-      size={DATA_TABLE_TOOLBAR_BUTTON_SIZE}
-      className={dataTableToolbarButtonClassName}
+      className={dataTableToolbarControlClassName}
       onClick={openCreate}
     >
       <Plus data-icon="inline-start" />

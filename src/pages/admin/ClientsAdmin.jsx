@@ -22,8 +22,7 @@ import AdminMasterDetailLayout from '@/components/admin/admin-master-detail-layo
 import ClientImportDialog, { ClientImportToolbarMenu } from '@/components/ClientImportDialog'
 import ClientsDataTable from './clients/clients-data-table'
 import {
-  DATA_TABLE_TOOLBAR_BUTTON_SIZE,
-  dataTableToolbarButtonClassName,
+  dataTableToolbarControlClassName,
 } from '@/components/data-table/toolbar-styles'
 import { Plus } from 'lucide-react'
 
@@ -142,8 +141,7 @@ export default function ClientsAdmin() {
       <ClientImportToolbarMenu onUploadClick={() => setImportOpen(true)} />
       <Button
         variant="default"
-        size={DATA_TABLE_TOOLBAR_BUTTON_SIZE}
-        className={dataTableToolbarButtonClassName}
+        className={dataTableToolbarControlClassName}
         onClick={openCreate}
       >
         <Plus data-icon="inline-start" />

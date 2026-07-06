@@ -4,12 +4,13 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from '@/components/ui/input-group'
+import { dataTableSearchClassName } from './toolbar-styles'
 
 export function DataTableSearch({
   value,
   onChange,
   placeholder = '搜尋…',
-  className = 'h-7 flex-1 bg-card sm:max-w-md',
+  className = dataTableSearchClassName,
   'aria-label': ariaLabel = '搜尋',
 }) {
   return (

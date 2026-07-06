@@ -9,9 +9,10 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import {
-  DATA_TABLE_TOOLBAR_BUTTON_SIZE,
-  dataTableToolbarButtonClassName,
+  dataTableToolbarControlClassName,
+  dataTableToolbarIconControlClassName,
 } from './toolbar-styles'
+import { cn } from '@/lib/utils'
 
 export function DataTableViewOptions({ table, label = '欄位顯示', iconOnly = true }) {
   const hideable = table
@@ -27,8 +28,9 @@ export function DataTableViewOptions({ table, label = '欄位顯示', iconOnly =
           <Button
             type="button"
             variant="outline"
-            size={iconOnly ? 'icon-sm' : DATA_TABLE_TOOLBAR_BUTTON_SIZE}
-            className={iconOnly ? undefined : dataTableToolbarButtonClassName}
+            className={cn(
+              iconOnly ? dataTableToolbarIconControlClassName : dataTableToolbarControlClassName,
+            )}
             aria-label={label}
           >
             <SlidersHorizontal data-icon={iconOnly ? undefined : 'inline-start'} />

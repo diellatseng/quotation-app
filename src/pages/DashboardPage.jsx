@@ -46,8 +46,7 @@ import { AppBrandTitle, AppShellHeader } from '@/components/AppShellHeader'
 import ProjectsDataTable from './dashboard/projects-data-table'
 import ProjectStatusFilterPills from './dashboard/project-status-filter-pills'
 import {
-  DATA_TABLE_TOOLBAR_BUTTON_SIZE,
-  dataTableToolbarButtonClassName,
+  dataTableToolbarControlClassName,
 } from '@/components/data-table/toolbar-styles'
 import { Database, FolderKanban, LogOut, Palette, Plus, Settings } from 'lucide-react'
 
@@ -203,8 +202,7 @@ export default function DashboardPage() {
   const toolbarActions = (
     <Button
       variant="default"
-      size={DATA_TABLE_TOOLBAR_BUTTON_SIZE}
-      className={`hidden shrink-0 sm:inline-flex ${dataTableToolbarButtonClassName}`}
+      className={`hidden shrink-0 sm:inline-flex ${dataTableToolbarControlClassName}`}
       onClick={() => navigate('/projects/new')}
       aria-label="新增案件"
     >

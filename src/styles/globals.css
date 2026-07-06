@@ -189,9 +189,9 @@
     --highlight-border: #7269E6;
     --cta-hover: #6359D9;
 
-    /* Filter chips (案件列表 pills) */
-    --chip-active-bg: #5448CC;
-    --chip-active-text: #FFFFFF;
+    /* Filter chips (案件列表 segmented filters) */
+    --chip-active-bg: #EEEDFE;
+    --chip-active-text: #3C3489;
     --chip-hover-bg: #ECE9FB;
     --chip-hover-border: #A79CF0;
     --chip-default-border: #D3D9E5;
@@ -293,8 +293,8 @@
     --highlight-border: #0040AA;
     --cta-hover: #003080;
 
-    --chip-active-bg: #000000;
-    --chip-active-text: #FFFFFF;
+    --chip-active-bg: #E8F0FF;
+    --chip-active-text: #000000;
     --chip-hover-bg: #E8F0FF;
     --chip-hover-border: #000000;
     --chip-default-border: #000000;

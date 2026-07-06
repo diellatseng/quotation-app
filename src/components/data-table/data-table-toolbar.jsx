@@ -23,7 +23,7 @@ export function DataTableToolbar({
         ) : null}
       </div>
       {filters ? (
-        <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="w-full">
           {filters}
         </div>
       ) : null}

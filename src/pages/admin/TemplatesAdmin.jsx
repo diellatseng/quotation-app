@@ -21,8 +21,7 @@ import { AppEmptyState } from '@/components/AppEmptyState'
 import AdminMasterDetailLayout from '@/components/admin/admin-master-detail-layout'
 import TemplatesDataTable from './templates/templates-data-table'
 import {
-  DATA_TABLE_TOOLBAR_BUTTON_SIZE,
-  dataTableToolbarButtonClassName,
+  dataTableToolbarControlClassName,
 } from '@/components/data-table/toolbar-styles'
 import { Layers, Plus } from 'lucide-react'
 
@@ -140,8 +139,7 @@ export default function TemplatesAdmin() {
   const toolbarActions = (
     <Button
       variant="default"
-      size={DATA_TABLE_TOOLBAR_BUTTON_SIZE}
-      className={dataTableToolbarButtonClassName}
+      className={dataTableToolbarControlClassName}
       onClick={openCreate}
     >
       <Plus data-icon="inline-start" />
