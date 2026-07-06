@@ -1,0 +1,9 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img">
+  <title>Project management app icon</title>
+  <rect x="2" y="2" width="60" height="60" rx="18" fill="#D4537E"/>
+  <rect x="24" y="8" width="16" height="22" rx="8" fill="#FBEAF0"/>
+  <rect x="24" y="34" width="16" height="22" rx="8" fill="#FBEAF0"/>
+  <rect x="8" y="24" width="22" height="16" rx="8" fill="#FBEAF0"/>
+  <rect x="34" y="24" width="22" height="16" rx="8" fill="#FBEAF0"/>
+  <circle cx="32" cy="32" r="9" fill="#72243E"/>
+</svg>

@@ -2,26 +2,23 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Fragment } from 'react'
 import { useNavigate } from 'react-router-dom'
 import packageJson from '../../package.json'
+import appIcon from '@/img/icon.svg'
 import { cn } from '@/lib/utils'
 
 export function AppBrandMark({ size = 'md', className }) {
   const sizes = {
-    sm: 'h-8 w-8 text-base',
-    md: 'h-10 w-10 text-lg',
-    lg: 'h-12 w-12 text-xl',
+    sm: 'h-8 w-8',
+    md: 'h-10 w-10',
+    lg: 'h-12 w-12',
   }
 
   return (
-    <div
-      className={cn(
-        'flex items-center justify-center rounded-lg bg-primary font-bold text-primary-foreground',
-        sizes[size],
-        className,
-      )}
+    <img
+      src={appIcon}
+      alt=""
+      className={cn('shrink-0 rounded-lg', sizes[size], className)}
       aria-hidden="true"
-    >
-      專
-    </div>
+    />
   )
 }
 
