@@ -1,4 +1,5 @@
 // src/App.js
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import { AppearanceProvider } from './context/AppearanceContext'
@@ -6,19 +7,19 @@ import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { AppLoadingSkeleton } from '@/components/skeletons'
 
-import LoginPage             from './pages/LoginPage'
-import DashboardPage         from './pages/DashboardPage'
-import ProjectSetupPage     from './pages/ProjectSetupPage'
-import ProjectEditPage      from './pages/ProjectEditPage'
-import WizardPage            from './pages/wizard/WizardPage'
-import QuotationDetailPage   from './pages/QuotationDetailPage'
-import ProjectDetailPage     from './pages/ProjectDetailPage'
-import InvoiceDetailPage     from './pages/InvoiceDetailPage'
-import AdminLayout           from './pages/admin/AdminLayout'
-import ClientsAdmin          from './pages/admin/ClientsAdmin'
-import TemplatesAdmin        from './pages/admin/TemplatesAdmin'
-import ServicesAdmin         from './pages/admin/ServicesAdmin'
-import OtherAdmin              from './pages/admin/OtherAdmin'
+const LoginPage = lazy(() => import('./pages/LoginPage'))
+const DashboardPage = lazy(() => import('./pages/DashboardPage'))
+const ProjectSetupPage = lazy(() => import('./pages/ProjectSetupPage'))
+const ProjectEditPage = lazy(() => import('./pages/ProjectEditPage'))
+const WizardPage = lazy(() => import('./pages/wizard/WizardPage'))
+const QuotationDetailPage = lazy(() => import('./pages/QuotationDetailPage'))
+const ProjectDetailPage = lazy(() => import('./pages/ProjectDetailPage'))
+const InvoiceDetailPage = lazy(() => import('./pages/InvoiceDetailPage'))
+const AdminLayout = lazy(() => import('./pages/admin/AdminLayout'))
+const ClientsAdmin = lazy(() => import('./pages/admin/ClientsAdmin'))
+const TemplatesAdmin = lazy(() => import('./pages/admin/TemplatesAdmin'))
+const ServicesAdmin = lazy(() => import('./pages/admin/ServicesAdmin'))
+const OtherAdmin = lazy(() => import('./pages/admin/OtherAdmin'))
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -28,7 +29,7 @@ function ProtectedRoute({ children }) {
 
 function AppRoutes() {
   return (
-    <>
+    <Suspense fallback={<AppLoadingSkeleton />}>
       <Toaster richColors />
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
@@ -51,7 +52,7 @@ function AppRoutes() {
         </Route>
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
-    </>
+    </Suspense>
   )
 }
 

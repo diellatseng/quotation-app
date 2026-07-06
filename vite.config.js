@@ -24,6 +24,26 @@ export default defineConfig({
   build: {
     // Keep "build" so the existing gh-pages deploy script (-d build) keeps working.
     outDir: 'build',
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return
+
+          if (
+            id.includes('/react/')
+            || id.includes('/react-dom/')
+            || id.includes('react-router')
+            || id.includes('scheduler/')
+          ) {
+            return 'react-vendor'
+          }
+
+          if (id.includes('@supabase')) return 'supabase'
+          if (id.includes('@tanstack')) return 'tanstack-table'
+          if (id.includes('@base-ui')) return 'base-ui'
+        },
+      },
+    },
   },
   test: {
     globals: true,
