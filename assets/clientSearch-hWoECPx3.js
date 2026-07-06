@@ -1,0 +1,1 @@
+var e=[`company_name`,`phone`,`fax`,`email`,`address`,`responsible_person_name`,`responsible_person_mobile`,`responsible_person_title`];function t(t,n){let r=String(n??``).trim().toLowerCase();return r?e.some(e=>{let n=t?.[e];return n==null||n===``?!1:String(n).toLowerCase().includes(r)}):!0}function n(e,n,r){return t(e.original,r)}export{t as n,n as t};
