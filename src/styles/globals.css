@@ -89,7 +89,7 @@
     --color-destructive-foreground: var(--destructive-foreground);
 }
 
-/* ── 2. Default theme — 幽蘭霧紫 / Violet Mist ── */
+/* ── 2. Default theme — 朵麗蘭 Doritis ── */
 :root,
 [data-theme="default"] {
     --background: #F8F9FC;
