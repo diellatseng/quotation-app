@@ -49,7 +49,10 @@ export default function InvoiceSetupDialog({
   const [previewStages, setPreviewStages] = useState([])
   const [manual, setManual] = useState(() => initialManualStageState(project))
 
-  const usableQuotations = quotations.filter(q => q.status !== '已刪除')
+  const usableQuotations = useMemo(
+    () => quotations.filter(q => q.status !== '已刪除'),
+    [quotations],
+  )
 
   useEffect(() => {
     if (!open) return
@@ -57,13 +60,10 @@ export default function InvoiceSetupDialog({
     setSelectedQuotationId(usableQuotations[0]?.id || '')
     setPreviewStages([])
     setManual(initialManualStageState(project))
-  }, [open, project, quotations]) // eslint-disable-line
+  }, [open, project, usableQuotations])
 
   useEffect(() => {
-    if (mode !== 'quotation' || !selectedQuotationId) {
-      setPreviewStages([])
-      return
-    }
+    if (mode !== 'quotation' || !selectedQuotationId) return
 
     let cancelled = false
 
@@ -151,7 +151,10 @@ export default function InvoiceSetupDialog({
     }
   }
 
-  const handleBack = () => setMode(null)
+  const handleBack = () => {
+    setMode(null)
+    setPreviewStages([])
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

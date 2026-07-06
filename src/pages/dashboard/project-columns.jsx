@@ -141,18 +141,20 @@ export function createProjectColumns({
                 else setActionMenuId(null)
               }}
             >
-              <DropdownMenuTrigger asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  className="text-muted-foreground hover:bg-surface-hover hover:text-foreground"
-                  aria-label={`${displayLandSection(project)} 操作選單`}
-                  onClick={e => e.stopPropagation()}
-                >
-                  <MoreHorizontal className="size-4" />
-                </Button>
-              </DropdownMenuTrigger>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    className="text-muted-foreground hover:bg-surface-hover hover:text-foreground"
+                    aria-label={`${displayLandSection(project)} 操作選單`}
+                    onClick={e => e.stopPropagation()}
+                  >
+                    <MoreHorizontal className="size-4" />
+                  </Button>
+                }
+              />
               <DropdownMenuContent align="end" className="min-w-[140px]">
                 {hasProjectStatusActions(project.status) && (
                   <DropdownMenuGroup>

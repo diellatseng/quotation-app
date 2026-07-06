@@ -74,17 +74,19 @@ export function createTemplateColumns({ onEdit, onDelete }) {
         return (
           <div className="text-right" onClick={e => e.stopPropagation()}>
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  className="text-muted-foreground hover:bg-surface-hover hover:text-foreground"
-                  aria-label={`${template.name} 操作選單`}
-                >
-                  <MoreHorizontal className="size-4" />
-                </Button>
-              </DropdownMenuTrigger>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    className="text-muted-foreground hover:bg-surface-hover hover:text-foreground"
+                    aria-label={`${template.name} 操作選單`}
+                  >
+                    <MoreHorizontal className="size-4" />
+                  </Button>
+                }
+              />
               <DropdownMenuContent align="end">
                 <DropdownMenuGroup>
                   <DropdownMenuItem onClick={() => onEdit(template)}>
