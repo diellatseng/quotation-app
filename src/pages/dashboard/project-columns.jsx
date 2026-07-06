@@ -1,4 +1,4 @@
-import { MoreHorizontal, Pause, Play, Trash2 } from 'lucide-react'
+import { Building2, MoreHorizontal, Pause, Play, Trash2 } from 'lucide-react'
 import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header'
 import {
   BillingSummaryBadges,
@@ -186,6 +186,7 @@ export function createProjectColumns({
                             onUpdateStatus(project.id, '完工')
                           }}
                         >
+                          <Building2 />
                           標記完工
                         </DropdownMenuItem>
                       </>

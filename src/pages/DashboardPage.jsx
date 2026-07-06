@@ -223,7 +223,7 @@ export default function DashboardPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>刪除案件</AlertDialogTitle>
             <AlertDialogDescription>
-              確定要刪除「{projectToDelete ? projectPrimaryLabel(projectToDelete) : ''}」嗎？相關報價單也會一併刪除。
+              確定要刪除「{projectToDelete ? projectPrimaryLabel(projectToDelete) : ''}」嗎？相關報價單和請款單也會一併刪除。
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

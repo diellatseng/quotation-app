@@ -59,7 +59,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Check, Eye, FileText, MoreHorizontal, Pencil, Play, Plus, Receipt, Trash2 } from 'lucide-react'
+import { Check, Eye, FileText, MoreHorizontal, Pencil, Play, Plus, Receipt, Trash2, Building2 } from 'lucide-react'
 import { deleteProjectById } from '@/lib/deleteProject'
 import { groupDisbursementsByStage, saveDisbursementsForStage, sumDisbursements } from '@/lib/disbursements'
 import { suggestReturnedDocuments } from '@/lib/invoiceDocument'
@@ -475,7 +475,7 @@ export default function ProjectDetailPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>刪除案件</AlertDialogTitle>
             <AlertDialogDescription>
-              確定要刪除「{projectPrimaryLabel(project)}」嗎？相關報價單也會一併刪除。
+              確定要刪除「{projectPrimaryLabel(project)}」嗎？相關報價單和請款單也會一併刪除。
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -778,6 +778,7 @@ export default function ProjectDetailPage() {
                   className="font-semibold"
                   onClick={() => updateProjectStatus('完工')}
                 >
+                  <Building2 data-icon="inline-start" />
                   標記完工
                 </Button>
               </>
