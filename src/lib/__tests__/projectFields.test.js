@@ -14,6 +14,7 @@ import {
   parseBuildingPermit,
   formatBuildingPermit,
   getBuildingPermitFormDefaults,
+  permitPartsFromData,
   parseProjectScale,
   formatProjectScale,
   projectScaleFieldsFromParts,
@@ -173,6 +174,22 @@ describe('building permit', () => {
   it('formats (YYY)AB建築字第XXXXX號', () => {
     expect(formatBuildingPermit({ year: '112', cityPrefix: '高市', number: '961' }))
       .toBe('(112)高市建築字第961號')
+  })
+
+  it('formats partial year without breaking parse while typing', () => {
+    expect(formatBuildingPermit({ year: '112', cityPrefix: '高市', number: '' }))
+      .toBe('(112)高市')
+  })
+
+  it('keeps permit year while number is empty via structured fields', () => {
+    const parts = permitPartsFromData({
+      permit_year: '112',
+      permit_number: '',
+      land_city_name: '高雄',
+      land_city_type: '市',
+    })
+    expect(parts.year).toBe('112')
+    expect(parts.number).toBe('')
   })
 
   it('prefills defaults for empty form', () => {

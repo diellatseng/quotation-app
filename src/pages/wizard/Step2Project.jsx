@@ -1,16 +1,17 @@
 // src/pages/wizard/Step2Project.jsx
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { companyProfileLabel, pickDefaultCompanyProfile } from '../../lib/companyProfile'
 import {
+  buildingPermitFieldsFromParts,
+  buildingPermitPrefixFromLand,
   formatBuildingPermit,
   formatLandSection,
   formatProjectScale,
-  buildingPermitPrefixFromLand,
-  getBuildingPermitFormDefaults,
   landPartsFromData,
   landSectionFieldsFromParts,
   isLandPartsComplete,
+  permitPartsFromData,
   projectScaleFieldsFromParts,
   sanitizeParcelInput,
   scalePartsFromData,
@@ -87,10 +88,7 @@ export default function Step2Project({
   const composedLandSection = formatLandSection(landParts)
   const landComplete = isLandPartsComplete(landParts)
 
-  const permitParts = useMemo(
-    () => getBuildingPermitFormDefaults(data.building_permit),
-    [data.building_permit],
-  )
+  const permitParts = permitPartsFromData(data)
   const permitCityPrefix = buildingPermitPrefixFromLand(landParts)
   const composedBuildingPermit = formatBuildingPermit({
     ...permitParts,
@@ -121,21 +119,12 @@ export default function Step2Project({
     const nextLand = { ...landParts, ...partial }
     update({
       ...landSectionFieldsFromParts(nextLand),
-      building_permit: formatBuildingPermit({
-        ...permitParts,
-        cityPrefix: buildingPermitPrefixFromLand(nextLand),
-      }),
+      ...buildingPermitFieldsFromParts(permitParts, nextLand),
     })
   }
 
   const updatePermit = (partial) => {
-    update({
-      building_permit: formatBuildingPermit({
-        ...permitParts,
-        ...partial,
-        cityPrefix: permitCityPrefix,
-      }),
-    })
+    update(buildingPermitFieldsFromParts({ ...permitParts, ...partial }, landParts))
   }
 
   const updateScale = (partial) => {

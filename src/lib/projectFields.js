@@ -268,10 +268,34 @@ export function formatBuildingPermit({ year, cityPrefix, number }) {
   let result = ''
   if (y) result += `(${y})`
   result += city
-  result += '建築字第'
-  if (n) result += n
-  if (n || y) result += '號'
+  if (n) {
+    result += '建築字第'
+    result += n
+    result += '號'
+  }
   return result
+}
+
+/** Read structured permit fields from form data (no round-trip parse while typing). */
+export function permitPartsFromData(data) {
+  if (data?.permit_year != null || data?.permit_number != null) {
+    return {
+      year: data.permit_year ?? '',
+      cityPrefix: buildingPermitPrefixFromLand(landPartsFromData(data)),
+      number: data.permit_number ?? '',
+    }
+  }
+  return getBuildingPermitFormDefaults(data?.building_permit || '')
+}
+
+/** Sync composed building_permit + part fields for parent form state. */
+export function buildingPermitFieldsFromParts(parts, landParts) {
+  const cityPrefix = buildingPermitPrefixFromLand(landParts)
+  return {
+    permit_year: parts.year ?? '',
+    permit_number: parts.number ?? '',
+    building_permit: formatBuildingPermit({ ...parts, cityPrefix }),
+  }
 }
 
 /** Read structured scale fields from wizard data (no round-trip parse while typing). */

@@ -9,6 +9,7 @@ import Step2Project from './wizard/Step2Project'
 import {
   DEFAULT_LAND_CITY_NAME,
   DEFAULT_LAND_CITY_TYPE,
+  currentRocYear,
   formatLandSection,
   isLandPartsComplete,
 } from '../lib/projectFields'
@@ -34,6 +35,8 @@ const initState = () => ({
   selectedContactId: null,
   company_profile_id: null,
   building_permit: '',
+  permit_year: currentRocYear(),
+  permit_number: '',
   land_city_name: DEFAULT_LAND_CITY_NAME,
   land_city_type: DEFAULT_LAND_CITY_TYPE,
   land_district_name: '',

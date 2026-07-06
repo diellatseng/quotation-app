@@ -9,7 +9,9 @@ import { marketingNameForEdit } from '../lib/projectDisplay'
 import {
   DEFAULT_LAND_CITY_NAME,
   DEFAULT_LAND_CITY_TYPE,
+  currentRocYear,
   formatLandSection,
+  getBuildingPermitFormDefaults,
   isLandPartsComplete,
   parseLandSection,
   parseProjectScale,
@@ -43,6 +45,8 @@ const initState = () => ({
   selectedContactId: null,
   company_profile_id: null,
   building_permit: '',
+  permit_year: currentRocYear(),
+  permit_number: '',
   land_city_name: DEFAULT_LAND_CITY_NAME,
   land_city_type: DEFAULT_LAND_CITY_TYPE,
   land_district_name: '',
@@ -63,6 +67,8 @@ function snapshotState(data) {
     selectedContactId: data.selectedContactId || null,
     company_profile_id: data.company_profile_id || null,
     building_permit: data.building_permit || '',
+    permit_year: data.permit_year || '',
+    permit_number: data.permit_number || '',
     land_city_name: data.land_city_name || '',
     land_city_type: data.land_city_type || DEFAULT_LAND_CITY_TYPE,
     land_district_name: data.land_district_name || '',
@@ -127,12 +133,15 @@ export default function ProjectEditPage() {
 
         const land = parseLandSection(proj.land_section || '')
         const scale = parseProjectScale(proj.project_scale || '')
+        const permit = getBuildingPermitFormDefaults(proj.building_permit || '')
         const loaded = {
           client: proj.clients || null,
           contacts,
           selectedContactId: proj.contact_person_id || null,
           company_profile_id: proj.company_profile_id || null,
           building_permit: proj.building_permit || '',
+          permit_year: permit.year,
+          permit_number: permit.number,
           land_city_name: land.cityName || DEFAULT_LAND_CITY_NAME,
           land_city_type: land.cityType || DEFAULT_LAND_CITY_TYPE,
           land_district_name: land.district,
