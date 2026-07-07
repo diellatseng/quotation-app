@@ -46,7 +46,7 @@ const initState = () => ({
   project_owner: '',
   marketing_name: '',
 
-  // 案件公司抬頭（步驟 2）
+  // 案件開立抬頭（步驟 2）
   company_profile_id: null,
 
   // Step 3

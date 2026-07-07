@@ -70,19 +70,23 @@ CREATE TABLE service_checklist_items (
   sort_order  INT DEFAULT 0
 );
 
--- ── COMPANY PROFILES (公司抬頭，供案件 / PDF 使用) ───────────────
+-- ── COMPANY PROFILES (開立抬頭：公司／個人，供案件 / PDF 使用) ─────
 CREATE TABLE company_profiles (
-  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  label       TEXT NOT NULL,
-  name        TEXT NOT NULL,
-  address     TEXT,
-  phone       TEXT,
-  fax         TEXT,
-  email       TEXT,
-  is_default  BOOLEAN DEFAULT FALSE,
-  sort_order  INT DEFAULT 0,
-  created_at  TIMESTAMPTZ DEFAULT NOW(),
-  updated_at  TIMESTAMPTZ DEFAULT NOW()
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  profile_type  TEXT NOT NULL DEFAULT 'company'
+                  CHECK (profile_type IN ('company', 'individual')),
+  label         TEXT NOT NULL,
+  name          TEXT NOT NULL,
+  honorific     TEXT CHECK (honorific IS NULL OR honorific IN ('先生', '小姐')),
+  national_id   TEXT,
+  address       TEXT,
+  phone         TEXT,
+  fax           TEXT,
+  email         TEXT,
+  is_default    BOOLEAN DEFAULT FALSE,
+  sort_order    INT DEFAULT 0,
+  created_at    TIMESTAMPTZ DEFAULT NOW(),
+  updated_at    TIMESTAMPTZ DEFAULT NOW()
 );
 
 ALTER TABLE company_profiles ENABLE ROW LEVEL SECURITY;

@@ -27,6 +27,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { AppEmptyState } from '@/components/AppEmptyState'
+import { AdminDefaultBadge } from '@/components/admin/AdminDefaultBadge'
 import { AdminListSkeleton } from '@/components/skeletons'
 import { Landmark, Plus } from 'lucide-react'
 
@@ -261,13 +262,13 @@ export default function BankAccountsAdmin() {
                 onClick={() => openEdit(a)}
                 className="w-full rounded-lg border border-border px-3 py-2 text-left text-sm transition-colors hover:bg-surface-hover"
               >
-                <div className="font-medium text-foreground">{a.label}</div>
-                <div className="text-xs text-muted-foreground">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-medium text-foreground">{a.label}</span>
+                  {a.is_default && <AdminDefaultBadge />}
+                </div>
+                <div className="text-sm text-foreground">
                   {a.bank_name} · {a.account_number}
                 </div>
-                {a.is_default && (
-                  <div className="mt-1 text-xs font-medium text-primary">預設</div>
-                )}
               </button>
             ))
           )}

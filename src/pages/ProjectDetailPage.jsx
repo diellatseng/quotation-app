@@ -153,7 +153,7 @@ export default function ProjectDetailPage() {
           *,
           clients(company_name, address, phone, email),
           contact_persons(name, mobile, email),
-          company_profiles(id, name)
+          company_profiles(id, name, profile_type, honorific)
         `)
         .eq('id', id)
         .single()
@@ -922,7 +922,7 @@ export default function ProjectDetailPage() {
               <CardContent>
                 <dl className="grid gap-4 sm:grid-cols-2">
                   <div>
-                    <dt className="text-sm text-muted-foreground">公司抬頭</dt>
+                    <dt className="text-sm font-semibold text-foreground">開立抬頭</dt>
                     <dd className="mt-0.5 font-medium text-foreground">
                       {project.company_profiles
                         ? companyProfileLabel(project.company_profiles)

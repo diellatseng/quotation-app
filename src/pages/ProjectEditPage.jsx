@@ -197,7 +197,7 @@ export default function ProjectEditPage() {
       return false
     }
     if (!data.company_profile_id) {
-      toast.warning('請選擇公司抬頭')
+      toast.warning('請選擇開立抬頭')
       return false
     }
     if (!isLandPartsComplete({
@@ -253,7 +253,7 @@ export default function ProjectEditPage() {
     if (!canGoNext()) {
       if (step === 1) toast.warning('請先選擇或建立客戶')
       if (step === 2) {
-        if (!data.company_profile_id) toast.warning('請選擇公司抬頭')
+        if (!data.company_profile_id) toast.warning('請選擇開立抬頭')
         else toast.warning('請輸入地號')
       }
       return
@@ -272,7 +272,7 @@ export default function ProjectEditPage() {
 
   const handleFinish = async () => {
     if (!canGoNext()) {
-      if (!data.company_profile_id) toast.warning('請選擇公司抬頭')
+      if (!data.company_profile_id) toast.warning('請選擇開立抬頭')
       else toast.warning('請輸入地號')
       return
     }
@@ -341,7 +341,7 @@ export default function ProjectEditPage() {
           <Step2Project
             {...stepProps}
             title="步驟 2：工程資料"
-            description="可調整公司抬頭與工程基本資料。地號為必填且不可與其他案件重複。"
+            description="可調整開立抬頭與工程基本資料。地號為必填且不可與其他案件重複。"
           />
         )}
       </WizardShell>

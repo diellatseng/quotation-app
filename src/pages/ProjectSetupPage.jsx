@@ -92,7 +92,7 @@ export default function ProjectSetupPage() {
       return null
     }
     if (!data.company_profile_id) {
-      toast.warning('請選擇公司抬頭')
+      toast.warning('請選擇開立抬頭')
       return null
     }
     if (!isLandPartsComplete({
@@ -156,7 +156,7 @@ export default function ProjectSetupPage() {
     if (!canGoNext()) {
       if (step === 1) toast.warning('請先選擇或建立客戶')
       if (step === 2) {
-        if (!data.company_profile_id) toast.warning('請選擇公司抬頭')
+        if (!data.company_profile_id) toast.warning('請選擇開立抬頭')
         else toast.warning('請輸入地號')
       }
       return
@@ -175,7 +175,7 @@ export default function ProjectSetupPage() {
 
   const handleFinish = async () => {
     if (!canGoNext()) {
-      if (!data.company_profile_id) toast.warning('請選擇公司抬頭')
+      if (!data.company_profile_id) toast.warning('請選擇開立抬頭')
       else toast.warning('請輸入地號')
       return
     }
@@ -230,7 +230,7 @@ export default function ProjectSetupPage() {
           <Step2Project
             {...stepProps}
             title="步驟 2：工程資料"
-            description="請選擇公司抬頭並輸入地號（必填）。工程名稱為選填，可稍後再補。"
+            description="請選擇開立抬頭並輸入地號（必填）。工程名稱為選填，可稍後再補。"
           />
         )}
       </WizardShell>

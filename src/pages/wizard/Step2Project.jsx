@@ -1,7 +1,7 @@
 // src/pages/wizard/Step2Project.jsx
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
-import { companyProfileLabel, pickDefaultCompanyProfile } from '../../lib/companyProfile'
+import { companyProfileLabel, pickDefaultCompanyProfile, PROFILE_TYPE_COMPANY, PROFILE_TYPE_INDIVIDUAL } from '../../lib/companyProfile'
 import {
   buildingPermitFieldsFromParts,
   buildingPermitPrefixFromLand,
@@ -24,7 +24,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
@@ -80,7 +82,7 @@ export default function Step2Project({
   update,
   companyProfileLocked,
   title = '步驟 2：工程資料',
-  description = '請選擇公司抬頭並輸入工程基本資料。固定文字已填好，您只需輸入會變動的部分。',
+  description = '請選擇開立抬頭並輸入工程基本資料。固定文字已填好，您只需輸入會變動的部分。',
 }) {
   const [companyProfiles, setCompanyProfiles] = useState([])
 
@@ -114,6 +116,12 @@ export default function Step2Project({
   }, [companyProfileLocked]) // eslint-disable-line
 
   const selectedProfile = companyProfiles.find(p => p.id === data.company_profile_id)
+  const companyIssuerProfiles = companyProfiles.filter(
+    p => (p.profile_type || PROFILE_TYPE_COMPANY) === PROFILE_TYPE_COMPANY,
+  )
+  const individualIssuerProfiles = companyProfiles.filter(
+    p => p.profile_type === PROFILE_TYPE_INDIVIDUAL,
+  )
 
   const updateLand = (partial) => {
     const nextLand = { ...landParts, ...partial }
@@ -140,28 +148,25 @@ export default function Step2Project({
 
       <Card className="shadow-sm">
         <CardHeader>
-          <CardTitle className="font-semibold text-foreground">公司抬頭</CardTitle>
-          <CardDescription>
-            將套用於本案件所有文件，包含報價單、請款單等 PDF 上的公司名稱、地址與聯絡資訊。
+          <CardTitle className="font-semibold text-foreground">開立抬頭</CardTitle>
+          <CardDescription className="text-foreground">
+            將套用於本案件所有文件，包含報價單、請款單等 PDF 上的名義、地址與聯絡資訊（可選公司或個人）。
           </CardDescription>
         </CardHeader>
         <CardContent>
           {companyProfileLocked ? (
             <div className="space-y-1 text-sm">
               <p className="font-medium text-foreground">
-                {selectedProfile ? companyProfileLabel(selectedProfile) : '未設定公司抬頭'}
+                {selectedProfile ? companyProfileLabel(selectedProfile) : '未設定開立抬頭'}
               </p>
-              {selectedProfile && (
-                <p className="text-foreground">{selectedProfile.name}</p>
-              )}
             </div>
           ) : companyProfiles.length === 0 ? (
             <p className="text-sm text-foreground">
-              尚無公司抬頭，請先到管理介面 → 公司抬頭 新增。
+              尚無開立抬頭，請先到管理介面 → 其他 → 開立抬頭 新增。
             </p>
           ) : (
             <Field>
-              <FieldLabel htmlFor="company_profile" className="text-foreground">選擇公司抬頭</FieldLabel>
+              <FieldLabel htmlFor="company_profile" className="text-base font-semibold text-foreground">選擇開立抬頭</FieldLabel>
               <Select
                 value={data.company_profile_id || ''}
                 onValueChange={value => update({ company_profile_id: value })}
@@ -170,11 +175,26 @@ export default function Step2Project({
                   {selectedProfile ? companyProfileLabel(selectedProfile) : '請選擇'}
                 </SelectTrigger>
                 <SelectContent>
-                  {companyProfiles.map(profile => (
-                    <SelectItem key={profile.id} value={profile.id}>
-                      {companyProfileLabel(profile)}
-                    </SelectItem>
-                  ))}
+                  {companyIssuerProfiles.length > 0 && (
+                    <SelectGroup>
+                      <SelectLabel>公司</SelectLabel>
+                      {companyIssuerProfiles.map(profile => (
+                        <SelectItem key={profile.id} value={profile.id}>
+                          {companyProfileLabel(profile)}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  )}
+                  {individualIssuerProfiles.length > 0 && (
+                    <SelectGroup>
+                      <SelectLabel>個人</SelectLabel>
+                      {individualIssuerProfiles.map(profile => (
+                        <SelectItem key={profile.id} value={profile.id}>
+                          {companyProfileLabel(profile)}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  )}
                 </SelectContent>
               </Select>
             </Field>
