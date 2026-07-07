@@ -122,8 +122,8 @@ const InvoicePreview = forwardRef(function InvoicePreview(
             <div className="inv-section-body">
               {returnedDocuments.length > 0 ? (
                 <ol className="inv-footer-list">
-                  {returnedDocuments.map(doc => (
-                    <li key={doc}>{doc}</li>
+                  {returnedDocuments.map((doc, index) => (
+                    <li key={`${index}-${doc}`}>{doc}</li>
                   ))}
                 </ol>
               ) : (
