@@ -1,0 +1,311 @@
+/* ── ContractPreview.css ──────────────────────────────────────────────────────
+   Styles for the contract PDF preview component (ContractPreview.jsx).
+
+   Type scale (px, fixed — A4 is a 794px surface):
+     10px  footer date
+     11px  table cells, clause body
+     12px  meta values, party fields, section titles
+     14px  amount text (總承攬價)
+     22px  document title (簡易合約)
+
+   Self-contained: no dependency on globals.css.
+────────────────────────────────────────────────────────────────────────────── */
+
+/* ── Root ─────────────────────────────────────────────────────────────────── */
+.ct-root {
+  font-family: 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
+  background: transparent;
+}
+
+/* ── Page shell ───────────────────────────────────────────────────────────── */
+.ct-page {
+  width: 794px;
+  min-height: 1123px;
+  background: #fff;
+  box-sizing: border-box;
+  padding: 36px 48px 48px;
+  color: #1a1916;
+  position: relative;
+}
+
+/* ── Header ───────────────────────────────────────────────────────────────── */
+.ct-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  border-bottom: 2px solid #1a1916;
+  padding-bottom: 8px;
+  margin-bottom: 16px;
+}
+
+.ct-header__title {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: #1a1916;
+}
+
+.ct-header__num {
+  font-size: 11px;
+  color: #555;
+  letter-spacing: 0.04em;
+}
+
+/* ── Meta table (project info at top) ────────────────────────────────────── */
+.ct-meta {
+  margin-bottom: 16px;
+}
+
+.ct-meta-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.ct-meta-table td {
+  padding: 3px 0;
+  vertical-align: top;
+}
+
+.ct-meta-label {
+  width: 60px;
+  font-weight: 600;
+  white-space: nowrap;
+  padding-right: 6px;
+  letter-spacing: 0.05em;
+}
+
+.ct-meta-label--right {
+  width: 60px;
+  text-align: right;
+  padding-right: 8px;
+  padding-left: 16px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.ct-meta-sep {
+  width: 8px;
+}
+
+.ct-meta-value {
+  border-bottom: 1px solid #d4d2cb;
+  min-width: 100px;
+  padding-bottom: 1px;
+}
+
+/* ── Fee table ────────────────────────────────────────────────────────────── */
+.ct-fee-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  margin-bottom: 10px;
+}
+
+.ct-th {
+  background: #f0ede6;
+  color: #1a1916;
+  font-weight: 700;
+  text-align: center;
+  padding: 5px 4px;
+  border: 1px solid #b8b5ae;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.ct-td {
+  border: 1px solid #ccc;
+  padding: 5px 4px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.ct-td--left {
+  text-align: left;
+}
+
+/* Column width ratios */
+.ct-col-no    { width: 6%; }
+.ct-col-item  { width: 40%; }
+.ct-col-unit  { width: 7%; }
+.ct-col-qty   { width: 7%; }
+.ct-col-price { width: 14%; }
+.ct-col-total { width: 14%; }
+.ct-col-note  { width: 12%; }
+
+/* Sum rows (小計 / 營業稅 / 合計) */
+.ct-tr-sum .ct-td {
+  background: #f7f6f3;
+}
+
+.ct-tr-sum .ct-td[colspan] {
+  text-align: right;
+  font-weight: 500;
+  padding-right: 16px;
+}
+
+.ct-tr-total .ct-td {
+  background: #f0ede6;
+  font-weight: 700;
+}
+
+.ct-tr-total .ct-td[colspan] {
+  text-align: right;
+  font-weight: 700;
+  padding-right: 16px;
+}
+
+/* ── Chinese total amount text ────────────────────────────────────────────── */
+.ct-amount-text {
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+  border: 2px solid #1a1916;
+  padding: 7px 16px;
+  margin: 0 0 16px;
+  letter-spacing: 0.03em;
+}
+
+/* ── Content section (承攬內容) ───────────────────────────────────────────── */
+.ct-section {
+  margin-bottom: 16px;
+  border: 1px solid #ccc;
+}
+
+.ct-section-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: 0.25em;
+  background: #f0ede6;
+  color: #1a1916;
+  padding: 4px 0;
+  border-bottom: 1px solid #ccc;
+  margin-bottom: 0;
+}
+
+.ct-content-body {
+  padding: 8px 12px;
+  font-size: 11px;
+  line-height: 1.75;
+}
+
+.ct-clause {
+  margin-bottom: 6px;
+}
+
+.ct-clause-title {
+  font-weight: 400;
+}
+
+.ct-clause-list {
+  list-style: none;
+  padding-left: 1.5em;
+  margin: 2px 0 4px;
+  counter-reset: ct-item;
+}
+
+.ct-clause-list li {
+  position: relative;
+  padding-left: 1.6em;
+  counter-increment: ct-item;
+}
+
+.ct-clause-list li::before {
+  content: counter(ct-item) '、';
+  position: absolute;
+  left: 0;
+}
+
+/* ── Parties section (甲乙方) ──────────────────────────────────────────────── */
+.ct-parties {
+  display: flex;
+  gap: 0;
+  border: 1px solid #ccc;
+  margin-bottom: 20px;
+  min-height: 160px;
+}
+
+.ct-party {
+  flex: 1;
+  padding: 10px 14px;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.ct-party + .ct-party {
+  border-left: 1px solid #ccc;
+}
+
+.ct-party-header {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+.ct-party-name {
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 8px;
+  min-height: 18px;
+}
+
+.ct-stamp-area {
+  height: 64px;
+  border: 1px dashed #ccc;
+  margin: 4px 0 8px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #aaa;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+}
+
+.ct-party-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+
+.ct-party-label {
+  width: 58px;
+  flex-shrink: 0;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.ct-party-label--wide {
+  width: 70px;
+}
+
+.ct-party-val {
+  flex: 1;
+  border-bottom: 1px solid #d4d2cb;
+  min-height: 16px;
+  word-break: break-all;
+}
+
+/* ── Date footer ──────────────────────────────────────────────────────────── */
+.ct-date-footer {
+  text-align: center;
+  font-size: 14px;
+  letter-spacing: 0.25em;
+  font-weight: 600;
+  padding-top: 8px;
+  border-top: 1px solid #d4d2cb;
+}
+
+/* ── "以下空白" marker ────────────────────────────────────────────────────── */
+.ct-blank-marker {
+  text-align: center;
+  font-size: 11px;
+  color: #888;
+  margin-top: 10px;
+  letter-spacing: 0.1em;
+}

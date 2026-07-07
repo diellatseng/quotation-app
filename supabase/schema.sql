@@ -234,6 +234,20 @@ CREATE TABLE negotiation_log (
 );
 
 
+-- ── CONTRACTS (1 per confirmed quotation) ───────────────────────
+CREATE TABLE contracts (
+  id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  quotation_id     UUID NOT NULL REFERENCES quotations(id) ON DELETE CASCADE,
+  contract_number  TEXT,
+  project_item     TEXT NOT NULL DEFAULT '建管程序業務及使用執照代辦',
+  site_name        TEXT NOT NULL DEFAULT '',
+  signed_at        DATE,
+  created_by       UUID REFERENCES auth.users(id),
+  created_at       TIMESTAMPTZ DEFAULT NOW(),
+  updated_at       TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE (quotation_id)
+);
+
 -- ── AUTO updated_at ─────────────────────────────────────────────
 CREATE OR REPLACE FUNCTION update_updated_at()
 RETURNS TRIGGER AS $$
@@ -259,6 +273,8 @@ CREATE TRIGGER trg_quotations_updated_at
   BEFORE UPDATE ON quotations FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 CREATE TRIGGER trg_invoices_updated_at
   BEFORE UPDATE ON invoices FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+CREATE TRIGGER trg_contracts_updated_at
+  BEFORE UPDATE ON contracts FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
 
 -- ── ROW LEVEL SECURITY ────────────────────────────────────────────
@@ -275,6 +291,7 @@ ALTER TABLE payment_stages          ENABLE ROW LEVEL SECURITY;
 ALTER TABLE disbursements           ENABLE ROW LEVEL SECURITY;
 ALTER TABLE invoices                ENABLE ROW LEVEL SECURITY;
 ALTER TABLE negotiation_log           ENABLE ROW LEVEL SECURITY;
+ALTER TABLE contracts                 ENABLE ROW LEVEL SECURITY;
 
 -- All authenticated users can do everything (internal app)
 DO $$
@@ -285,7 +302,7 @@ BEGIN
     'project_templates', 'services',
     'template_services', 'service_checklist_items', 'projects',
     'quotations', 'quotation_services', 'payment_stages',
-    'disbursements', 'invoices', 'negotiation_log'
+    'disbursements', 'invoices', 'negotiation_log', 'contracts'
   ] LOOP
     EXECUTE format(
       'CREATE POLICY "auth_all_%s" ON %I FOR ALL USING (auth.role() = ''authenticated'')',

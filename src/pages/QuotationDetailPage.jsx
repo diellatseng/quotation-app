@@ -1,6 +1,6 @@
 // src/pages/QuotationDetailPage.jsx
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { toast } from 'sonner'
 import { useExportPDF } from '../hooks/useExportPDF'
@@ -19,10 +19,22 @@ import { AppBreadcrumbBar } from '@/components/AppShellHeader'
 import { projectPrimaryLabel } from '../lib/projectDisplay'
 import { syncProjectStatusFromQuotation } from '../lib/projectStatus'
 import { companyProfileToInfo } from '../lib/companyProfile'
-import { Pencil, Printer } from 'lucide-react'
+import { ceToRocInput } from '../lib/rocDate'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import { Pencil, Printer, FileText, FilePlus } from 'lucide-react'
 
 export default function QuotationDetailPage() {
   const { id } = useParams()
+  const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const previewRef = useRef(null)
 
@@ -31,8 +43,13 @@ export default function QuotationDetailPage() {
   const [paymentStages, setPaymentStages] = useState([])
   const [loading, setLoading] = useState(true)
   const [previewReady, setPreviewReady] = useState(false)
-  // const [negDialog, setNegDialog] = useState(null) // inactive: negotiation / versioning
-  const [activeTab, setActiveTab] = useState('quotation')
+  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'quotation')
+
+  // Contract state
+  const [contract, setContract] = useState(null)
+  const [contractLoading, setContractLoading] = useState(false)
+  // Popup: ask to create contract after confirming
+  const [showContractPrompt, setShowContractPrompt] = useState(false)
 
   const { exporting, exportPDF } = useExportPDF()
 
@@ -101,6 +118,33 @@ export default function QuotationDetailPage() {
     return () => { cancelled = true }
   }, [id])
 
+  // Load contract record when tab is active or quotation is confirmed
+  useEffect(() => {
+    if (!qt?.id || qt.status !== '已確認') {
+      setContract(null)
+      return
+    }
+    let cancelled = false
+    setContractLoading(true)
+
+    supabase
+      .from('contracts')
+      .select('*')
+      .eq('quotation_id', qt.id)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (cancelled) return
+        if (error) {
+          console.error('[QuotationDetailPage] contract fetch error:', error)
+        } else {
+          setContract(data || null)
+        }
+        setContractLoading(false)
+      })
+
+    return () => { cancelled = true }
+  }, [qt?.id, qt?.status])
+
   const handleSendQuotation = () => {
     const { valid, missing } = validateQuotationRecordForSend(qt, paymentStages)
     if (!valid) {
@@ -123,20 +167,15 @@ export default function QuotationDetailPage() {
       }
       toast.success(`狀態已更新為【${newStatus}】`)
       setQt(prev => (prev ? { ...prev, status: newStatus } : prev))
+
+      // Show contract creation prompt when confirmed
+      if (newStatus === '已確認') {
+        setShowContractPrompt(true)
+      }
     } catch (err) {
       toast.error('更新失敗: ' + err.message, { duration: 6000 })
     }
   }
-
-  /* inactive: negotiation / versioning
-  const handleNegotiateSubmit = (amount, comment) => {
-    setNegDialog({ amount, comment })
-  }
-
-  const createVersionAfterNegotiation = async ({ amount, comment, editServices }) => {
-    ...
-  }
-  */
 
   const handleExport = async () => {
     if (!qt) return
@@ -169,6 +208,8 @@ export default function QuotationDetailPage() {
   const projectBackTo = qt.project_id ? `/projects/${qt.project_id}?tab=quotations` : '/dashboard'
   const projectBackLabel = qt.land_section?.trim() || qt.marketing_name?.trim() || projectPrimaryLabel({ land_section: qt.land_section, marketing_name: qt.marketing_name })
   const companyInfo = companyProfileToInfo(qt.projects?.company_profiles)
+  const isConfirmed = qt.status === '已確認'
+  const isContractTab = activeTab === 'contract'
 
   return (
     <div className="min-h-screen bg-background pb-12 text-foreground transition-colors duration-200">
@@ -191,16 +232,19 @@ export default function QuotationDetailPage() {
         ]}
         actions={
           <>
-            <Button
-              variant="outline"
-              size="sm"
-              className="font-semibold"
-              onClick={handleExport}
-              disabled={exporting || !previewReady}
-            >
-              <Printer data-icon="inline-start" />
-              {exporting ? '匯出中…' : '匯出 PDF'}
-            </Button>
+            {/* Export PDF (not shown on contract tab — contract page has its own) */}
+            {!isContractTab && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="font-semibold"
+                onClick={handleExport}
+                disabled={exporting || !previewReady}
+              >
+                <Printer data-icon="inline-start" />
+                {exporting ? '匯出中…' : '匯出 PDF'}
+              </Button>
+            )}
 
             {qt.status === '草稿' && (
               <>
@@ -247,37 +291,157 @@ export default function QuotationDetailPage() {
             <TabsTrigger value="checklist" className="rounded-none px-4 py-2">
               客戶準備清單
             </TabsTrigger>
+            {isConfirmed && (
+              <TabsTrigger value="contract" className="rounded-none px-4 py-2">
+                合約
+              </TabsTrigger>
+            )}
           </TabsList>
         </Tabs>
 
-        <div className="relative flex justify-center overflow-auto rounded-xl border border-border bg-muted/30 p-4 shadow-inner md:p-6">
-          {!previewReady && (
-            <Skeleton
-              className="absolute inset-4 z-10 mx-auto h-[640px] w-full max-w-[794px] rounded-xl md:inset-6"
-              aria-busy="true"
-              aria-label="載入報價預覽"
-            />
-          )}
-          <div className={`max-w-full origin-top scale-100 transform rounded-sm border border-border bg-card shadow-md ${previewReady ? '' : 'invisible'}`}>
-            <A4Preview
-              key={`${id}-${activeTab}`}
-              ref={previewRef}
-              quotation={qt}
-              services={services}
-              stages={paymentStages}
-              client={qt.clients}
-              contactPerson={qt.contact_persons}
-              companyInfo={companyInfo}
-              mode={activeTab}
-              onLayoutComplete={handlePreviewLayoutComplete}
-            />
+        {isContractTab ? (
+          // ── Contract tab content ──
+          <ContractTabContent
+            quotationId={qt.id}
+            contract={contract}
+            loading={contractLoading}
+          />
+        ) : (
+          // ── A4 Preview tabs (quotation / services / checklist) ──
+          <div className="relative flex justify-center overflow-auto rounded-xl border border-border bg-muted/30 p-4 shadow-inner md:p-6">
+            {!previewReady && (
+              <Skeleton
+                className="absolute inset-4 z-10 mx-auto h-[640px] w-full max-w-[794px] rounded-xl md:inset-6"
+                aria-busy="true"
+                aria-label="載入報價預覽"
+              />
+            )}
+            <div className={`max-w-full origin-top scale-100 transform rounded-sm border border-border bg-card shadow-md ${previewReady ? '' : 'invisible'}`}>
+              <A4Preview
+                key={`${id}-${activeTab}`}
+                ref={previewRef}
+                quotation={qt}
+                services={services}
+                stages={paymentStages}
+                client={qt.clients}
+                contactPerson={qt.contact_persons}
+                companyInfo={companyInfo}
+                mode={activeTab}
+                onLayoutComplete={handlePreviewLayoutComplete}
+              />
+            </div>
           </div>
-        </div>
-
-        {/* inactive: negotiation / versioning — new-version dialog after 議價
-        {negDialog && ( ... )}
-        */}
+        )}
       </main>
+
+      {/* ── Contract creation prompt (after confirming) ── */}
+      <AlertDialog open={showContractPrompt} onOpenChange={setShowContractPrompt}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              <span className="flex items-center gap-2">
+                <FilePlus className="size-5 text-primary" />
+                建立合約
+              </span>
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-foreground">
+              報價單已確認。要立即根據報價單內容建立一份簡易合約嗎？
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowContractPrompt(false)}>
+              稍後再說
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setShowContractPrompt(false)
+                navigate(`/quotation/${qt.id}/contract/new`)
+              }}
+            >
+              立即建立合約
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  )
+}
+
+// ── ContractTabContent ──────────────────────────────────────────────────────
+function ContractTabContent({ quotationId, contract, loading }) {
+  const navigate = useNavigate()
+
+  if (loading) {
+    return (
+      <div className="flex justify-center py-16">
+        <Skeleton className="h-40 w-full max-w-lg rounded-xl" />
+      </div>
+    )
+  }
+
+  if (!contract) {
+    return (
+      <div className="flex flex-col items-center gap-4 rounded-xl border border-dashed border-border bg-muted/20 py-16 text-center">
+        <FileText className="size-10 text-muted-foreground" />
+        <div>
+          <p className="text-base font-semibold text-foreground">尚未建立合約</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            根據此報價單生成一份簡易式合約，可匯出為 PDF。
+          </p>
+        </div>
+        <Button
+          variant="default"
+          size="sm"
+          className="mt-2 font-semibold"
+          onClick={() => navigate(`/quotation/${quotationId}/contract/new`)}
+        >
+          <FilePlus data-icon="inline-start" />
+          建立合約
+        </Button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col gap-4 rounded-xl border border-border bg-card p-6">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-center gap-2">
+          <FileText className="size-5 text-primary" />
+          <span className="text-base font-semibold text-foreground">
+            合約 {contract.contract_number || '（未設定編號）'}
+          </span>
+        </div>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="font-semibold"
+            onClick={() => navigate(`/contracts/${contract.id}`)}
+          >
+            <Printer data-icon="inline-start" />
+            查看 / 匯出 PDF
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
+        <ContractInfoRow label="工程項目" value={contract.project_item} />
+        <ContractInfoRow label="工地名稱" value={contract.site_name} />
+        <ContractInfoRow
+          label="簽約日期"
+          value={contract.signed_at ? ceToRocInput(contract.signed_at) : '—'}
+        />
+        <ContractInfoRow label="合約編號" value={contract.contract_number || '—'} />
+      </div>
+    </div>
+  )
+}
+
+function ContractInfoRow({ label, value }) {
+  return (
+    <div className="flex gap-2">
+      <span className="w-20 flex-shrink-0 font-semibold text-foreground">{label}</span>
+      <span className="text-foreground">{value}</span>
     </div>
   )
 }

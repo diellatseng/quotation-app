@@ -15,6 +15,7 @@ const WizardPage = lazy(() => import('./pages/wizard/WizardPage'))
 const QuotationDetailPage = lazy(() => import('./pages/QuotationDetailPage'))
 const ProjectDetailPage = lazy(() => import('./pages/ProjectDetailPage'))
 const InvoiceDetailPage = lazy(() => import('./pages/InvoiceDetailPage'))
+const ContractDetailPage = lazy(() => import('./pages/ContractDetailPage'))
 const AdminLayout = lazy(() => import('./pages/admin/AdminLayout'))
 const ClientsAdmin = lazy(() => import('./pages/admin/ClientsAdmin'))
 const TemplatesAdmin = lazy(() => import('./pages/admin/TemplatesAdmin'))
@@ -41,6 +42,8 @@ function AppRoutes() {
         <Route path="/projects/:projectId/invoices/:invoiceId" element={<ProtectedRoute><InvoiceDetailPage /></ProtectedRoute>} />
         <Route path="/quotation/new" element={<ProtectedRoute><WizardPage /></ProtectedRoute>} />
         <Route path="/quotation/:id" element={<ProtectedRoute><QuotationDetailPage /></ProtectedRoute>} />
+        <Route path="/quotation/:quotationId/contract/new" element={<ProtectedRoute><ContractDetailPage /></ProtectedRoute>} />
+        <Route path="/contracts/:id" element={<ProtectedRoute><ContractDetailPage /></ProtectedRoute>} />
         <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
           <Route index element={<Navigate to="/admin/clients" replace />} />
           <Route path="clients"   element={<ClientsAdmin />} />
