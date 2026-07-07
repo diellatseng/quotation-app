@@ -38,9 +38,14 @@ alwaysApply: true
 - 聯絡人卡片、模式選擇卡片 hover
 - Dropdown / Select 已 focus 的選項（shadcn 預設）
 
+**適合 `variant="default"`（primary）按鈕：**
+- 流程中的主要下一步（WizardShell）、儲存、送出等 CTA
+
+**適合 `variant="outline"` 按鈕：**
+- 次要動作（儲存草稿、取消）
+
 **適合 `bg-highlight` / `variant="accent"` 按鈕：**
-- 流程中的主要下一步（WizardShell）
-- 新增列、inline CTA badge
+- 新增列、inline CTA badge（accent 按鈕文字用 `accent-foreground` 深色，勿用白字）
 
 **保留 `primary/10` + 邊框：**
 - **已選中**狀態（admin 清單選取、聯絡人 ring）— 比 hover 更強

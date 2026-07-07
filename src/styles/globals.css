@@ -104,9 +104,9 @@
     --input: #D9DFEA;
     --ring: #7269E6;
 
-    --primary: #7269E6;
+    --primary: #6359D9;
     --primary-foreground: #FFFFFF;
-    --primary-active: #5448CC;
+    --primary-active: #4F46C8;
 
     --secondary: #425466;
     --secondary-foreground: #FFFFFF;
@@ -120,9 +120,9 @@
     --surface-hover-foreground: #1A1F36;
     --surface-secondary: #FCFCFD;
 
-    /* Palette: Accent (pink) — badges, accent buttons, decorative emphasis */
+    /* Palette: Accent (pink) — badges, decorative emphasis; button text uses foreground for contrast */
     --accent: #D99BB6;
-    --accent-foreground: #FFFFFF;
+    --accent-foreground: #1A1F36;
     --accent-hover: #CB87A5;
 
     --destructive: #D95B66;
@@ -243,7 +243,7 @@
     --highlight: #EEEDFE;
     --highlight-text: #3C3489;
     --highlight-border: #7269E6;
-    --cta-hover: #6359D9;
+    --cta-hover: #574DCB;
 
     /* Filter chips (案件列表 segmented filters) */
     --chip-active-bg: #EEEDFE;

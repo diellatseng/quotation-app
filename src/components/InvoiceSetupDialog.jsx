@@ -165,8 +165,8 @@ export default function InvoiceSetupDialog({
             {mode === 'quotation' && '從報價單匯入'}
             {mode === 'manual' && '手動建立付款階段'}
           </DialogTitle>
-          <DialogDescription>
-            {mode === null && '選擇從現有報價單匯入，或手動建立以支援進行中案件。'}
+            <DialogDescription className="text-foreground">
+              {mode === null && '選擇從現有報價單匯入，或手動建立以支援進行中案件。'}
             {mode === 'quotation' && '匯入後可為各階段建立請款單；不會因報價修改而刪除。'}
             {mode === 'manual' && '自行設定合約金額與各階段請款金額，適用於系統外已進行中的案件。'}
           </DialogDescription>
@@ -184,11 +184,11 @@ export default function InvoiceSetupDialog({
                     <FileText className="size-4 text-primary" />
                     從報價單建立
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-foreground">
                     使用報價單的付款階段與合約金額建立請款。
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="text-xs text-muted-foreground">
+                <CardContent className="text-xs text-foreground">
                   {usableQuotations.length > 0
                     ? `本案件有 ${usableQuotations.length} 份報價可選`
                     : '尚無報價單，請先建立報價或改用手動建立'}
@@ -204,11 +204,11 @@ export default function InvoiceSetupDialog({
                     <PenLine className="size-4 text-primary" />
                     從零開始建立
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-foreground">
                     手動輸入合約金額與付款階段，不需報價單。
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="text-xs text-muted-foreground">
+                <CardContent className="text-xs text-foreground">
                   適用於已在進行中、尚未在本系統報價的案件
                 </CardContent>
               </Card>
@@ -234,7 +234,7 @@ export default function InvoiceSetupDialog({
               </Field>
 
               {selectedQuotation && (
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm font-medium text-foreground">
                   合約金額 {fmt(grandTotalFromFee(selectedQuotation.fee_amount, selectedQuotation.tax_included))}
                 </p>
               )}
@@ -243,7 +243,7 @@ export default function InvoiceSetupDialog({
                 <div className="rounded-lg border border-border">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b border-border bg-muted/40 text-left text-xs text-muted-foreground">
+                      <tr className="border-b border-border bg-muted/40 text-left text-xs font-semibold text-foreground">
                         <th className="p-3 font-semibold">階段</th>
                         <th className="p-3 text-right font-semibold">比例</th>
                         <th className="p-3 text-right font-semibold">金額</th>
@@ -253,7 +253,7 @@ export default function InvoiceSetupDialog({
                       {previewStages.map((st, i) => (
                         <tr key={i} className="border-b border-border last:border-0">
                           <td className="p-3 font-medium">{st.stage_name}</td>
-                          <td className="p-3 text-right text-muted-foreground">{st.percentage}%</td>
+                          <td className="p-3 text-right text-foreground">{st.percentage}%</td>
                           <td className="p-3 text-right font-medium">{fmt(st.amount)}</td>
                         </tr>
                       ))}

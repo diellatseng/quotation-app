@@ -1,50 +1,61 @@
 ---
-description: 視力不佳、打字慢的使用者 — 高對比 + 最少輸入
+description: 使用者有視力／可見度問題 — 易讀性優先，灰色僅在必要時使用
 alwaysApply: true
 ---
 
-# 無障礙：對比度與輸入簡易度
+# 無障礙：易讀性與輸入簡易度
 
-本專案主要使用者是**視力不佳、打字慢**的長輩。所有 UI 變更必須同時考慮**可讀性**與**減少打字量**。
+**本專案主要使用者有 visibility／視力問題，閱讀困難。** 所有 UI 變更必須**隨時**以易讀性為第一優先，不可為了視覺層次而犧牲文字清晰度。
 
-## 對比度
+## 灰色文字（`text-muted-foreground`）
 
-- **必讀內容**（標籤、表格、欄位值、固定提示文字）用 `text-foreground`，禁止用灰色呈現必讀資訊。
-- `text-muted-foreground` 僅限真正次要的輔助說明，且仍須符合 WCAG AA。
-- 結構化表單的**固定字**（如 `建築字第`、`地號`、`(` `)`）用 `structuredFixedTextClassName` 或 `text-foreground font-semibold`，不可變成淡灰。
+**預設用 `text-foreground`。** 灰色僅在以下情況使用，且仍須符合 WCAG AA：
+
+| 允許灰色 | 不允許灰色 |
+|----------|------------|
+| input `placeholder` | 標籤、欄位值、表格內容 |
+| 真正次要的單行提示（如「顯示於 PDF」） | 金額、日期、客戶名、狀態說明 |
+| 空狀態的補充一句話 | 表頭、Dialog 說明中的關鍵資訊 |
+| 列印／PDF 頁尾頁碼 | 錯誤訊息、摘要統計 |
+
+- **必讀內容**一律 `text-foreground`（必要時加 `font-medium` / `font-semibold`）。
+- 不要在 `<TableHead>` 上覆寫成 `text-muted-foreground`。
+- `DialogDescription` 若含階段名、金額等資訊 → 加 `className="text-foreground"`。
+- 結構化表單固定字用 `structuredFixedTextClassName` 或 `text-foreground font-semibold`。
 
 ## 結構化輸入（減少打字）
 
 當欄位有固定格式時，**必須拆成多個短輸入 + 固定文字**，使用者只填會變動的部分。**各欄位獨立存 state，不可每次 keystroke 把組合字串 parse 回其他欄位**（例如地號打 `-` 時不可污染段名）。
 
 ```tsx
-// ❌ BAD — 三個欄位都要打完整句子，等於沒省時間
-<Input placeholder="高雄市" />
-<Input placeholder="鹽埕段一小段" />
+// ❌ BAD — 必讀資訊用灰色
+<p className="text-muted-foreground">{stage.stage_name} · {fmt(amount)}</p>
 
-// ✅ GOOD — 固定字由系統顯示，只填變動部分
-[高雄] [市▼]  +  段名輸入  +  [123] 地號
-( 115 ) [高市] 建築字第 [961] 號
-地上 [5] 層，地下 [1] 層
+// ✅ GOOD
+<p className="text-sm font-medium text-foreground">{stage.stage_name} · {fmt(amount)}</p>
 ```
 
 ### 規則
 
-1. **固定文字不可編輯**：括號、`建築字第`、`號`、`地上`、`層`、`地下`、`地號` 等用 `InputGroupText` 顯示，不要放進 placeholder。
-2. **Placeholder 只示範最短變動值**：如 `961`、`123`、`5`，不要放整句範例。
-3. **合理預填**：常用預設（如 `高雄`+`市`、`高市`、今年民國年）在空表單即顯示，使用者不必重打。
-4. **數字欄**用 `inputMode="numeric"`，能 strip 非數字就 strip。
-5. **短輸入框**：`max-w-[4rem]`～`max-w-[8rem]`，避免使用者以為要打長句。
-6. **組合預覽**：顯示 `組合結果：…` 用 `text-foreground font-medium`，讓使用者確認不必自己拼字串。
-7. **儲存仍用單一 DB 欄位**：UI 拆分、後端 `format*` / `parse*` 組合（見 `src/lib/projectFields.js`）。
+1. **固定文字不可編輯**：括號、`建築字第`、`號` 等用 `InputGroupText` 顯示。
+2. **Placeholder 只示範最短變動值**：如 `961`、`123`。
+3. **合理預填**：常用預設在空表單即顯示。
+4. **數字欄**用 `inputMode="numeric"`。
+5. **組合預覽**用 `text-foreground font-medium`。
 
 ## 表單尺寸
 
 - 結構化短輸入：`min-h-10 text-base font-medium`（`structuredInputClassName`）。
 - 欄位標籤：`text-base font-semibold text-foreground`。
 
-## 修改 UI 時
+## 主要按鈕（CTA）
 
-1. 這段文字必須清楚閱讀嗎？→ `text-foreground`。
-2. 這段文字使用者需要打嗎？否 → 固定 label，不是 input placeholder。
+- **下一步、儲存、送出** → `variant="default"`（`primary` 底 + 白字），對比須 ≥ 4.5:1。
+- **儲存草稿、取消** → `variant="outline"` 或 `ghost`（`text-secondary`，勿用 `text-muted-foreground`）。
+- **禁止**用 `variant="accent"`（粉紅底）承載主要 CTA — 白字對比不足；accent 僅供次要強調且用深色字。
+
+## 修改 UI 前的檢查
+
+1. 使用者必須清楚閱讀嗎？→ `text-foreground`。
+2. 這段是裝飾性層次還是實際資訊？→ 實際資訊禁止灰色。
 3. 能否用 select / 預填 / 數字框代替自由文字？→ 優先採用。

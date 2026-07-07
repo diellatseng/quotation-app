@@ -456,10 +456,7 @@ export default function ProjectDetailPage() {
   const secondaryName = projectSecondaryLabel(project)
   const disbursementMap = groupDisbursementsByStage(disbursements)
   const invoiceRows = buildInvoiceRows(paymentStages, invoices, disbursementMap)
-  const draftCount = invoices.filter(inv => inv.status === '草稿').length
-  const invoicedCount = invoices.filter(inv => inv.status === '已請款').length
   const receivedCount = invoices.filter(inv => inv.status === '已收款').length
-  const disbursementGrandTotal = sumDisbursements(disbursements)
   const selectedBankAccount = bankAccounts.find(a => a.id === invoiceForm.bank_account_id)
   const quotationSummary = getQuotationSummary(quotations)
   const billingSummary = getBillingSummary(paymentStages, invoices)
@@ -590,7 +587,7 @@ export default function ProjectDetailPage() {
             <DialogTitle>
               {invoiceDialog?.mode === 'create' ? '建立請款草稿' : '編輯請款'}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-foreground">
               {invoiceDialog?.stage?.stage_name} · {fmt(invoiceDialog?.stage?.amount)}
             </DialogDescription>
           </DialogHeader>
@@ -601,13 +598,13 @@ export default function ProjectDetailPage() {
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="space-y-3 text-sm">
                       <div>
-                        <p className="text-muted-foreground">請款日期</p>
+                        <p className="text-sm font-semibold text-foreground">請款日期</p>
                         <p className="font-medium text-foreground">
                           {formatRocDate(invoiceForm.invoiced_at) || '—'}
                         </p>
                       </div>
                       <div>
-                        <p className="text-muted-foreground">匯款帳戶</p>
+                        <p className="text-sm font-semibold text-foreground">匯款帳戶</p>
                         <p className="font-medium text-foreground">
                           {selectedBankAccount
                             ? bankAccountLabel(selectedBankAccount)
@@ -663,7 +660,7 @@ export default function ProjectDetailPage() {
                         type="button"
                         variant="ghost"
                         size="sm"
-                        className="h-auto p-0 font-semibold text-muted-foreground"
+                        className="h-auto p-0 font-semibold text-foreground"
                         onClick={() => setInvoiceMetaEditing(false)}
                       >
                         完成
@@ -1088,12 +1085,8 @@ export default function ProjectDetailPage() {
               />
             ) : (
               <>
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <p className="text-sm text-muted-foreground">
-                    共 {paymentStages.length} 個付款階段 · 草稿 {draftCount} · 已請款 {invoicedCount} · 已收款 {receivedCount}
-                    {disbursementGrandTotal > 0 && ` · 代墊合計 ${fmt(disbursementGrandTotal)}`}
-                  </p>
-                  {invoices.length === 0 && (
+                {invoices.length === 0 && (
+                  <div className="flex justify-end">
                     <Button
                       variant="outline"
                       size="sm"
@@ -1102,8 +1095,8 @@ export default function ProjectDetailPage() {
                     >
                       變更付款階段
                     </Button>
-                  )}
-                </div>
+                  </div>
+                )}
 
                 <div className="block space-y-3 md:hidden">
                   {invoiceRows.map(({ stage, invoice, disbursements: stageDisbs, disbursementTotal }) => (
@@ -1119,8 +1112,8 @@ export default function ProjectDetailPage() {
                         <div className="flex items-start justify-between gap-2">
                           <div>
                             <p className="font-semibold text-foreground">{stage.stage_name}</p>
-                            <p className="text-sm text-muted-foreground">{stage.percentage}% · {fmt(stage.amount)}</p>
-                            <p className="mt-1 text-xs text-muted-foreground">
+                            <p className="text-sm text-foreground">{stage.percentage}% · {fmt(stage.amount)}</p>
+                            <p className="mt-1 text-xs text-foreground">
                               來源：<PaymentSetupSourceText source={paymentSetupSource} />
                             </p>
                           </div>
@@ -1131,7 +1124,7 @@ export default function ProjectDetailPage() {
                           )}
                         </div>
                         {invoice && (
-                          <div className="space-y-1 text-xs text-muted-foreground">
+                          <div className="space-y-1 text-xs text-foreground">
                             <p>請款：{formatRocDate(invoice.invoiced_at) || '—'}</p>
                             {invoice.received_at && (
                               <p>收款：{formatRocDate(invoice.received_at)}</p>
@@ -1139,7 +1132,7 @@ export default function ProjectDetailPage() {
                           </div>
                         )}
                         {disbursementTotal > 0 && (
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-xs text-foreground">
                             代墊 {stageDisbs.length} 項 · {fmt(disbursementTotal)}
                           </p>
                         )}
@@ -1164,14 +1157,14 @@ export default function ProjectDetailPage() {
                   <Table>
                     <TableHeader>
                       <TableRow className="border-border bg-muted/40 hover:bg-muted/40">
-                        <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">付款階段</TableHead>
-                        <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">金額</TableHead>
-                        <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">代墊</TableHead>
-                        <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">建立方式</TableHead>
-                        <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">請款日</TableHead>
-                        <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">狀態</TableHead>
-                        <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">收款日</TableHead>
-                        <TableHead className="h-auto w-[72px] p-4 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">操作</TableHead>
+                        <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-foreground">付款階段</TableHead>
+                        <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-foreground">金額</TableHead>
+                        <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-foreground">代墊</TableHead>
+                        <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-foreground">建立方式</TableHead>
+                        <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-foreground">請款日</TableHead>
+                        <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-foreground">狀態</TableHead>
+                        <TableHead className="h-auto p-4 text-xs font-semibold uppercase tracking-wider text-foreground">收款日</TableHead>
+                        <TableHead className="h-auto w-[72px] p-4 text-right text-xs font-semibold uppercase tracking-wider text-foreground">操作</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -1185,16 +1178,16 @@ export default function ProjectDetailPage() {
                         >
                           <TableCell className="p-4 font-medium text-foreground">
                             {stage.stage_name}
-                            <span className="ml-2 text-xs text-muted-foreground">{stage.percentage}%</span>
+                            <span className="ml-2 text-xs text-foreground">{stage.percentage}%</span>
                           </TableCell>
                           <TableCell className="p-4 font-semibold text-foreground">{fmt(stage.amount)}</TableCell>
-                          <TableCell className="p-4 text-muted-foreground">
+                          <TableCell className="p-4 text-foreground">
                             {disbursementTotal > 0 ? fmt(disbursementTotal) : '—'}
                           </TableCell>
-                          <TableCell className="p-4 text-muted-foreground">
+                          <TableCell className="p-4 text-foreground">
                             <PaymentSetupSourceText source={paymentSetupSource} />
                           </TableCell>
-                          <TableCell className="p-4 text-muted-foreground">
+                          <TableCell className="p-4 text-foreground">
                             {invoice?.invoiced_at ? formatRocDate(invoice.invoiced_at) : '—'}
                           </TableCell>
                           <TableCell className="p-4">
@@ -1204,7 +1197,7 @@ export default function ProjectDetailPage() {
                               <Badge variant="outline" className="rounded-full">未請款</Badge>
                             )}
                           </TableCell>
-                          <TableCell className="p-4 text-muted-foreground">
+                          <TableCell className="p-4 text-foreground">
                             {invoice?.received_at ? formatRocDate(invoice.received_at) : '—'}
                           </TableCell>
                           <TableCell className="p-4 text-right" onClick={e => e.stopPropagation()}>

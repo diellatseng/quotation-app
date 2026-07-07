@@ -15,7 +15,7 @@ const buttonVariants = cva(
         secondary:
           'bg-secondary text-secondary-foreground hover:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_5%)] aria-expanded:bg-secondary aria-expanded:text-secondary-foreground',
         ghost:
-          'bg-transparent text-muted-foreground hover:bg-surface-hover hover:text-surface-hover-foreground aria-expanded:bg-surface-hover aria-expanded:text-surface-hover-foreground',
+          'bg-transparent text-secondary hover:bg-surface-hover hover:text-surface-hover-foreground aria-expanded:bg-surface-hover aria-expanded:text-surface-hover-foreground',
         shell:
           'bg-transparent text-foreground hover:bg-surface-hover hover:text-surface-hover-foreground aria-expanded:bg-surface-hover aria-expanded:text-surface-hover-foreground',
         'ghost-inverse':

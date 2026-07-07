@@ -71,7 +71,7 @@ export default function WizardShell({
           <div className="flex items-center gap-3">
             {onSaveDraft && (
               <Button
-                variant="ghost"
+                variant="outline"
                 size="md"
                 className="font-semibold"
                 onClick={onSaveDraft}
@@ -83,7 +83,7 @@ export default function WizardShell({
             )}
             {(!isLast || nextLabel) && (
               <Button
-                variant="accent"
+                variant="default"
                 size="md"
                 className="font-semibold"
                 onClick={onNext}
