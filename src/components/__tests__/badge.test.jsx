@@ -10,13 +10,13 @@ import {
 
 describe('quotation status badge helpers', () => {
   it('maps known statuses to variants', () => {
-    expect(quotationStatusVariant('草稿')).toBe('draft')
-    expect(quotationStatusVariant('已報價')).toBe('quoted')
-    expect(quotationStatusVariant('已確認')).toBe('confirmed')
+    expect(quotationStatusVariant('草稿')).toBe('status-quote-draft')
+    expect(quotationStatusVariant('已報價')).toBe('status-quote-quoted')
+    expect(quotationStatusVariant('已確認')).toBe('status-quote-confirmed')
   })
 
   it('defaults unknown status to draft', () => {
-    expect(quotationStatusVariant('unknown')).toBe('draft')
+    expect(quotationStatusVariant('unknown')).toBe('status-quote-draft')
     expect(quotationStatusLabel('unknown')).toBe('草稿')
   })
 })

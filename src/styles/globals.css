@@ -144,23 +144,79 @@
     --sidebar-border: #E4E8F0;
     --sidebar-ring: #7269E6;
 
-    /* Quotation status badges */
-    --status-draft: #F8F7FE;
-    --status-draft-text: #8C94A8;
-    --status-draft-border: #D3D9E5;
-    --status-quoted: #EEEDFE;
-    --status-quoted-text: #534AB7;
-    --status-quoted-border: #AFA9EC;
+    /* Status badges — shared neutral (未開工 / 無報價 / 未設定) */
+    --status-neutral: #F3F5F9;
+    --status-neutral-text: #425466;
+    --status-neutral-border: #C5CDD9;
+    --status-neutral-dot: #8C94A8;
+
+    /* Project work status */
+    --status-project-active: #EEF4FF;
+    --status-project-active-text: #1E4FA8;
+    --status-project-active-border: #6BA8FF;
+    --status-project-active-dot: #3B82F6;
+    --status-project-paused: #FFF6E5;
+    --status-project-paused-text: #854F0B;
+    --status-project-paused-border: #EF9F27;
+    --status-project-paused-dot: #F2B24E;
+    --status-project-done: #F3F2F8;
+    --status-project-done-text: #425466;
+    --status-project-done-border: #B3BAC8;
+    --status-project-done-dot: #8C94A8;
+
+    /* Quotation status (purple family) */
+    --status-quote-draft: #F8F7FE;
+    --status-quote-draft-text: #425466;
+    --status-quote-draft-border: #D3D9E5;
+    --status-quote-draft-dot: #AFA9EC;
+    --status-quote-quoted: #EEEDFE;
+    --status-quote-quoted-text: #534AB7;
+    --status-quote-quoted-border: #AFA9EC;
+    --status-quote-quoted-dot: #7269E6;
+    --status-quote-confirmed: #E8E4FC;
+    --status-quote-confirmed-text: #3C3489;
+    --status-quote-confirmed-border: #7269E6;
+    --status-quote-confirmed-dot: #5448CC;
+
+    /* Billing status (teal family) */
+    --status-bill-unbilled: #F0FBF8;
+    --status-bill-unbilled-text: #425466;
+    --status-bill-unbilled-border: #B8E8D8;
+    --status-bill-unbilled-dot: #8FD4BE;
+    --status-bill-progress: #EAF8F3;
+    --status-bill-progress-text: #0F6E56;
+    --status-bill-progress-border: #5DCAA5;
+    --status-bill-progress-dot: #2BA67A;
+    --status-bill-partial: #DDF3EA;
+    --status-bill-partial-text: #0B5C44;
+    --status-bill-partial-border: #3DB892;
+    --status-bill-partial-dot: #1D9E75;
+    --status-bill-settled: #C9EBDD;
+    --status-bill-settled-text: #084A36;
+    --status-bill-settled-border: #1D9E75;
+    --status-bill-settled-dot: #0F6E56;
+
+    /* Legacy badge aliases (quotation + alert success) */
+    --status-draft: var(--status-quote-draft);
+    --status-draft-text: var(--status-quote-draft-text);
+    --status-draft-border: var(--status-quote-draft-border);
+    --status-draft-dot: var(--status-quote-draft-dot);
+    --status-quoted: var(--status-quote-quoted);
+    --status-quoted-text: var(--status-quote-quoted-text);
+    --status-quoted-border: var(--status-quote-quoted-border);
+    --status-quoted-dot: var(--status-quote-quoted-dot);
     --status-confirmed: #EAF8F3;
     --status-confirmed-text: #0F6E56;
     --status-confirmed-border: #5DCAA5;
-    --status-closed: #F3F2F8;
-    --status-closed-text: #425466;
-    --status-closed-border: #B3BAC8;
-    /* General warning UI (Alert) — 議價中 feature inactive */
+    --status-closed: var(--status-project-done);
+    --status-closed-text: var(--status-project-done-text);
+    --status-closed-border: var(--status-project-done-border);
+    --status-closed-dot: var(--status-project-done-dot);
+    /* General warning UI (Alert, 議價中) */
     --status-warning: #FFF6E5;
     --status-warning-text: #854F0B;
     --status-warning-border: #EF9F27;
+    --status-warning-dot: #F2B24E;
 
     /* Version diff (services compare) */
     --diff-added: #F0FBF6;
@@ -253,21 +309,73 @@
     --sidebar-border: #000000;
     --sidebar-ring: #000000;
 
-    --status-draft: #F0F0F0;
-    --status-draft-text: #000000;
-    --status-draft-border: #000000;
-    --status-quoted: #E8F0FF;
-    --status-quoted-text: #000080;
-    --status-quoted-border: #000000;
+    --status-neutral: #F0F0F0;
+    --status-neutral-text: #000000;
+    --status-neutral-border: #000000;
+    --status-neutral-dot: #000000;
+
+    --status-project-active: #E8F0FF;
+    --status-project-active-text: #000080;
+    --status-project-active-border: #000000;
+    --status-project-active-dot: #0040AA;
+    --status-project-paused: #FFF8E6;
+    --status-project-paused-text: #000000;
+    --status-project-paused-border: #000000;
+    --status-project-paused-dot: #664400;
+    --status-project-done: #F0F0F0;
+    --status-project-done-text: #000000;
+    --status-project-done-border: #000000;
+    --status-project-done-dot: #000000;
+
+    --status-quote-draft: #F0F0F0;
+    --status-quote-draft-text: #000000;
+    --status-quote-draft-border: #000000;
+    --status-quote-draft-dot: #666666;
+    --status-quote-quoted: #E8F0FF;
+    --status-quote-quoted-text: #000080;
+    --status-quote-quoted-border: #000000;
+    --status-quote-quoted-dot: #0040AA;
+    --status-quote-confirmed: #D8D0F8;
+    --status-quote-confirmed-text: #000000;
+    --status-quote-confirmed-border: #000000;
+    --status-quote-confirmed-dot: #000000;
+
+    --status-bill-unbilled: #E8F5F0;
+    --status-bill-unbilled-text: #000000;
+    --status-bill-unbilled-border: #000000;
+    --status-bill-unbilled-dot: #006600;
+    --status-bill-progress: #E8F5E9;
+    --status-bill-progress-text: #004D00;
+    --status-bill-progress-border: #000000;
+    --status-bill-progress-dot: #006600;
+    --status-bill-partial: #D4EDDA;
+    --status-bill-partial-text: #004D00;
+    --status-bill-partial-border: #000000;
+    --status-bill-partial-dot: #006600;
+    --status-bill-settled: #B8DFC8;
+    --status-bill-settled-text: #004D00;
+    --status-bill-settled-border: #000000;
+    --status-bill-settled-dot: #004D00;
+
+    --status-draft: var(--status-quote-draft);
+    --status-draft-text: var(--status-quote-draft-text);
+    --status-draft-border: var(--status-quote-draft-border);
+    --status-draft-dot: var(--status-quote-draft-dot);
+    --status-quoted: var(--status-quote-quoted);
+    --status-quoted-text: var(--status-quote-quoted-text);
+    --status-quoted-border: var(--status-quote-quoted-border);
+    --status-quoted-dot: var(--status-quote-quoted-dot);
     --status-confirmed: #E8F5E9;
     --status-confirmed-text: #004D00;
     --status-confirmed-border: #000000;
-    --status-closed: #000000;
-    --status-closed-text: #FFFFFF;
-    --status-closed-border: #000000;
+    --status-closed: var(--status-project-done);
+    --status-closed-text: var(--status-project-done-text);
+    --status-closed-border: var(--status-project-done-border);
+    --status-closed-dot: var(--status-project-done-dot);
     --status-warning: #FFF8E6;
     --status-warning-text: #000000;
     --status-warning-border: #000000;
+    --status-warning-dot: #664400;
 
     --diff-added: #E8F5E9;
     --diff-added-border: #006600;
@@ -351,21 +459,69 @@
   --color-card: var(--card);
   --color-foreground: var(--foreground);
   --color-background: var(--background);
+  --color-status-neutral: var(--status-neutral);
+  --color-status-neutral-text: var(--status-neutral-text);
+  --color-status-neutral-border: var(--status-neutral-border);
+  --color-status-neutral-dot: var(--status-neutral-dot);
+  --color-status-project-active: var(--status-project-active);
+  --color-status-project-active-text: var(--status-project-active-text);
+  --color-status-project-active-border: var(--status-project-active-border);
+  --color-status-project-active-dot: var(--status-project-active-dot);
+  --color-status-project-paused: var(--status-project-paused);
+  --color-status-project-paused-text: var(--status-project-paused-text);
+  --color-status-project-paused-border: var(--status-project-paused-border);
+  --color-status-project-paused-dot: var(--status-project-paused-dot);
+  --color-status-project-done: var(--status-project-done);
+  --color-status-project-done-text: var(--status-project-done-text);
+  --color-status-project-done-border: var(--status-project-done-border);
+  --color-status-project-done-dot: var(--status-project-done-dot);
+  --color-status-quote-draft: var(--status-quote-draft);
+  --color-status-quote-draft-text: var(--status-quote-draft-text);
+  --color-status-quote-draft-border: var(--status-quote-draft-border);
+  --color-status-quote-draft-dot: var(--status-quote-draft-dot);
+  --color-status-quote-quoted: var(--status-quote-quoted);
+  --color-status-quote-quoted-text: var(--status-quote-quoted-text);
+  --color-status-quote-quoted-border: var(--status-quote-quoted-border);
+  --color-status-quote-quoted-dot: var(--status-quote-quoted-dot);
+  --color-status-quote-confirmed: var(--status-quote-confirmed);
+  --color-status-quote-confirmed-text: var(--status-quote-confirmed-text);
+  --color-status-quote-confirmed-border: var(--status-quote-confirmed-border);
+  --color-status-quote-confirmed-dot: var(--status-quote-confirmed-dot);
+  --color-status-bill-unbilled: var(--status-bill-unbilled);
+  --color-status-bill-unbilled-text: var(--status-bill-unbilled-text);
+  --color-status-bill-unbilled-border: var(--status-bill-unbilled-border);
+  --color-status-bill-unbilled-dot: var(--status-bill-unbilled-dot);
+  --color-status-bill-progress: var(--status-bill-progress);
+  --color-status-bill-progress-text: var(--status-bill-progress-text);
+  --color-status-bill-progress-border: var(--status-bill-progress-border);
+  --color-status-bill-progress-dot: var(--status-bill-progress-dot);
+  --color-status-bill-partial: var(--status-bill-partial);
+  --color-status-bill-partial-text: var(--status-bill-partial-text);
+  --color-status-bill-partial-border: var(--status-bill-partial-border);
+  --color-status-bill-partial-dot: var(--status-bill-partial-dot);
+  --color-status-bill-settled: var(--status-bill-settled);
+  --color-status-bill-settled-text: var(--status-bill-settled-text);
+  --color-status-bill-settled-border: var(--status-bill-settled-border);
+  --color-status-bill-settled-dot: var(--status-bill-settled-dot);
   --color-status-draft: var(--status-draft);
   --color-status-draft-text: var(--status-draft-text);
   --color-status-draft-border: var(--status-draft-border);
+  --color-status-draft-dot: var(--status-draft-dot);
   --color-status-quoted: var(--status-quoted);
   --color-status-quoted-text: var(--status-quoted-text);
   --color-status-quoted-border: var(--status-quoted-border);
+  --color-status-quoted-dot: var(--status-quoted-dot);
   --color-status-confirmed: var(--status-confirmed);
   --color-status-confirmed-text: var(--status-confirmed-text);
   --color-status-confirmed-border: var(--status-confirmed-border);
   --color-status-closed: var(--status-closed);
   --color-status-closed-text: var(--status-closed-text);
   --color-status-closed-border: var(--status-closed-border);
+  --color-status-closed-dot: var(--status-closed-dot);
   --color-status-warning: var(--status-warning);
   --color-status-warning-text: var(--status-warning-text);
   --color-status-warning-border: var(--status-warning-border);
+  --color-status-warning-dot: var(--status-warning-dot);
   --color-diff-added: var(--diff-added);
   --color-diff-added-border: var(--diff-added-border);
   --color-diff-added-text: var(--diff-added-text);

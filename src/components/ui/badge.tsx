@@ -21,12 +21,34 @@ const badgeVariants = cva(
         ghost:
           'hover:bg-muted hover:text-muted-foreground dark:hover:bg-muted/50',
         link: 'text-primary underline-offset-4 hover:underline',
+        'status-neutral':
+          'border bg-status-neutral text-status-neutral-text border-status-neutral-border',
+        'status-project-active':
+          'border bg-status-project-active text-status-project-active-text border-status-project-active-border',
+        'status-project-paused':
+          'border bg-status-project-paused text-status-project-paused-text border-status-project-paused-border',
+        'status-project-done':
+          'border bg-status-project-done text-status-project-done-text border-status-project-done-border',
+        'status-quote-draft':
+          'border bg-status-quote-draft text-status-quote-draft-text border-status-quote-draft-border',
+        'status-quote-quoted':
+          'border bg-status-quote-quoted text-status-quote-quoted-text border-status-quote-quoted-border',
+        'status-quote-confirmed':
+          'border bg-status-quote-confirmed text-status-quote-confirmed-text border-status-quote-confirmed-border',
+        'status-bill-unbilled':
+          'border bg-status-bill-unbilled text-status-bill-unbilled-text border-status-bill-unbilled-border',
+        'status-bill-progress':
+          'border bg-status-bill-progress text-status-bill-progress-text border-status-bill-progress-border',
+        'status-bill-partial':
+          'border bg-status-bill-partial text-status-bill-partial-text border-status-bill-partial-border',
+        'status-bill-settled':
+          'border bg-status-bill-settled text-status-bill-settled-text border-status-bill-settled-border',
         draft:
           'border bg-status-draft text-status-draft-text border-status-draft-border',
         quoted:
           'border bg-status-quoted text-status-quoted-text border-status-quoted-border',
         confirmed:
-          'border bg-status-confirmed text-status-confirmed-text border-status-confirmed-border',
+          'border bg-status-quote-confirmed text-status-quote-confirmed-text border-status-quote-confirmed-border',
         closed:
           'border bg-status-closed text-status-closed-text border-status-closed-border',
         warning:
@@ -126,16 +148,56 @@ export const statusBadgeClassName =
 
 export const countBadgeClassName = cn(statusBadgeClassName, 'font-mono')
 
+const STATUS_DOT_CLASS: Partial<Record<NonNullable<VariantProps<typeof badgeVariants>['variant']>, string>> = {
+  'status-neutral': 'bg-status-neutral-dot',
+  'status-project-active': 'bg-status-project-active-dot',
+  'status-project-paused': 'bg-status-project-paused-dot',
+  'status-project-done': 'bg-status-project-done-dot',
+  'status-quote-draft': 'bg-status-quote-draft-dot',
+  'status-quote-quoted': 'bg-status-quote-quoted-dot',
+  'status-quote-confirmed': 'bg-status-quote-confirmed-dot',
+  'status-bill-unbilled': 'bg-status-bill-unbilled-dot',
+  'status-bill-progress': 'bg-status-bill-progress-dot',
+  'status-bill-partial': 'bg-status-bill-partial-dot',
+  'status-bill-settled': 'bg-status-bill-settled-dot',
+  draft: 'bg-status-draft-dot',
+  quoted: 'bg-status-quoted-dot',
+  confirmed: 'bg-status-quote-confirmed-dot',
+  closed: 'bg-status-closed-dot',
+  warning: 'bg-status-warning-dot',
+}
+
+function StatusDotBadge({
+  variant,
+  className,
+  children,
+}: {
+  variant: NonNullable<VariantProps<typeof badgeVariants>['variant']>
+  className?: string
+  children: React.ReactNode
+}) {
+  const dotClass = STATUS_DOT_CLASS[variant]
+
+  return (
+    <Badge variant={variant} className={cn(statusBadgeClassName, 'gap-1.5', className)}>
+      {dotClass ? (
+        <span aria-hidden="true" className={cn('size-1.5 shrink-0 rounded-full', dotClass)} />
+      ) : null}
+      {children}
+    </Badge>
+  )
+}
+
 /** ① 案件工程狀態 → badge variant */
 export const PROJECT_STATUS_TO_VARIANT = {
-  未開工: 'outline',
-  已開工: 'confirmed',
-  暫停: 'warning',
-  完工: 'closed',
+  未開工: 'status-neutral',
+  已開工: 'status-project-active',
+  暫停: 'status-project-paused',
+  完工: 'status-project-done',
 } as const
 
 export function projectStatusVariant(status: string) {
-  return PROJECT_STATUS_TO_VARIANT[status as keyof typeof PROJECT_STATUS_TO_VARIANT] ?? 'outline'
+  return PROJECT_STATUS_TO_VARIANT[status as keyof typeof PROJECT_STATUS_TO_VARIANT] ?? 'status-neutral'
 }
 
 export function projectStatusLabel(status: string) {
@@ -150,22 +212,22 @@ export function ProjectStatusBadges({
   className?: string
 }) {
   return (
-    <Badge variant={projectStatusVariant(status)} className={cn(statusBadgeClassName, className)}>
+    <StatusDotBadge variant={projectStatusVariant(status)} className={className}>
       {projectStatusLabel(status)}
-    </Badge>
+    </StatusDotBadge>
   )
 }
 
 /** ② 案件報價摘要 → badge variant */
 export const QUOTATION_SUMMARY_TO_VARIANT = {
-  無報價: 'outline',
-  草稿: 'draft',
-  已報價: 'quoted',
-  已確認: 'confirmed',
+  無報價: 'status-neutral',
+  草稿: 'status-quote-draft',
+  已報價: 'status-quote-quoted',
+  已確認: 'status-quote-confirmed',
 } as const
 
 export function quotationSummaryVariant(status: string) {
-  return QUOTATION_SUMMARY_TO_VARIANT[status as keyof typeof QUOTATION_SUMMARY_TO_VARIANT] ?? 'outline'
+  return QUOTATION_SUMMARY_TO_VARIANT[status as keyof typeof QUOTATION_SUMMARY_TO_VARIANT] ?? 'status-neutral'
 }
 
 export function quotationSummaryLabel(status: string) {
@@ -180,23 +242,23 @@ export function QuotationSummaryBadges({
   className?: string
 }) {
   return (
-    <Badge variant={quotationSummaryVariant(status)} className={cn(statusBadgeClassName, className)}>
+    <StatusDotBadge variant={quotationSummaryVariant(status)} className={className}>
       {quotationSummaryLabel(status)}
-    </Badge>
+    </StatusDotBadge>
   )
 }
 
 /** ③ 案件請款摘要 → badge variant */
 export const BILLING_SUMMARY_TO_VARIANT = {
-  未設定: 'outline',
-  未請款: 'secondary',
-  請款中: 'quoted',
-  部分收款: 'warning',
-  已結清: 'confirmed',
+  未設定: 'status-neutral',
+  未請款: 'status-bill-unbilled',
+  請款中: 'status-bill-progress',
+  部分收款: 'status-bill-partial',
+  已結清: 'status-bill-settled',
 } as const
 
 export function billingSummaryVariant(status: string) {
-  return BILLING_SUMMARY_TO_VARIANT[status as keyof typeof BILLING_SUMMARY_TO_VARIANT] ?? 'outline'
+  return BILLING_SUMMARY_TO_VARIANT[status as keyof typeof BILLING_SUMMARY_TO_VARIANT] ?? 'status-neutral'
 }
 
 export function billingSummaryLabel(status: string) {
@@ -211,9 +273,9 @@ export function BillingSummaryBadges({
   className?: string
 }) {
   return (
-    <Badge variant={billingSummaryVariant(status)} className={cn(statusBadgeClassName, className)}>
+    <StatusDotBadge variant={billingSummaryVariant(status)} className={className}>
       {billingSummaryLabel(status)}
-    </Badge>
+    </StatusDotBadge>
   )
 }
 
@@ -299,13 +361,13 @@ export function ProjectSummaryBadges({
 
 /** Invoice status → badge variant */
 export const INVOICE_STATUS_TO_VARIANT = {
-  草稿: 'draft',
-  已請款: 'quoted',
-  已收款: 'confirmed',
+  草稿: 'status-quote-draft',
+  已請款: 'status-bill-progress',
+  已收款: 'status-bill-settled',
 } as const
 
 export function invoiceStatusVariant(status: string) {
-  return INVOICE_STATUS_TO_VARIANT[status as keyof typeof INVOICE_STATUS_TO_VARIANT] ?? 'draft'
+  return INVOICE_STATUS_TO_VARIANT[status as keyof typeof INVOICE_STATUS_TO_VARIANT] ?? 'status-quote-draft'
 }
 
 export function invoiceStatusLabel(status: string) {
@@ -320,21 +382,21 @@ export function InvoiceStatusBadges({
   className?: string
 }) {
   return (
-    <Badge variant={invoiceStatusVariant(status)} className={cn(statusBadgeClassName, className)}>
+    <StatusDotBadge variant={invoiceStatusVariant(status)} className={className}>
       {invoiceStatusLabel(status)}
-    </Badge>
+    </StatusDotBadge>
   )
 }
 
 /** Quotation workflow status → badge variant */
 export const QUOTATION_STATUS_TO_VARIANT = {
-  草稿: 'draft',
-  已報價: 'quoted',
-  已確認: 'confirmed',
+  草稿: 'status-quote-draft',
+  已報價: 'status-quote-quoted',
+  已確認: 'status-quote-confirmed',
 } as const
 
 export function quotationStatusVariant(status: string) {
-  return QUOTATION_STATUS_TO_VARIANT[status as keyof typeof QUOTATION_STATUS_TO_VARIANT] ?? 'draft'
+  return QUOTATION_STATUS_TO_VARIANT[status as keyof typeof QUOTATION_STATUS_TO_VARIANT] ?? 'status-quote-draft'
 }
 
 export function quotationStatusLabel(status: string) {
@@ -352,13 +414,13 @@ export function QuotationStatusBadges({
 }) {
   return (
     <div className="inline-flex items-center gap-1.5">
-      <Badge variant={quotationStatusVariant(status)} className={cn(statusBadgeClassName, className)}>
+      <StatusDotBadge variant={quotationStatusVariant(status)} className={className}>
         {quotationStatusLabel(status)}
-      </Badge>
+      </StatusDotBadge>
       {isNegotiating && (
-        <Badge variant="warning" className={cn(statusBadgeClassName, className)}>
+        <StatusDotBadge variant="warning" className={className}>
           議價中
-        </Badge>
+        </StatusDotBadge>
       )}
     </div>
   )
