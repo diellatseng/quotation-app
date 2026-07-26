@@ -39,7 +39,14 @@ app.post('/api/export-pdf', async (req, res) => {
   try {
     browser = await puppeteer.launch({
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',   // 避免 Render/Docker 共享記憶體不足
+        '--disable-gpu',
+        '--no-first-run',
+        '--no-zygote',
+      ],
     })
     const page = await browser.newPage()
 
