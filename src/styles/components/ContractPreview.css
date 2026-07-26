@@ -1,14 +1,7 @@
 /* ── ContractPreview.css ──────────────────────────────────────────────────────
-   Styles for the contract PDF preview component (ContractPreview.jsx).
-
-   Type scale (px, fixed — A4 is a 794px surface):
-     10px  footer date
-     11px  table cells, clause body
-     12px  meta values, party fields, section titles
-     14px  amount text (總承攬價)
-     22px  document title (簡易合約)
-
-   Self-contained: no dependency on globals.css.
+   Design: flex-column page, typography-first hierarchy.
+   Supports multi-page: page 1 = content, page 2 (if overflow) = parties + date.
+   Party fields use a 2-column grid to conserve vertical space.
 ────────────────────────────────────────────────────────────────────────────── */
 
 /* ── Root ─────────────────────────────────────────────────────────────────── */
@@ -17,25 +10,39 @@
   background: transparent;
 }
 
-/* ── Page shell ───────────────────────────────────────────────────────────── */
+/* ── Page ─────────────────────────────────────────────────────────────────── */
 .ct-page {
   width: 794px;
-  min-height: 1123px;
+  height: 1123px;
   background: #fff;
   box-sizing: border-box;
-  padding: 36px 48px 48px;
+  padding: 48px 64px 40px;
   color: #1a1916;
-  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
-/* ── Header ───────────────────────────────────────────────────────────────── */
+/* ── Body: grows to fill available space above the bottom section ─────────── */
+.ct-body {
+  flex: 1;
+  overflow: hidden; /* clips excess when single-page, body height = constrained */
+}
+
+/* When on page 1 of a 2-page layout, body can use full available height */
+.ct-body--full {
+  flex: 1;
+  overflow: visible;
+}
+
+/* ── Document header ──────────────────────────────────────────────────────── */
 .ct-header {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   border-bottom: 2px solid #1a1916;
-  padding-bottom: 8px;
-  margin-bottom: 16px;
+  padding-bottom: 10px;
+  margin-bottom: 18px;
 }
 
 .ct-header__title {
@@ -47,11 +54,33 @@
 
 .ct-header__num {
   font-size: 11px;
-  color: #555;
+  color: #888;
   letter-spacing: 0.04em;
 }
 
-/* ── Meta table (project info at top) ────────────────────────────────────── */
+/* Page-2 continuation header */
+.ct-continuation-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 8px;
+  margin-bottom: 20px;
+}
+
+.ct-continuation-header__title {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  color: #888;
+}
+
+.ct-continuation-header__tag {
+  font-size: 10.5px;
+  color: #bbb;
+}
+
+/* ── Meta table ───────────────────────────────────────────────────────────── */
 .ct-meta {
   margin-bottom: 16px;
 }
@@ -59,7 +88,7 @@
 .ct-meta-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 12px;
+  font-size: 11.5px;
 }
 
 .ct-meta-table td {
@@ -68,30 +97,19 @@
 }
 
 .ct-meta-label {
-  width: 60px;
+  width: 62px;
   font-weight: 600;
   white-space: nowrap;
-  padding-right: 6px;
-  letter-spacing: 0.05em;
-}
-
-.ct-meta-label--right {
-  width: 60px;
-  text-align: right;
-  padding-right: 8px;
-  padding-left: 16px;
-  font-weight: 600;
-  white-space: nowrap;
+  padding-right: 4px;
 }
 
 .ct-meta-sep {
   width: 8px;
+  color: #888;
 }
 
 .ct-meta-value {
-  border-bottom: 1px solid #d4d2cb;
-  min-width: 100px;
-  padding-bottom: 1px;
+  padding-left: 4px;
 }
 
 /* ── Fee table ────────────────────────────────────────────────────────────── */
@@ -99,32 +117,38 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 11px;
-  margin-bottom: 10px;
+  margin-bottom: 0;
+  border-top: 1px solid #1a1916;
 }
 
 .ct-th {
-  background: #f0ede6;
+  background: transparent;
   color: #1a1916;
   font-weight: 700;
   text-align: center;
-  padding: 5px 4px;
-  border: 1px solid #b8b5ae;
-  letter-spacing: 0.05em;
+  padding: 5px 6px;
+  border-bottom: 1px solid #1a1916;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  letter-spacing: 0.04em;
   white-space: nowrap;
 }
 
+.ct-th + .ct-th {
+  border-left: 1px solid #ccc;
+}
+
 .ct-td {
-  border: 1px solid #ccc;
-  padding: 5px 4px;
+  border: none;
+  border-bottom: 1px solid #e8e8e8;
+  padding: 5px 6px;
   text-align: center;
   vertical-align: middle;
 }
 
-.ct-td--left {
-  text-align: left;
-}
+.ct-td--left { text-align: left; }
 
-/* Column width ratios */
 .ct-col-no    { width: 6%; }
 .ct-col-item  { width: 40%; }
 .ct-col-unit  { width: 7%; }
@@ -133,65 +157,61 @@
 .ct-col-total { width: 14%; }
 .ct-col-note  { width: 12%; }
 
-/* Sum rows (小計 / 營業稅 / 合計) */
-.ct-tr-sum .ct-td {
-  background: #f7f6f3;
-}
-
 .ct-tr-sum .ct-td[colspan] {
   text-align: right;
-  font-weight: 500;
-  padding-right: 16px;
+  padding-right: 8px;
+  color: #888;
+  font-size: 10.5px;
 }
 
 .ct-tr-total .ct-td {
-  background: #f0ede6;
+  border-top: 1px solid #1a1916;
+  border-bottom: 1px solid #1a1916;
   font-weight: 700;
 }
 
 .ct-tr-total .ct-td[colspan] {
   text-align: right;
-  font-weight: 700;
-  padding-right: 16px;
+  padding-right: 8px;
 }
 
-/* ── Chinese total amount text ────────────────────────────────────────────── */
+/* ── 總承攬價: typographic emphasis ──────────────────────────────────────── */
 .ct-amount-text {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
   text-align: center;
-  border: 2px solid #1a1916;
-  padding: 7px 16px;
-  margin: 0 0 16px;
-  letter-spacing: 0.03em;
+  padding: 10px 0 9px;
+  margin: 0 0 14px;
+  border-top: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
+  letter-spacing: 0.04em;
 }
 
-/* ── Content section (承攬內容) ───────────────────────────────────────────── */
+/* ── Content section ──────────────────────────────────────────────────────── */
 .ct-section {
-  margin-bottom: 16px;
-  border: 1px solid #ccc;
+  margin-bottom: 10px;
 }
 
 .ct-section-title {
   font-size: 12px;
   font-weight: 700;
   text-align: center;
-  letter-spacing: 0.25em;
-  background: #f0ede6;
+  letter-spacing: 0.3em;
   color: #1a1916;
   padding: 4px 0;
-  border-bottom: 1px solid #ccc;
+  border-top: 1px solid #1a1916;
+  border-bottom: 1px solid #1a1916;
   margin-bottom: 0;
 }
 
 .ct-content-body {
-  padding: 8px 12px;
+  padding: 7px 0 2px;
   font-size: 11px;
-  line-height: 1.75;
+  line-height: 1.65;
 }
 
 .ct-clause {
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .ct-clause-title {
@@ -200,14 +220,14 @@
 
 .ct-clause-list {
   list-style: none;
-  padding-left: 1.5em;
-  margin: 2px 0 4px;
+  padding-left: 1.4em;
+  margin: 1px 0 3px;
   counter-reset: ct-item;
 }
 
 .ct-clause-list li {
   position: relative;
-  padding-left: 1.6em;
+  padding-left: 1.5em;
   counter-increment: ct-item;
 }
 
@@ -217,20 +237,39 @@
   left: 0;
 }
 
-/* ── Parties section (甲乙方) ──────────────────────────────────────────────── */
+.ct-blank-marker {
+  text-align: center;
+  font-size: 10.5px;
+  color: #aaa;
+  margin: 6px 0 0;
+  letter-spacing: 0.1em;
+}
+
+/* ── Bottom section: parties + date ──────────────────────────────────────── */
+/* Single-page: pushed to bottom via margin-top: auto */
+.ct-bottom {
+  margin-top: auto;
+}
+
+/* Two-page: starts at top of page 2 */
+.ct-bottom--page2 {
+  margin-top: 0;
+}
+
+.ct-parties-rule {
+  border-top: 1px solid #1a1916;
+  margin-bottom: 0;
+}
+
 .ct-parties {
   display: flex;
-  gap: 0;
-  border: 1px solid #ccc;
-  margin-bottom: 20px;
-  min-height: 160px;
+  border-bottom: 1px solid #ccc;
 }
 
 .ct-party {
   flex: 1;
-  padding: 10px 14px;
+  padding: 12px 16px 10px;
   font-size: 11px;
-  line-height: 1.7;
 }
 
 .ct-party + .ct-party {
@@ -238,10 +277,10 @@
 }
 
 .ct-party-header {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.25em;
-  margin-bottom: 6px;
+  letter-spacing: 0.3em;
+  margin-bottom: 2px;
   text-align: center;
 }
 
@@ -250,62 +289,67 @@
   font-weight: 700;
   text-align: center;
   margin-bottom: 8px;
-  min-height: 18px;
 }
 
 .ct-stamp-area {
-  height: 64px;
+  height: 76px;
   border: 1px dashed #ccc;
-  margin: 4px 0 8px;
-  border-radius: 4px;
+  margin: 0 12px 10px;
+  border-radius: 3px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #aaa;
+  color: #ccc;
   font-size: 10px;
   letter-spacing: 0.1em;
 }
 
+/* ── Two-column grid for party fields ────────────────────────────────────── */
+.ct-party-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3px 8px;
+}
+
 .ct-party-row {
   display: flex;
-  gap: 6px;
-  margin-bottom: 2px;
+  align-items: baseline;
+  gap: 2px;
+  line-height: 1.6;
+}
+
+/* Full-width row (e.g. address) spans both columns */
+.ct-party-row--full {
+  grid-column: 1 / -1;
 }
 
 .ct-party-label {
-  width: 58px;
+  width: 40px;
   flex-shrink: 0;
   font-weight: 600;
-  letter-spacing: 0.03em;
   white-space: nowrap;
+  font-size: 10.5px;
 }
 
 .ct-party-label--wide {
-  width: 70px;
+  width: 54px;
 }
 
 .ct-party-val {
   flex: 1;
-  border-bottom: 1px solid #d4d2cb;
-  min-height: 16px;
+  border-bottom: 1px solid #d8d8d8;
+  min-height: 15px;
+  padding-bottom: 1px;
+  font-size: 11px;
   word-break: break-all;
 }
 
 /* ── Date footer ──────────────────────────────────────────────────────────── */
 .ct-date-footer {
   text-align: center;
-  font-size: 14px;
-  letter-spacing: 0.25em;
+  font-size: 13px;
   font-weight: 600;
-  padding-top: 8px;
-  border-top: 1px solid #d4d2cb;
-}
-
-/* ── "以下空白" marker ────────────────────────────────────────────────────── */
-.ct-blank-marker {
-  text-align: center;
-  font-size: 11px;
-  color: #888;
-  margin-top: 10px;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.2em;
+  color: #1a1916;
+  padding: 8px 0 0;
 }

@@ -7,11 +7,12 @@ import '../styles/components/A4Preview.css'
 const fmt = (n) => `NT$ ${Number(n || 0).toLocaleString('zh-TW')}`
 
 // ─── Physical A4 dimensions at 96 dpi ────────────────────────────────────────
+// Margins: top 52px ≈ 14mm, side 64px ≈ 17mm, bottom 64px ≈ 17mm
 const A4_W = 794
 const A4_H = 1123
-const MARGIN_TOP = 40
-const MARGIN_SIDE = 50
-const MARGIN_BOTTOM = 50
+const MARGIN_TOP = 52
+const MARGIN_SIDE = 64
+const MARGIN_BOTTOM = 64
 const PAGE_HEADER_H = 36
 const PAGE_FOOTER_H = 20
 const USABLE_H = A4_H - MARGIN_TOP - MARGIN_BOTTOM - PAGE_FOOTER_H

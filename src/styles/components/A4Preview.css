@@ -35,8 +35,8 @@
   min-height: 1123px;
   background: #fff;
   box-sizing: border-box;
-  /* top / side / bottom — bottom leaves room for pinned footer */
-  padding: 40px 50px 70px;
+  /* top 52px ≈ 14mm, sides 64px ≈ 17mm, bottom 84px = 64mm content + 20px footer */
+  padding: 52px 64px 84px;
   color: #1a1916;
   position: relative;
 }
@@ -67,8 +67,8 @@
 .a4-footer {
   position: absolute;
   bottom: 16px;
-  left: 50px;
-  right: 50px;
+  left: 64px;
+  right: 64px;
   border-top: 1px solid #e0ded8;
   padding-top: 5px;
   display: flex;
@@ -223,13 +223,13 @@
 
 /* ── Table header cells ───────────────────────────────────────────────────── */
 .a4-th {
-  background: #1a1916;
-  color: #fff;
+  background: #f0ede6;
+  color: #1a1916;
   padding: 7px 10px;
   text-align: center;
   font-weight: 700;
   font-size: 12px;
-  border: 1px solid #1a1916;
+  border: 1px solid #b8b5ae;
 }
 
 .a4-th--left {
@@ -298,17 +298,19 @@
 
 /* Applied to each td inside the grand total row */
 .a4-td--total {
-  background: #1a1916;
-  color: #fff;
-  border-color: #1a1916;
+  background: #e8e4db;
+  color: #1a1916;
+  border-color: #9a9690;
   padding: 8px 12px;
+  font-weight: 700;
 }
 
 .a4-tr--total .a4-td--total {
-  background: #1a1916;
-  color: #fff;
-  border-color: #1a1916;
+  background: #e8e4db;
+  color: #1a1916;
+  border-color: #9a9690;
   padding: 8px 12px;
+  font-weight: 700;
 }
 
 /* ── Removed service name (strikethrough) ─────────────────────────────────── */
@@ -356,14 +358,15 @@
   margin-bottom: 20px;
 }
 
-/* Dark bar: service name heading inside appendix sections */
+/* Service name heading inside appendix sections */
 .a4-svc-header {
   font-weight: 700;
   font-size: 16px;
-  background: #1a1916;
-  color: #fff;
+  background: #f0ede6;
+  color: #1a1916;
   padding: 5px 10px;
   border-radius: 4px;
+  border: 1px solid #b8b5ae;
   margin-bottom: 8px;
 }
 

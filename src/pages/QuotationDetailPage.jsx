@@ -11,6 +11,7 @@ import {
 import { FEATURE_NEGOTIATION, FEATURE_VERSIONING } from '../lib/featureFlags'
 import { QuotationStatusBadges, Badge } from '@/components/ui/badge'
 import A4Preview from '../components/A4Preview'
+import ContractPreview from '../components/ContractPreview'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { QuotationDetailSkeleton } from '@/components/skeletons'
@@ -19,7 +20,6 @@ import { AppBreadcrumbBar } from '@/components/AppShellHeader'
 import { projectPrimaryLabel } from '../lib/projectDisplay'
 import { syncProjectStatusFromQuotation } from '../lib/projectStatus'
 import { companyProfileToInfo } from '../lib/companyProfile'
-import { ceToRocInput } from '../lib/rocDate'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,6 +37,7 @@ export default function QuotationDetailPage() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const previewRef = useRef(null)
+  const contractPreviewRef = useRef(null)
 
   const [qt, setQt] = useState(null)
   const [services, setServices] = useState([])
@@ -190,6 +191,19 @@ export default function QuotationDetailPage() {
     }
   }
 
+  const handleContractExport = async () => {
+    if (!contract) return
+    toast.info('正在準備合約 PDF，請稍候…')
+    try {
+      await exportPDF(contractPreviewRef, {
+        filename: `合約-${contract.contract_number || qt.quote_number}`,
+        onSuccess: () => toast.success('PDF 匯出成功'),
+      })
+    } catch (err) {
+      toast.error('匯出失敗: ' + err.message, { duration: 6000 })
+    }
+  }
+
   if (loading) {
     return <QuotationDetailSkeleton />
   }
@@ -232,7 +246,7 @@ export default function QuotationDetailPage() {
         ]}
         actions={
           <>
-            {/* Export PDF (not shown on contract tab — contract page has its own) */}
+            {/* Export PDF */}
             {!isContractTab && (
               <Button
                 variant="outline"
@@ -240,6 +254,18 @@ export default function QuotationDetailPage() {
                 className="font-semibold"
                 onClick={handleExport}
                 disabled={exporting || !previewReady}
+              >
+                <Printer data-icon="inline-start" />
+                {exporting ? '匯出中…' : '匯出 PDF'}
+              </Button>
+            )}
+            {isContractTab && contract && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="font-semibold"
+                onClick={handleContractExport}
+                disabled={exporting}
               >
                 <Printer data-icon="inline-start" />
                 {exporting ? '匯出中…' : '匯出 PDF'}
@@ -301,11 +327,46 @@ export default function QuotationDetailPage() {
 
         {isContractTab ? (
           // ── Contract tab content ──
-          <ContractTabContent
-            quotationId={qt.id}
-            contract={contract}
-            loading={contractLoading}
-          />
+          contractLoading ? (
+            <div className="flex justify-center py-16">
+              <Skeleton className="h-40 w-full max-w-lg rounded-xl" />
+            </div>
+          ) : !contract ? (
+            <div className="flex flex-col items-center gap-4 rounded-xl border border-dashed border-border bg-muted/20 py-16 text-center">
+              <FileText className="size-10 text-muted-foreground" />
+              <div>
+                <p className="text-base font-semibold text-foreground">尚未建立合約</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  根據此報價單生成一份簡易式合約，可匯出為 PDF。
+                </p>
+              </div>
+              <Button
+                variant="default"
+                size="sm"
+                className="mt-2 font-semibold"
+                onClick={() => navigate(`/quotation/${qt.id}/contract/new`)}
+              >
+                <FilePlus data-icon="inline-start" />
+                建立合約
+              </Button>
+            </div>
+          ) : (
+            <div className="flex justify-center overflow-auto rounded-xl border border-border bg-muted/30 p-4 shadow-inner md:p-6">
+              <div className="max-w-full origin-top scale-100 transform rounded-sm border border-border bg-card shadow-md">
+                <ContractPreview
+                  ref={contractPreviewRef}
+                  contractData={contract}
+                  quotation={qt}
+                  services={services}
+                  stages={paymentStages}
+                  client={qt.clients}
+                  contactPerson={qt.contact_persons}
+                  profile={qt.projects?.company_profiles}
+                  companyInfo={companyInfo}
+                />
+              </div>
+            </div>
+          )
         ) : (
           // ── A4 Preview tabs (quotation / services / checklist) ──
           <div className="relative flex justify-center overflow-auto rounded-xl border border-border bg-muted/30 p-4 shadow-inner md:p-6">
@@ -367,81 +428,3 @@ export default function QuotationDetailPage() {
   )
 }
 
-// ── ContractTabContent ──────────────────────────────────────────────────────
-function ContractTabContent({ quotationId, contract, loading }) {
-  const navigate = useNavigate()
-
-  if (loading) {
-    return (
-      <div className="flex justify-center py-16">
-        <Skeleton className="h-40 w-full max-w-lg rounded-xl" />
-      </div>
-    )
-  }
-
-  if (!contract) {
-    return (
-      <div className="flex flex-col items-center gap-4 rounded-xl border border-dashed border-border bg-muted/20 py-16 text-center">
-        <FileText className="size-10 text-muted-foreground" />
-        <div>
-          <p className="text-base font-semibold text-foreground">尚未建立合約</p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            根據此報價單生成一份簡易式合約，可匯出為 PDF。
-          </p>
-        </div>
-        <Button
-          variant="default"
-          size="sm"
-          className="mt-2 font-semibold"
-          onClick={() => navigate(`/quotation/${quotationId}/contract/new`)}
-        >
-          <FilePlus data-icon="inline-start" />
-          建立合約
-        </Button>
-      </div>
-    )
-  }
-
-  return (
-    <div className="flex flex-col gap-4 rounded-xl border border-border bg-card p-6">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-center gap-2">
-          <FileText className="size-5 text-primary" />
-          <span className="text-base font-semibold text-foreground">
-            合約 {contract.contract_number || '（未設定編號）'}
-          </span>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="font-semibold"
-            onClick={() => navigate(`/contracts/${contract.id}`)}
-          >
-            <Printer data-icon="inline-start" />
-            查看 / 匯出 PDF
-          </Button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
-        <ContractInfoRow label="工程項目" value={contract.project_item} />
-        <ContractInfoRow label="工地名稱" value={contract.site_name} />
-        <ContractInfoRow
-          label="簽約日期"
-          value={contract.signed_at ? ceToRocInput(contract.signed_at) : '—'}
-        />
-        <ContractInfoRow label="合約編號" value={contract.contract_number || '—'} />
-      </div>
-    </div>
-  )
-}
-
-function ContractInfoRow({ label, value }) {
-  return (
-    <div className="flex gap-2">
-      <span className="w-20 flex-shrink-0 font-semibold text-foreground">{label}</span>
-      <span className="text-foreground">{value}</span>
-    </div>
-  )
-}

@@ -112,6 +112,15 @@ export function useExportPDF() {
       page-break-inside: avoid;
       break-inside: avoid-page;
     }
+    .ct-page {
+      width: 794px;
+      height: 1123px;
+      max-height: 1123px;
+      box-sizing: border-box;
+      overflow: hidden;
+      page-break-inside: avoid;
+      break-inside: avoid-page;
+    }
     [data-page] {
       display: block;
       break-after: page;
