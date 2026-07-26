@@ -3,9 +3,11 @@ services:
     name: quotation-pdf-server
     runtime: node
     rootDir: server
-    buildCommand: npm install
+    buildCommand: npm install && npx puppeteer browsers install chrome
     startCommand: npm start
     plan: free
     envVars:
       - key: NODE_ENV
         value: production
+      - key: PUPPETEER_CACHE_DIR
+        value: /opt/render/project/src/server/.puppeteer-cache
