@@ -16,11 +16,13 @@
   height: 1123px;
   background: #fff;
   box-sizing: border-box;
-  padding: 48px 64px 40px;
+  /* bottom 80px = 40px content gap + 40px pinned footer area */
+  padding: 48px 64px 80px;
   color: #1a1916;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 /* ── Body: grows to fill available space above the bottom section ─────────── */
@@ -35,28 +37,96 @@
   overflow: visible;
 }
 
-/* ── Document header ──────────────────────────────────────────────────────── */
-.ct-header {
+/* ── Letterhead: company left + title right (matches A4Preview DocHeader) ──── */
+.ct-letterhead {
   display: flex;
-  align-items: baseline;
   justify-content: space-between;
-  border-bottom: 2px solid #1a1916;
-  padding-bottom: 10px;
-  margin-bottom: 18px;
+  align-items: flex-start;
+  margin-bottom: 10px;
 }
 
-.ct-header__title {
-  font-size: 18px;
+.ct-company-block {
+  flex: 1;
+}
+
+.ct-company-name {
+  font-size: 16px;
   font-weight: 700;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.04em;
+  margin-bottom: 3px;
   color: #1a1916;
 }
 
-.ct-header__num {
+.ct-company-meta {
   font-size: 11px;
-  color: #888;
-  letter-spacing: 0.04em;
+  color: #1a1916;
+  line-height: 1.65;
 }
+
+.ct-doc-title {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  align-self: center;
+}
+
+.ct-doc-title__main {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  color: #1a1916;
+}
+
+.ct-doc-title__num {
+  font-size: 10.5px;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  color: #888;
+}
+
+.ct-letterhead-rule {
+  border-top: 2.5px solid #1a1916;
+  margin-bottom: 14px;
+}
+
+/* ── Page footer (pinned, matches A4Preview a4-footer) ────────────────────── */
+.ct-page-footer {
+  position: absolute;
+  bottom: 16px;
+  left: 64px;
+  right: 64px;
+  border-top: 1px solid #e0ded8;
+  padding-top: 5px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: #aaa;
+}
+
+.ct-page-footer__page {
+  white-space: nowrap;
+  margin-left: 16px;
+}
+
+/* ── Page break indicator (preview only, mirrors A4Preview) ───────────────── */
+.a4-page-break {
+  width: 794px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #999;
+  font-size: 10px;
+  user-select: none;
+}
+
+.a4-page-break__line {
+  flex: 1;
+  border-top: 2px dashed #bbb;
+}
+
+/* ── Continuation header (page 2 only) ───────────────────────────────────── */
 
 /* Page-2 continuation header */
 .ct-continuation-header {
@@ -83,6 +153,25 @@
 /* ── Meta table ───────────────────────────────────────────────────────────── */
 .ct-meta {
   margin-bottom: 16px;
+}
+
+/* ── Meta sections (工程項目 / 工地名稱) side-by-side ─────────────────────── */
+.ct-meta-sections {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 14px;
+}
+
+.ct-meta-sections .ct-section {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.ct-meta-val-text {
+  font-size: 11.5px;
+  color: #1a1916;
+  padding-left: 12px;
+  line-height: 1.6;
 }
 
 .ct-meta-table {
@@ -112,100 +201,118 @@
   padding-left: 4px;
 }
 
-/* ── Fee table ────────────────────────────────────────────────────────────── */
+/* ── Fee table (4 columns) ────────────────────────────────────────────────── */
 .ct-fee-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 11px;
-  margin-bottom: 0;
+  margin-bottom: 14px;
   border-top: 1px solid #1a1916;
 }
 
 .ct-th {
   background: transparent;
-  color: #1a1916;
-  font-weight: 700;
+  color: #555;
+  font-weight: 500;
   text-align: center;
-  padding: 5px 6px;
+  padding: 4px 6px;
   border-bottom: 1px solid #1a1916;
   border-left: none;
   border-right: none;
   border-top: none;
   letter-spacing: 0.04em;
   white-space: nowrap;
+  font-size: 10.5px;
 }
 
-.ct-th + .ct-th {
-  border-left: 1px solid #ccc;
-}
+.ct-th + .ct-th { border-left: none; }
 
 .ct-td {
   border: none;
-  border-bottom: 1px solid #e8e8e8;
-  padding: 5px 6px;
+  border-bottom: 1px solid #1a1916;
+  padding: 5px 8px;
   text-align: center;
   vertical-align: middle;
 }
 
 .ct-td--left { text-align: left; }
 
-.ct-col-no    { width: 6%; }
-.ct-col-item  { width: 40%; }
-.ct-col-unit  { width: 7%; }
-.ct-col-qty   { width: 7%; }
-.ct-col-price { width: 14%; }
-.ct-col-total { width: 14%; }
-.ct-col-note  { width: 12%; }
+/* 4-column widths */
+.ct-col-item  { width: 48%; }
+.ct-col-price { width: 18%; }
+.ct-col-qty   { width: 14%; }
+.ct-col-total { width: 20%; }
 
-.ct-tr-sum .ct-td[colspan] {
+/* Sub rows: 小計 / 營業稅 */
+.ct-tr-sub .ct-td {
+  border-bottom: none;
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+
+.ct-td--sub-label {
   text-align: right;
-  padding-right: 8px;
   color: #888;
   font-size: 10.5px;
+  padding-right: 6px;
 }
 
-.ct-tr-total .ct-td {
-  border-top: 1px solid #1a1916;
-  border-bottom: 1px solid #1a1916;
-  font-weight: 700;
-}
-
-.ct-tr-total .ct-td[colspan] {
+.ct-td--sub-val {
   text-align: right;
+  color: #888;
+  font-size: 10.5px;
   padding-right: 8px;
 }
 
-/* ── 總承攬價: typographic emphasis ──────────────────────────────────────── */
-.ct-amount-text {
-  font-size: 15px;
+/* Grand total row */
+.ct-tr-grand .ct-td {
+  border-top: 1.5px solid #1a1916;
+  border-bottom: 1.5px solid #1a1916;
+  padding: 6px 8px;
+}
+
+.ct-td--grand-label {
+  text-align: left;
+  font-size: 13px;
   font-weight: 700;
-  text-align: center;
-  padding: 10px 0 9px;
-  margin: 0 0 14px;
-  border-top: 1px solid #ccc;
-  border-bottom: 1px solid #ccc;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
+}
+
+.ct-td--grand-val {
+  text-align: right;
+  vertical-align: middle;
+}
+
+.ct-grand-amount {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.ct-grand-note {
+  font-size: 9.5px;
+  color: #666;
+  margin-top: 2px;
 }
 
 /* ── Content section ──────────────────────────────────────────────────────── */
 .ct-section {
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
+/* Left-accent section title (matches mock-up) */
 .ct-section-title {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
-  text-align: center;
-  letter-spacing: 0.3em;
   color: #1a1916;
-  padding: 4px 0;
-  border-top: 1px solid #1a1916;
-  border-bottom: 1px solid #1a1916;
-  margin-bottom: 0;
+  border-left: 4px solid #1a1916;
+  padding-left: 8px;
+  margin-bottom: 8px;
+  line-height: 1.4;
 }
 
 .ct-content-body {
-  padding: 7px 0 2px;
+  padding: 0 0 2px;
   font-size: 11px;
   line-height: 1.65;
 }
@@ -221,7 +328,7 @@
 .ct-clause-list {
   list-style: none;
   padding-left: 1.4em;
-  margin: 1px 0 3px;
+  margin: 2px 0 4px;
   counter-reset: ct-item;
 }
 
@@ -235,6 +342,21 @@
   content: counter(ct-item) '、';
   position: absolute;
   left: 0;
+}
+
+/* Two-column service list */
+.ct-clause-list--two-col {
+  columns: 2;
+  column-gap: 20px;
+}
+
+/* Payment stages: horizontal inline */
+.ct-stages-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 20px;
+  padding-left: 1.4em;
+  margin: 2px 0 4px;
 }
 
 .ct-blank-marker {
@@ -263,7 +385,7 @@
 
 .ct-parties {
   display: flex;
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid #1a1916;
 }
 
 .ct-party {
@@ -273,7 +395,7 @@
 }
 
 .ct-party + .ct-party {
-  border-left: 1px solid #ccc;
+  border-left: 1px solid #1a1916;
 }
 
 .ct-party-header {
@@ -293,7 +415,7 @@
 
 .ct-stamp-area {
   height: 76px;
-  border: 1px dashed #ccc;
+  border: 1px dashed #1a1916;
   margin: 0 12px 10px;
   border-radius: 3px;
   display: flex;
@@ -337,7 +459,7 @@
 
 .ct-party-val {
   flex: 1;
-  border-bottom: 1px solid #d8d8d8;
+  border-bottom: 1px solid #1a1916;
   min-height: 15px;
   padding-bottom: 1px;
   font-size: 11px;

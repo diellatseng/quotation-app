@@ -185,17 +185,26 @@
 }
 
 /* ── Section label ────────────────────────────────────────────────────────── */
-/* Reuses the visual pattern of globals .section-title but scoped to a4
-   so it doesn't pick up any page-level margin overrides from globals. */
 .a4-section-label {
   font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.1em;
-  color: #888;
-  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #1a1916;
   margin-bottom: 8px;
-  padding-bottom: 4px;
-  border-bottom: 1px solid #ddd;
+  border-left: 3px solid #1a1916;
+  padding-left: 7px;
+  line-height: 1.3;
+}
+
+/* ── Info columns (client + project side-by-side) ─────────────────────────── */
+.a4-info-cols {
+  display: flex;
+  gap: 32px;
+}
+
+.a4-info-cols .a4-section {
+  flex: 1;
+  margin-bottom: 0;
 }
 
 /* ── Info grid (client / project rows) ───────────────────────────────────── */
@@ -215,21 +224,16 @@
   margin-top: -1px;
 }
 
-/* Fee summary — right-aligned, 60% width */
-.a4-table--fee {
-  width: 60%;
-  margin-left: auto;
-}
 
 /* ── Table header cells ───────────────────────────────────────────────────── */
 .a4-th {
-  background: #f0ede6;
+  background: transparent;
   color: #1a1916;
   padding: 7px 10px;
   text-align: center;
   font-weight: 700;
   font-size: 12px;
-  border: 1px solid #b8b5ae;
+  border: 1px solid #1a1916;
 }
 
 .a4-th--left {
@@ -252,7 +256,7 @@
 .a4-td {
   padding: 6px 10px;
   text-align: center;
-  border: 1px solid #d4d2cb;
+  border: 1px solid #1a1916;
   color: #333;
   font-size: 12px;
   vertical-align: middle;
@@ -291,24 +295,24 @@
   font-weight: 700;
 }
 
-/* Grand total row */
+/* Stripe row — removed (printing / ink saving) */
 .a4-tr--stripe {
-  background: #f9f9f7;
+  background: transparent;
 }
 
 /* Applied to each td inside the grand total row */
 .a4-td--total {
-  background: #e8e4db;
+  background: transparent;
   color: #1a1916;
-  border-color: #9a9690;
+  border-color: #1a1916;
   padding: 8px 12px;
   font-weight: 700;
 }
 
 .a4-tr--total .a4-td--total {
-  background: #e8e4db;
+  background: transparent;
   color: #1a1916;
-  border-color: #9a9690;
+  border-color: #1a1916;
   padding: 8px 12px;
   font-weight: 700;
 }
@@ -361,12 +365,11 @@
 /* Service name heading inside appendix sections */
 .a4-svc-header {
   font-weight: 700;
-  font-size: 16px;
-  background: #f0ede6;
+  font-size: 14px;
+  background: transparent;
   color: #1a1916;
-  padding: 5px 10px;
-  border-radius: 4px;
-  border: 1px solid #b8b5ae;
+  padding: 4px 0 4px 9px;
+  border-left: 3px solid #1a1916;
   margin-bottom: 8px;
 }
 
@@ -410,6 +413,88 @@
 .a4-desc-block i { font-style: italic; }
 .a4-desc-block u { text-decoration: underline; }
 
+
+/* ── Fee card (payment stages + summary) ─────────────────────────────────── */
+.a4-fee-card {
+  display: flex;
+  border: 1px solid #1a1916;
+  border-radius: 3px;
+  overflow: hidden;
+  font-size: 12px;
+}
+
+.a4-fee-stages {
+  flex: 1;
+  border-right: 1px solid #1a1916;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.a4-fee-stage-row {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.a4-fee-stage-name {
+  flex: 1;
+  color: #333;
+}
+
+.a4-fee-stage-pct {
+  width: 34px;
+  text-align: right;
+  color: #666;
+}
+
+.a4-fee-stage-amt {
+  width: 96px;
+  text-align: right;
+  font-weight: 600;
+  color: #1a1916;
+}
+
+.a4-fee-summary {
+  flex: 0 0 220px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.a4-fee-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  color: #555;
+}
+
+.a4-fee-divider {
+  border-top: 1px solid #1a1916;
+  margin: 6px 0 4px;
+}
+
+.a4-fee-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.a4-fee-total-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #1a1916;
+}
+
+.a4-fee-total-amount {
+  font-size: 17px;
+  font-weight: 700;
+  color: #1a1916;
+  letter-spacing: 0.02em;
+}
 
 /* ── Empty state note (no descriptions / no checklist items) ─────────────── */
 .a4-empty-note {

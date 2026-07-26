@@ -51,6 +51,7 @@ const ContractPreview = forwardRef(function ContractPreview(
   // ── Overflow detection: split to two pages when 承攬內容 is too long ───────
   const bodyRef = useRef(null)
   const [twoPage, setTwoPage] = useState(false)
+  const totalPages = twoPage ? 2 : 1
 
   useLayoutEffect(() => {
     const el = bodyRef.current
@@ -128,98 +129,87 @@ const ContractPreview = forwardRef(function ContractPreview(
           ref={bodyRef}
           className={`ct-body${twoPage ? ' ct-body--full' : ''}`}
         >
-          {/* ── Header ── */}
-          <div className="ct-header">
-            <span className="ct-header__title">承　攬　合　約</span>
-            {contractNum && (
-              <span className="ct-header__num">合約編號：{contractNum}</span>
-            )}
+          {/* ── Letterhead: company info left, contract title right ── */}
+          <div className="ct-letterhead">
+            <div className="ct-company-block">
+              <div className="ct-company-name">{companyInfo?.name || '公司名稱'}</div>
+              {companyInfo?.address && <div className="ct-company-meta">{companyInfo.address}</div>}
+              {companyInfo?.phone && <div className="ct-company-meta">電話：{companyInfo.phone}</div>}
+              {companyInfo?.fax && <div className="ct-company-meta">傳真：{companyInfo.fax}</div>}
+              {companyInfo?.email && <div className="ct-company-meta">E-mail：{companyInfo.email}</div>}
+            </div>
+            <div className="ct-doc-title">
+              <div className="ct-doc-title__main">承　攬　合　約</div>
+              {contractNum && <div className="ct-doc-title__num">合約編號：{contractNum}</div>}
+            </div>
           </div>
+          <div className="ct-letterhead-rule" />
 
           {/* ── Meta ── */}
-          <div className="ct-meta">
-            <table className="ct-meta-table">
-              <colgroup>
-                <col style={{ width: '60px' }} />
-                <col style={{ width: '8px' }} />
-                <col />
-              </colgroup>
-              <tbody>
-                <tr>
-                  <td className="ct-meta-label">工程項目</td>
-                  <td className="ct-meta-sep">：</td>
-                  <td className="ct-meta-value">{projectItem}</td>
-                </tr>
-                <tr>
-                  <td className="ct-meta-label">工地名稱</td>
-                  <td className="ct-meta-sep">：</td>
-                  <td className="ct-meta-value">{siteName}</td>
-                </tr>
-                <tr>
-                  <td className="ct-meta-label">廠商名稱</td>
-                  <td className="ct-meta-sep">：</td>
-                  <td className="ct-meta-value">{companyInfo?.name || '—'}</td>
-                </tr>
-              </tbody>
-            </table>
+          <div className="ct-meta-sections">
+            <div className="ct-section">
+              <div className="ct-section-title">工程項目</div>
+              <div className="ct-meta-val-text">{projectItem}</div>
+            </div>
+            <div className="ct-section">
+              <div className="ct-section-title">工地名稱</div>
+              <div className="ct-meta-val-text">{siteName}</div>
+            </div>
           </div>
 
-          {/* ── Fee table ── */}
+          {/* ── Fee table (4 columns) ── */}
+          <div className="ct-section">
+          <div className="ct-section-title">承攬金額</div>
           <table className="ct-fee-table">
             <thead>
               <tr>
-                <th className="ct-th ct-col-no">編號</th>
                 <th className="ct-th ct-col-item">項　目</th>
-                <th className="ct-th ct-col-unit">單位</th>
-                <th className="ct-th ct-col-qty">數量</th>
                 <th className="ct-th ct-col-price">單　價</th>
-                <th className="ct-th ct-col-total">積　價</th>
-                <th className="ct-th ct-col-note">備　註</th>
+                <th className="ct-th ct-col-qty">數　量</th>
+                <th className="ct-th ct-col-total">金　額</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td className="ct-td ct-col-no">1</td>
-                <td className="ct-td ct-col-item ct-td--left">{projectItem}</td>
-                <td className="ct-td ct-col-unit">式</td>
-                <td className="ct-td ct-col-qty">1</td>
+                <td className="ct-td ct-td--left ct-col-item">{projectItem}</td>
                 <td className="ct-td ct-col-price">{fmtAmt(feeAmount)}</td>
+                <td className="ct-td ct-col-qty">1 式</td>
                 <td className="ct-td ct-col-total">{fmtAmt(feeAmount)}</td>
-                <td className="ct-td ct-col-note"></td>
               </tr>
-              <tr className="ct-tr-sum">
-                <td className="ct-td" colSpan={5}>小　計</td>
-                <td className="ct-td ct-col-total">{fmtAmt(feeAmount)}</td>
-                <td className="ct-td ct-col-note"></td>
+              <tr className="ct-tr-sub">
+                <td className="ct-td" colSpan={2} />
+                <td className="ct-td ct-td--sub-label">小　計</td>
+                <td className="ct-td ct-td--sub-val">{fmtAmt(feeAmount)}</td>
               </tr>
-              <tr className="ct-tr-sum">
-                <td className="ct-td" colSpan={5}>營業稅</td>
-                <td className="ct-td ct-col-total">{taxAmount > 0 ? fmtAmt(taxAmount) : ''}</td>
-                <td className="ct-td ct-col-note"></td>
-              </tr>
-              <tr className="ct-tr-total">
-                <td className="ct-td" colSpan={5}>合　計</td>
-                <td className="ct-td ct-col-total">{fmtAmt(grandTotal)}</td>
-                <td className="ct-td ct-col-note"></td>
+              <tr className="ct-tr-sub">
+                <td className="ct-td" colSpan={2} />
+                <td className="ct-td ct-td--sub-label">營業稅</td>
+                <td className="ct-td ct-td--sub-val">{taxAmount > 0 ? fmtAmt(taxAmount) : '—'}</td>
               </tr>
             </tbody>
+            <tfoot>
+              <tr className="ct-tr-grand">
+                <td className="ct-td ct-td--grand-label" colSpan={3}>總承攬價</td>
+                <td className="ct-td ct-td--grand-val">
+                  <div className="ct-grand-amount">NT$ {fmtAmt(grandTotal)}</div>
+                  <div className="ct-grand-note">
+                    {quotation?.tax_included ? '含稅' : '未稅'}，{amountToChineseLarge(grandTotal)}
+                  </div>
+                </td>
+              </tr>
+            </tfoot>
           </table>
-
-          {/* ── 總承攬價 ── */}
-          <div className="ct-amount-text">
-            總承攬價：{amountToChineseLarge(grandTotal)}
-            {quotation?.tax_included ? '（含稅）' : '（未稅）'}
-          </div>
+          </div>{/* end ct-section 承攬金額 */}
 
           {/* ── 承攬內容 ── */}
           <div className="ct-section">
-            <div className="ct-section-title">承　攬　內　容</div>
+            <div className="ct-section-title">承攬內容</div>
             <div className="ct-content-body">
 
               {services.length > 0 && (
                 <div className="ct-clause">
                   <div className="ct-clause-title">一、本項工程之申辦項目為：</div>
-                  <ol className="ct-clause-list">
+                  <ol className="ct-clause-list ct-clause-list--two-col">
                     {services.map((svc, i) => (
                       <li key={svc.id || i}>{svc.service_name}</li>
                     ))}
@@ -238,16 +228,16 @@ const ContractPreview = forwardRef(function ContractPreview(
               {stages.length > 0 && (
                 <div className="ct-clause">
                   <div className="ct-clause-title">四、付款方法：</div>
-                  <ol className="ct-clause-list">
+                  <div className="ct-stages-inline">
                     {stages.map((st, i) => {
                       const stageAmt = Math.round((Number(st.percentage) / 100) * grandTotal)
                       return (
-                        <li key={st.id || i}>
-                          {st.stage_name} {st.percentage}% 請領 NT$ {fmtAmt(stageAmt)}
-                        </li>
+                        <span key={st.id || i}>
+                          {i + 1}、{st.stage_name} {st.percentage}%　NT$ {fmtAmt(stageAmt)}
+                        </span>
                       )
                     })}
-                  </ol>
+                  </div>
                 </div>
               )}
 
@@ -264,7 +254,22 @@ const ContractPreview = forwardRef(function ContractPreview(
         {!twoPage && (
           <div className="ct-bottom">{bottomSection}</div>
         )}
+
+        {/* Page footer */}
+        <div className="ct-page-footer">
+          <span>合約如有疑問，敬請來電洽詢。</span>
+          <span className="ct-page-footer__page">第 1 / {totalPages} 頁</span>
+        </div>
       </div>
+
+      {/* ── Page break indicator (preview only — removed by useExportPDF before PDF gen) ── */}
+      {twoPage && (
+        <div className="a4-page-break">
+          <div className="a4-page-break__line" />
+          <span>— 分頁線 第 1 / 2 頁 —</span>
+          <div className="a4-page-break__line" />
+        </div>
+      )}
 
       {/* ── Page 2 (rendered only when content overflows page 1) ── */}
       {twoPage && (
@@ -278,6 +283,12 @@ const ContractPreview = forwardRef(function ContractPreview(
           </div>
 
           <div className="ct-bottom ct-bottom--page2">{bottomSection}</div>
+
+          {/* Page footer */}
+          <div className="ct-page-footer">
+            <span>合約如有疑問，敬請來電洽詢。</span>
+            <span className="ct-page-footer__page">第 2 / {totalPages} 頁</span>
+          </div>
         </div>
       )}
 

@@ -177,27 +177,29 @@ function DocHeader({ mode, quotation, client, contactPerson, companyInfo, title 
         </>
       )}
       <div className="a4-rule" />
-      <div className="a4-section">
-        <div className="a4-section-label">委託方資料</div>
-        <div className="a4-info-grid">
-          <MetaRow label="公司名稱" value={client?.company_name} />
-          <MetaRow label="地　　址" value={client?.address} />
-          {contactPerson && <MetaRow label="聯　絡　人" value={`${contactPerson.name || ''}　${contactPerson.mobile || ''}`} />}
-          {contactPerson?.email && <MetaRow label="電子郵件" value={contactPerson.email} />}
-        </div>
-      </div>
-      {(quotation.building_permit || quotation.project_owner || quotation.land_section) && (
+      <div className="a4-info-cols">
         <div className="a4-section">
-          <div className="a4-section-label">工程資料</div>
+          <div className="a4-section-label">委託方資料</div>
           <div className="a4-info-grid">
-            {quotation.project_owner && <MetaRow label="起　造　人" value={quotation.project_owner} />}
-            {quotation.building_permit && <MetaRow label="建照號碼" value={quotation.building_permit} />}
-            {quotation.land_section && <MetaRow label="地　　號" value={quotation.land_section} />}
-            {quotation.project_scale && <MetaRow label="工程規模" value={quotation.project_scale} />}
-            {quotation.marketing_name && <MetaRow label="工程名稱" value={quotation.marketing_name} />}
+            <MetaRow label="公司名稱" value={client?.company_name} />
+            <MetaRow label="地　　址" value={client?.address} />
+            {contactPerson && <MetaRow label="聯　絡　人" value={`${contactPerson.name || ''}　${contactPerson.mobile || ''}`} />}
+            {contactPerson?.email && <MetaRow label="電子郵件" value={contactPerson.email} />}
           </div>
         </div>
-      )}
+        {(quotation.building_permit || quotation.project_owner || quotation.land_section) && (
+          <div className="a4-section">
+            <div className="a4-section-label">工程資料</div>
+            <div className="a4-info-grid">
+              {quotation.project_owner && <MetaRow label="起　造　人" value={quotation.project_owner} />}
+              {quotation.building_permit && <MetaRow label="建照號碼" value={quotation.building_permit} />}
+              {quotation.land_section && <MetaRow label="地　　號" value={quotation.land_section} />}
+              {quotation.project_scale && <MetaRow label="工程規模" value={quotation.project_scale} />}
+              {quotation.marketing_name && <MetaRow label="工程名稱" value={quotation.marketing_name} />}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
@@ -279,58 +281,45 @@ function buildQuotationSections({
     })
   })
 
-  // ── Payment stages (conditional) ──
-  if (stages.length > 0) {
-    sec.push({
-      key: 'stages',
-      element: (
-        <div className="a4-section a4-section--top">
-          <div className="a4-section-label">報價金額及付款階段</div>
-          <table className="a4-table">
-            <thead>
-              <tr>
-                <th className="a4-th a4-th--left a4-th--half">付款階段</th>
-                <th className="a4-th">百分比</th>
-                <th className="a4-th">金額</th>
-              </tr>
-            </thead>
-            <tbody>
-              {stages.map((st, idx) => (
-                <tr key={st.id || idx}>
-                  <td className="a4-td a4-td--left">{st.stage_name}</td>
-                  <td className="a4-td">{st.percentage}%</td>
-                  <td className="a4-td a4-td--strong">{fmt(st.percentage / 100 * grandTotal)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ),
-    })
-  }
-
-  // ── Fee summary ──
+  // ── Payment stages + Fee summary (combined card) ──
   sec.push({
-    key: 'fee',
+    key: 'stages-fee',
     element: (
-      <table className="a4-table a4-table--fee">
-        <tbody>
-          <tr>
-            <td className="a4-td a4-td--left">服務費用（未稅）</td>
-            <td className="a4-td a4-td--strong">{fmt(total)}</td>
-          </tr>
-          {quotation.tax_included && (
-            <tr>
-              <td className="a4-td a4-td--left">營業稅（5%）</td>
-              <td className="a4-td">{fmt(taxAmount)}</td>
-            </tr>
+      <div className="a4-section a4-section--top">
+        <div className="a4-section-label">
+          {stages.length > 0 ? '報價金額及付款階段' : '報價金額'}
+        </div>
+        <div className="a4-fee-card">
+          {stages.length > 0 && (
+            <div className="a4-fee-stages">
+              {stages.map((st, idx) => (
+                <div key={st.id || idx} className="a4-fee-stage-row">
+                  <span className="a4-fee-stage-name">{st.stage_name}</span>
+                  <span className="a4-fee-stage-pct">{st.percentage}%</span>
+                  <span className="a4-fee-stage-amt">{fmt(Math.round(st.percentage / 100 * grandTotal))}</span>
+                </div>
+              ))}
+            </div>
           )}
-          <tr className="a4-tr--total">
-            <td className="a4-td a4-td--left a4-td--total">合計金額</td>
-            <td className="a4-td a4-td--total a4-td--strong">{fmt(grandTotal)}</td>
-          </tr>
-        </tbody>
-      </table>
+          <div className="a4-fee-summary">
+            <div className="a4-fee-row">
+              <span>服務費用（未稅）</span>
+              <span>{fmt(total)}</span>
+            </div>
+            {quotation.tax_included && (
+              <div className="a4-fee-row">
+                <span>營業稅（5%）</span>
+                <span>{fmt(taxAmount)}</span>
+              </div>
+            )}
+            <div className="a4-fee-divider" />
+            <div className="a4-fee-total-row">
+              <span className="a4-fee-total-label">合計金額</span>
+              <span className="a4-fee-total-amount">{fmt(grandTotal)}</span>
+            </div>
+          </div>
+        </div>
+      </div>
     ),
   })
 

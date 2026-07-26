@@ -197,6 +197,7 @@ export default function QuotationDetailPage() {
     try {
       await exportPDF(contractPreviewRef, {
         filename: `合約-${contract.contract_number || qt.quote_number}`,
+        styleMatchers: ['ct-'],
         onSuccess: () => toast.success('PDF 匯出成功'),
       })
     } catch (err) {
